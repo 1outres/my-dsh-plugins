@@ -1,0 +1,56 @@
+{
+  "name": "@1outres/dsh-plugin-claude-subscription",
+  "version": "0.2.0",
+  "description": "Use your own Claude subscription in DeepSeek Harness through the official Claude Code CLI. Unofficial; not affiliated with Anthropic.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1outres/my-dsh-plugins.git",
+    "directory": "packages/dsh-plugin-claude-subscription"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs",
+    "eval": "node evals/run-all.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "llm-provider"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "dsh": ">=0.2.1-rc.5 <0.3.0",
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "~3.18.5"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.5"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-attachment": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-subprocess": "0.2.1-rc.5"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": [
+        "./cordis.patch.yml"
+      ]
+    }
+  }
+}

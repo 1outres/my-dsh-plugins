@@ -21,10 +21,11 @@ bundle insert the same row id, so selecting both inserts that row twice.
 
 ## Plugins
 
-| Plugin                                                             | Row id       | What it does                                                                                                                   |
-| ------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background) | `background` | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                            |
-| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)         | `notify`     | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background. |
+| Plugin                                                                               | Row id                | What it does                                                                                                                   |
+| ------------------------------------------------------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background)                   | `background`          | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                            |
+| [`@1outres/dsh-plugin-claude-subscription`](packages/dsh-plugin-claude-subscription) | `claude-subscription` | Unofficial. Adds your own Claude subscription as a model provider, through the official `claude` CLI.                          |
+| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background. |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
 
@@ -128,9 +129,11 @@ version, so the plugins are published before the bundle.
 packages/
   dsh-plugins/            @1outres/dsh-plugins — the bundle (patch + dependencies)
   dsh-plugin-background/  @1outres/dsh-plugin-background — host + browser halves
+  dsh-plugin-claude-subscription/
+                          @1outres/dsh-plugin-claude-subscription — LLM provider on the `claude` CLI
   dsh-plugin-notify/      @1outres/dsh-plugin-notify — browser-side desktop notifications
 scripts/
-  build.mjs               esbuild host/client build + client wrapper
+  build.mjs               esbuild host/client/standalone build + client wrapper
   new-plugin.mjs          plugin generator
 ```
 

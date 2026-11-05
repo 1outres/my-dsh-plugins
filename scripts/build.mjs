@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { constants } from "node:fs"
 import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises"
-import { join } from "node:path"
+import { basename, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { build, context } from "esbuild"
 
@@ -43,6 +43,55 @@ function wrapClient(id, code) {
   ].join("\n")
 }
 
+async function standaloneEntries(targetDir) {
+  const standaloneDir = join(targetDir, "standalone")
+  if (!(await fileExists(standaloneDir))) return []
+  const files = await readdir(standaloneDir)
+  return files
+    .filter((file) => file.endsWith(".ts"))
+    .sort()
+    .map((file) => join(standaloneDir, file))
+}
+
+/**
+ * Build each `src/standalone/*.ts` to `lib/<name>.js`. These run as their own Node process, so
+ * they bundle everything they import.
+ */
+async function buildStandaloneScripts(name, entries, outDir) {
+  for (const entry of entries) {
+    const script = basename(entry, ".ts")
+    const label = `${name}/lib/${script}.js`
+    const options = {
+      entryPoints: [entry],
+      outfile: join(outDir, `${script}.js`),
+      bundle: true,
+      format: "esm",
+      platform: "node",
+      target: "es2022",
+      logLevel: "warning",
+    }
+    if (watch) {
+      const buildContext = await context({
+        ...options,
+        plugins: [
+          {
+            name: "log-standalone",
+            setup(buildApi) {
+              buildApi.onEnd((result) => {
+                if (result.errors.length === 0) console.log(`rebuilt ${label}`)
+              })
+            },
+          },
+        ],
+      })
+      await buildContext.watch()
+    } else {
+      await build(options)
+      console.log(`built ${label}`)
+    }
+  }
+}
+
 async function buildPackage(name) {
   const packageDir = join(packagesRoot, name)
   const manifest = JSON.parse(await readFile(join(packageDir, "package.json"), "utf8"))
@@ -58,9 +107,12 @@ async function buildPackage(name) {
       : undefined
 
   const hasHost = await fileExists(hostEntry)
-  if (!hasHost && clientEntry === undefined) return
+  const standalone = await standaloneEntries(targetDir)
+  if (!hasHost && clientEntry === undefined && standalone.length === 0) return
 
   await mkdir(outDir, { recursive: true })
+
+  await buildStandaloneScripts(name, standalone, outDir)
 
   if (hasHost) {
     const options = {
