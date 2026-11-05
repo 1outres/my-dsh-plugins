@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Scratchpad</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#F2A33A"/>
+  <path d="M19 13H37L47 23V48C47 49.657 45.657 51 44 51H19C17.343 51 16 49.657 16 48V16C16 14.343 17.343 13 19 13Z" fill="#FFFFFF" fill-opacity="0.95"/>
+  <path d="M37 13V20C37 21.657 38.343 23 40 23H47" fill="#FBE3BD"/>
+  <path d="M37 13V20C37 21.657 38.343 23 40 23H47" stroke="#C97A12" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M22 30H34M22 36H30" stroke="#E0A44E" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="41" cy="42" r="8" fill="#C97A12"/>
+  <path d="M41 38V46M37 42H45" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

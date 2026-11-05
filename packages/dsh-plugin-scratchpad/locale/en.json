@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Scratchpad",
+    "description": "One click opens a session in a new empty directory, registered as its own workspace, for one-off scripts, experiments, research and writing. Archiving every session in a scratch moves its directory to .archived; unarchiving moves it back."
+  }
+}

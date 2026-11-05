@@ -14,3 +14,5 @@
       name: "@1outres/dsh-plugin-model-picker"
     - id: edit-message
       name: "@1outres/dsh-plugin-edit-message"
+    - id: scratchpad
+      name: "@1outres/dsh-plugin-scratchpad"

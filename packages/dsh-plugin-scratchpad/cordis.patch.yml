@@ -1,0 +1,6 @@
+# Installs this plugin on its own (dsh plugin add @1outres/dsh-plugin-scratchpad).
+# The @1outres/dsh-plugins bundle inserts the same "scratchpad" row, so select
+# one bundle or the other, never both.
+- insert:
+    - id: scratchpad
+      name: "@1outres/dsh-plugin-scratchpad"
