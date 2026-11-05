@@ -5,10 +5,12 @@
   "type": "module",
   "exports": {
     "./cordis.patch.yml": "./cordis.patch.yml",
+    "./presets/creator-ptc.patch.yml": "./presets/creator-ptc.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "presets"
   ],
   "keywords": [
     "dsh",
@@ -28,7 +30,10 @@
   },
   "dsh": {
     "bundle": {
-      "patch": "./cordis.patch.yml"
+      "patch": [
+        "./cordis.patch.yml",
+        "./presets/creator-ptc.patch.yml"
+      ]
     }
   }
 }

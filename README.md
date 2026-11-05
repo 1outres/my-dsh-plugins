@@ -16,6 +16,14 @@ dsh plugin add @1outres/dsh-plugins
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle.
 
+## Presets
+
+| Preset id     | Name            | What it is                                                                                                                                                    |
+| ------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `creator-ptc` | `Creator (PTC)` | The shipped Creator preset, with PTC tool presentation: the model calls every tool through `run_code` and a generated SDK instead of native function calling. |
+
+A preset is a full copy of a shipped preset, because a preset cannot inherit from another. Re-copy the child list (and keep the single `tool-presentation` row) when a DSH upgrade changes the Creator preset it mirrors.
+
 ## Requirements
 
 - DeepSeek Harness `>=0.2.1-rc.5 <0.3.0`.
