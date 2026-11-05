@@ -6,6 +6,7 @@ core.*
 .DS_Store
 .secrets/
 .local/
+.claude/
 .env
 .env.*
 !.env.example

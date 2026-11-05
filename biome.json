@@ -1,6 +1,13 @@
 {
   "files": {
-    "includes": ["**", "!**/node_modules", "!**/lib", "!pnpm-lock.yaml", "!**/coverage"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/lib",
+      "!pnpm-lock.yaml",
+      "!**/coverage",
+      "!**/.claude"
+    ]
   },
   "formatter": {
     "enabled": true,
