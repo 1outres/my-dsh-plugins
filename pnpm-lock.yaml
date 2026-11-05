@@ -232,6 +232,15 @@ importers:
         specifier: 0.2.1-rc.5
         version: 0.2.1-rc.5(@deepseek-ai/cordis@4.0.5)(@deepseek-ai/dsh-http-proxy@0.2.1-rc.5(@deepseek-ai/cordis@4.0.5))
 
+  packages/dsh-plugin-edit-message:
+    dependencies:
+      '@deepseek-ai/cordis':
+        specifier: ~4.0.5
+        version: 4.0.5
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+
   packages/dsh-plugin-model-picker:
     dependencies:
       '@deepseek-ai/cordis':
@@ -264,6 +273,9 @@ importers:
       '@1outres/dsh-plugin-claude-subscription':
         specifier: workspace:*
         version: link:../dsh-plugin-claude-subscription
+      '@1outres/dsh-plugin-edit-message':
+        specifier: workspace:*
+        version: link:../dsh-plugin-edit-message
       '@1outres/dsh-plugin-model-picker':
         specifier: workspace:*
         version: link:../dsh-plugin-model-picker

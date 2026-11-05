@@ -1,0 +1,6 @@
+# Installs this plugin on its own (dsh plugin add @1outres/dsh-plugin-edit-message).
+# The @1outres/dsh-plugins bundle inserts the same "edit-message" row, so select
+# one bundle or the other, never both.
+- insert:
+    - id: edit-message
+      name: "@1outres/dsh-plugin-edit-message"

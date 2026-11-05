@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Edit Message</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#4D6BFE"/>
+  <path d="M15 18.5C15 16.567 16.567 15 18.5 15H40.5C42.433 15 44 16.567 44 18.5V32.5C44 34.433 42.433 36 40.5 36H27L20 42V36H18.5C16.567 36 15 34.433 15 32.5V18.5Z" fill="#FFFFFF" fill-opacity="0.92"/>
+  <path d="M21 22H37M21 28H31" stroke="#4D6BFE" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M46.6 30.4L50.6 34.4L36.8 48.2L31.6 49.4L32.8 44.2L46.6 30.4Z" fill="#FFFFFF" stroke="#2E47C9" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M43.8 33.2L47.8 37.2" stroke="#2E47C9" stroke-width="2"/>
+</svg>

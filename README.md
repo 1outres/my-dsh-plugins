@@ -21,12 +21,13 @@ bundle insert the same row id, so selecting both inserts that row twice.
 
 ## Plugins
 
-| Plugin                                                                               | Row id                | What it does                                                                                                                                    |
-| ------------------------------------------------------------------------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background)                   | `background`          | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                                             |
-| [`@1outres/dsh-plugin-claude-subscription`](packages/dsh-plugin-claude-subscription) | `claude-subscription` | Unofficial. Adds your own Claude subscription as a model provider, through the official `claude` CLI.                                           |
-| [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu. |
-| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background.                  |
+| Plugin                                                                               | Row id                | What it does                                                                                                                                                |
+| ------------------------------------------------------------------------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background)                   | `background`          | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                                                         |
+| [`@1outres/dsh-plugin-claude-subscription`](packages/dsh-plugin-claude-subscription) | `claude-subscription` | Unofficial. Adds your own Claude subscription as a model provider, through the official `claude` CLI.                                                       |
+| [`@1outres/dsh-plugin-edit-message`](packages/dsh-plugin-edit-message)               | `edit-message`        | Adds Edit beside Copy on your sent messages: the conversation restarts from just before that message with the edited text, and the old version is archived. |
+| [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.             |
+| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background.                              |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
 
@@ -132,6 +133,8 @@ packages/
   dsh-plugin-background/  @1outres/dsh-plugin-background — host + browser halves
   dsh-plugin-claude-subscription/
                           @1outres/dsh-plugin-claude-subscription — LLM provider on the `claude` CLI
+  dsh-plugin-edit-message/
+                          @1outres/dsh-plugin-edit-message — edit a sent message and restart from it
   dsh-plugin-model-picker/
                           @1outres/dsh-plugin-model-picker — searchable composer model picker
   dsh-plugin-notify/      @1outres/dsh-plugin-notify — browser-side desktop notifications

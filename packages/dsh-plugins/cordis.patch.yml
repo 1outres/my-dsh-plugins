@@ -12,3 +12,5 @@
       name: "@1outres/dsh-plugin-claude-subscription"
     - id: model-picker
       name: "@1outres/dsh-plugin-model-picker"
+    - id: edit-message
+      name: "@1outres/dsh-plugin-edit-message"

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Edit Message",
+    "description": "Adds an Edit button beside Copy on your sent messages. Sending the edited text restarts the conversation from just before that message and archives the old one. Files are not reverted."
+  }
+}
