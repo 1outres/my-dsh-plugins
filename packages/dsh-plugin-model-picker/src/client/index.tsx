@@ -6,8 +6,21 @@ import { createRecentStore, type StorageEventTarget, type StorageLike } from "./
 import { PICKER_CSS } from "./styles"
 import type { ClientContext, ModelPickerConfig, ModelSelection } from "./types"
 
-/** Cordis services required by the browser half. Without `modelDirectories` the shipped seat stays. */
-export const inject = ["slots", "locale", "configForms", "sessions", "modelDirectories"]
+/**
+ * Cordis services required by the browser half. Without `modelDirectories`
+ * the shipped seat stays. `directoryFor()` runs against the caller's context
+ * and creates a Session's directory over `remote.session`, so the caller must
+ * inject the remote faces the shipped service declares.
+ */
+export const inject = [
+  "slots",
+  "locale",
+  "configForms",
+  "sessions",
+  "remote",
+  "remote.session",
+  "modelDirectories",
+]
 
 const PLUGIN_ID = "@1outres/dsh-plugin-model-picker"
 

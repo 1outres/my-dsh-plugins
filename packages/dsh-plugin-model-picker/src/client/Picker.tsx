@@ -98,7 +98,7 @@ function useObservable<T>(observable: Observable<T>): T {
     [observable],
   )
   const getSnapshot = useCallback(() => observable.getSnapshot(), [observable])
-  return useSyncExternalStore(subscribe, getSnapshot)
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
 
 /** The shipped transient toast, anchored over the composer card. */

@@ -172,9 +172,16 @@ function faceOf(harness: ReturnType<typeof createHarness>, sessionId: string): F
 }
 
 describe("model-picker client half", () => {
-  it("waits for the model directory service before mounting", () => {
-    expect(inject).toContain("modelDirectories")
-    expect(inject).toContain("configForms")
+  it("waits for the model directory service and the faces it creates directories with", () => {
+    expect(inject).toEqual(
+      expect.arrayContaining([
+        "modelDirectories",
+        "configForms",
+        "sessions",
+        "remote",
+        "remote.session",
+      ]),
+    )
   })
 
   it("shadows the composer model seat above the shipped selector", () => {
