@@ -6,7 +6,8 @@
       "!**/lib",
       "!pnpm-lock.yaml",
       "!**/coverage",
-      "!**/.claude"
+      "!**/.claude",
+      "!**/.worktrees"
     ]
   },
   "formatter": {
