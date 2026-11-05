@@ -100,14 +100,27 @@ everything; each plugin package is also installable alone.
 
 ## Releasing
 
-Keep every package on the same version and publish the workspace:
+Keep every package on the same version, then push a `v*` tag:
+
+```sh
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+[`.github/workflows/release.yml`](.github/workflows/release.yml) runs
+typecheck, lint, tests and the build, refuses a tag that does not match every
+`package.json` version, and publishes the workspace to npm with provenance. It
+needs an `NPM_TOKEN` repository secret: an npm automation token allowed to
+publish the `@1outres` scope.
+
+To publish from a local checkout instead:
 
 ```sh
 pnpm release   # build, then pnpm -r publish --access public
 ```
 
 `pnpm` replaces the bundle's `workspace:*` dependency with the published
-version. Publish the plugin packages before the bundle if you publish by hand.
+version, so the plugins are published before the bundle.
 
 ## Layout
 
