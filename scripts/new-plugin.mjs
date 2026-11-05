@@ -43,7 +43,7 @@ const pluginManifest = {
     "./client": "./lib/client.js",
     "./package.json": "./package.json",
   },
-  files: ["lib"],
+  files: ["lib", "cordis.patch.yml"],
   keywords: ["dsh", "dsh-plugin", "deepseek-harness"],
   license: "MIT",
   engines: {
@@ -55,6 +55,9 @@ const pluginManifest = {
     react: "^18.2.0",
   },
   dsh: {
+    bundle: {
+      patch: ["./cordis.patch.yml"],
+    },
     client: {
       platform: "web",
       inject: [],
@@ -85,6 +88,16 @@ await writeFile(
   join(packageDir, "README.md"),
   `# ${packageName}\n\nTODO: describe what the plugin adds and how to configure it.\n`,
 )
+await writeFile(
+  join(packageDir, "cordis.patch.yml"),
+  `# Installs this plugin on its own (dsh plugin add ${packageName}).
+# The @1outres/dsh-plugins bundle inserts the same "${requested}" row, so select
+# one bundle or the other, never both.
+- insert:
+    - id: ${requested}
+      name: "${packageName}"
+`,
+)
 
 bundleManifest.dependencies = {
   ...bundleManifest.dependencies,
@@ -102,5 +115,6 @@ const addition = `    - id: ${requested}\n      name: "${packageName}"`
 await writeFile(patchPath, `${patch.trimEnd()}\n${addition}\n`)
 
 console.log(`created packages/${directoryName} (${packageName})`)
+console.log(`made it installable alone: packages/${directoryName}/cordis.patch.yml`)
 console.log(`added the "${requested}" row to packages/dsh-plugins/cordis.patch.yml`)
 console.log("next: pnpm install && pnpm build")

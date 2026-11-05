@@ -1,12 +1,23 @@
 # my-dsh-plugins
 
-Personal plugins for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), packaged as one bundle.
+Personal plugins for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
+Every plugin is its own npm package and its own bundle, so you can install one
+plugin or all of them.
 
-One install adds every plugin in this repository:
+Install a single plugin:
+
+```sh
+dsh plugin add @1outres/dsh-plugin-notify
+```
+
+Install every plugin in this repository in one step:
 
 ```sh
 dsh plugin add @1outres/dsh-plugins
 ```
+
+Enable one or the other for a given plugin: the bundle and the plugin's own
+bundle insert the same row id, so selecting both inserts that row twice.
 
 ## Plugins
 
@@ -15,7 +26,7 @@ dsh plugin add @1outres/dsh-plugins
 | [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background) | `background` | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                            |
 | [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)         | `notify`     | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background. |
 
-Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle.
+Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
 
 ## Presets
 
@@ -58,11 +69,12 @@ format for you:
   bundles the browser entry as CommonJS (React stays external) and wraps it in
   that factory.
 
-To try the working tree against a live profile, link the bundle instead of
+To try the working tree against a live profile, link the package instead of
 publishing:
 
 ```sh
-dsh plugin add link:$PWD/packages/dsh-plugins
+dsh plugin add link:$PWD/packages/dsh-plugins            # every plugin
+dsh plugin add link:$PWD/packages/dsh-plugin-notify      # just one
 ```
 
 Rebuilding `lib/client.js` is enough for the open page to hot-swap the plugin
@@ -76,13 +88,15 @@ pnpm new-plugin my-thing
 ```
 
 The generator creates `packages/dsh-plugin-my-thing`, adds it as a workspace
-dependency of the bundle, and appends its row to
-`packages/dsh-plugins/cordis.patch.yml`. Then edit the generated source and run
-`pnpm build`.
+dependency of the bundle, appends its row to
+`packages/dsh-plugins/cordis.patch.yml`, and writes the one-row
+`cordis.patch.yml` that makes the package installable on its own. Then edit the
+generated source and run `pnpm build`.
 
 Each plugin is its own package: the client module loader resolves exactly one
 `exports["./client"]` per package, so separate UI plugins must live in separate
-packages. The bundle is the only package users install.
+packages. The `@1outres/dsh-plugins` bundle stays the one-command install for
+everything; each plugin package is also installable alone.
 
 ## Releasing
 
@@ -106,6 +120,10 @@ scripts/
   build.mjs               esbuild host/client build + client wrapper
   new-plugin.mjs          plugin generator
 ```
+
+Every `packages/dsh-plugin-*` directory ships its own one-row
+`cordis.patch.yml`, which is what makes the package a bundle that installs
+alone.
 
 ## License
 

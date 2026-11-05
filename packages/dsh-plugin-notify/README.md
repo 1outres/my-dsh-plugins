@@ -4,7 +4,15 @@ Show a desktop notification when the DeepSeek Harness Web UI is in the
 background and the Session needs you: a tool call is waiting for approval, the
 agent asked a question (or proposed a plan to review), or a turn finished.
 
-Installed through the [`@1outres/dsh-plugins`](../dsh-plugins) bundle.
+Install just this plugin:
+
+```sh
+dsh plugin add @1outres/dsh-plugin-notify
+```
+
+Or install it with every plugin in the repository through the
+[`@1outres/dsh-plugins`](../dsh-plugins) bundle. Enable one or the other: both
+insert the same `notify` row.
 
 ## Settings
 

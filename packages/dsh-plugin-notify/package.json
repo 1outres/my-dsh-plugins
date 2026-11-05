@@ -10,7 +10,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "lib"
+    "lib",
+    "cordis.patch.yml"
   ],
   "keywords": [
     "dsh",
@@ -35,6 +36,11 @@
     "react": "^18.2.0"
   },
   "dsh": {
+    "bundle": {
+      "patch": [
+        "./cordis.patch.yml"
+      ]
+    },
     "client": {
       "platform": "web",
       "inject": [

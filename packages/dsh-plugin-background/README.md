@@ -5,7 +5,15 @@ usable: panels become translucent, a configurable veil keeps text readable, and
 the image can be blurred. The Settings dialog stays opaque so its controls remain
 readable over any image.
 
-Installed through the [`@1outres/dsh-plugins`](../dsh-plugins) bundle.
+Install just this plugin:
+
+```sh
+dsh plugin add @1outres/dsh-plugin-background
+```
+
+Or install it with every plugin in the repository through the
+[`@1outres/dsh-plugins`](../dsh-plugins) bundle. Enable one or the other: both
+insert the same `background` row.
 
 ## Settings
 
