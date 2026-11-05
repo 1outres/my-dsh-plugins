@@ -5,6 +5,7 @@ export const en: Record<string, string> = {
   description:
     "Paint an image behind the whole interface. Point at an absolute path on the machine running DSH, or at an https URL.",
   enable: "Enable background",
+  enableHint: "Turns the wallpaper off without clearing the image or the readability controls.",
   image: "Image path or URL",
   imageHint:
     "Absolute local path, for example /home/you/wallpaper.jpg, or an https:// URL. Local images are served through the authenticated file route, so they never leave the Host.",

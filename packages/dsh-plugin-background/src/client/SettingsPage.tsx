@@ -1,5 +1,6 @@
+import { Switch } from "@deepseek-ai/dsh-client-ui-primitives"
 import type { ChangeEvent, CSSProperties, KeyboardEvent } from "react"
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react"
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
 import { normalizeConfig } from "./config"
 import { clamp, dimColor, imageCssValue, resolveImageSource } from "./format"
 import type { BackgroundConfig, ConfigForm, Translate } from "./types"
@@ -52,6 +53,24 @@ const hintStyle: CSSProperties = {
   color: "var(--dsw-alias-label-tertiary)",
   fontSize: 12,
   lineHeight: 1.5,
+}
+
+const switchHintStyle: CSSProperties = {
+  ...hintStyle,
+  marginTop: 4,
+}
+
+const switchRowStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 24,
+  marginTop: 22,
+}
+
+const switchTitleStyle: CSSProperties = {
+  fontSize: 13,
+  fontWeight: 600,
 }
 
 const errorStyle: CSSProperties = {
@@ -108,6 +127,85 @@ const mutedStyle: CSSProperties = {
   lineHeight: 1.6,
 }
 
+/** How long a paused or abandoned drag may sit before its value reaches the Host. */
+const SLIDER_COMMIT_DELAY = 300
+
+interface SliderDraft {
+  /** Value the thumb and the preview render; ahead of the Host while dragging. */
+  value: number
+  /** Adopt a new value immediately and schedule the Host write. */
+  change: (next: number) => void
+  /** Hand the pending value to the Host now, when the gesture ends. */
+  flush: () => void
+}
+
+/**
+ * Range input state that keeps the thumb under the pointer.
+ *
+ * Driving a controlled range input straight from the `configForms` snapshot
+ * round-trips every input event to the Host. Each answer replaces the snapshot
+ * with an older value, so the thumb is dragged back and a fast drag turns into
+ * a fight with the pointer. Keep a local draft, commit once the gesture settles,
+ * and ignore Host answers while a local write is still in flight: those echoes
+ * describe values from earlier in the same drag.
+ */
+function useSliderDraft(
+  committed: number,
+  commit: (value: number) => Promise<boolean>,
+): SliderDraft {
+  const [value, setValue] = useState(committed)
+  const latest = useRef(committed)
+  const dirty = useRef(false)
+  const inFlight = useRef(0)
+  const timer = useRef<number | undefined>(undefined)
+
+  // Adopt Host-side changes (reset, another window) only while no local value is queued.
+  useEffect(() => {
+    if (dirty.current || inFlight.current > 0) return
+    latest.current = committed
+    setValue(committed)
+  }, [committed])
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current)
+    },
+    [],
+  )
+
+  const send = () => {
+    window.clearTimeout(timer.current)
+    timer.current = undefined
+    if (!dirty.current) return
+    dirty.current = false
+    const sent = latest.current
+    inFlight.current += 1
+    void commit(sent).then((accepted) => {
+      inFlight.current -= 1
+      if (accepted || dirty.current || inFlight.current > 0) return
+      // A refused write leaves the draft ahead of the Host; show what it kept.
+      latest.current = committed
+      setValue(committed)
+    })
+  }
+
+  const change = (next: number) => {
+    if (next === latest.current) return
+    latest.current = next
+    dirty.current = true
+    setValue(next)
+    // A lost pointerup or assistive input still settles; a flush cancels this.
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(send, SLIDER_COMMIT_DELAY)
+  }
+
+  const flush = () => {
+    send()
+  }
+
+  return { value, change, flush }
+}
+
 /** Settings page: image source plus the three readability controls. */
 export function SettingsPage({ form, t }: SettingsPageProps) {
   const subscribe = useCallback((listener: () => void) => form.subscribe(listener), [form])
@@ -131,16 +229,25 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
   const previewFailed =
     previewFailure !== null && previewFailure.src === source && previewFailure.failed
 
-  const write = (field: string, value: unknown) => {
-    void form
-      .set(field, value)
-      .then((accepted) => setWriteError(!accepted))
-      .catch(() => setWriteError(true))
-  }
+  const write = (field: string, value: unknown): Promise<boolean> =>
+    form.set(field, value).then(
+      (accepted) => {
+        setWriteError(!accepted)
+        return accepted
+      },
+      () => {
+        setWriteError(true)
+        return false
+      },
+    )
+
+  const opacitySlider = useSliderDraft(config.panelOpacity, (value) => write("panelOpacity", value))
+  const dimSlider = useSliderDraft(config.dim, (value) => write("dim", value))
+  const blurSlider = useSliderDraft(config.blur, (value) => write("blur", value))
 
   const commitImage = () => {
     const next = draft.trim()
-    if (next !== config.image) write("image", next)
+    if (next !== config.image) void write("image", next)
   }
 
   const onImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -165,8 +272,9 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
   }
 
   const disabled = snapshot.writable === false
-  const dim = dimColor(config.dim)
-  const alpha = clamp(config.panelOpacity, 0, 100) / 100
+  const dim = dimColor(dimSlider.value)
+  const alpha = clamp(opacitySlider.value, 0, 100) / 100
+  const blur = clamp(blurSlider.value, 0, 40)
   const dark = document.body.hasAttribute("data-ds-dark-theme")
   const surfaceColor = dark ? `rgba(21, 21, 23, ${alpha})` : `rgba(255, 255, 255, ${alpha})`
   const surfaceText = dark ? "#e9ecf2" : "#0f1115"
@@ -176,15 +284,21 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
       <h2 style={headingStyle}>{t("title")}</h2>
       <p style={introStyle}>{t("description")}</p>
 
-      <label style={{ ...labelRowStyle, marginTop: 22, cursor: "pointer" }}>
-        <span>{t("enable")}</span>
-        <input
-          type="checkbox"
+      <div style={switchRowStyle}>
+        <div style={{ minWidth: 0 }}>
+          <div style={switchTitleStyle}>{t("enable")}</div>
+          <p style={switchHintStyle}>{t("enableHint")}</p>
+        </div>
+        <Switch
           checked={config.enabled}
           disabled={disabled}
-          onChange={(event) => write("enabled", event.target.checked)}
+          label={t("enable")}
+          title={disabled ? t("readOnly") : undefined}
+          onChange={(next) => {
+            void write("enabled", next)
+          }}
         />
-      </label>
+      </div>
 
       <div style={fieldStyle}>
         <label style={labelRowStyle} htmlFor="dsh-background-image">
@@ -219,7 +333,7 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
                   backgroundImage: imageCssValue(source),
                   backgroundPosition: "center",
                   backgroundSize: "cover",
-                  filter: `blur(${clamp(config.blur, 0, 40)}px)`,
+                  filter: `blur(${blur}px)`,
                   transform: "scale(1.06)",
                 }}
               />
@@ -274,7 +388,7 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
       <div style={fieldStyle}>
         <label style={labelRowStyle} htmlFor="dsh-background-panel-opacity">
           <span>{t("panelOpacity")}</span>
-          <span style={mutedStyle}>{Math.round(config.panelOpacity)}%</span>
+          <span style={mutedStyle}>{Math.round(opacitySlider.value)}%</span>
         </label>
         <input
           id="dsh-background-panel-opacity"
@@ -282,10 +396,14 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
           min={0}
           max={100}
           step={1}
-          value={config.panelOpacity}
+          value={opacitySlider.value}
           disabled={disabled}
           style={sliderStyle}
-          onChange={(event) => write("panelOpacity", Number(event.target.value))}
+          onChange={(event) => opacitySlider.change(Number(event.target.value))}
+          onPointerUp={opacitySlider.flush}
+          onPointerCancel={opacitySlider.flush}
+          onKeyUp={opacitySlider.flush}
+          onBlur={opacitySlider.flush}
         />
         <p style={hintStyle}>{t("panelOpacityHint")}</p>
       </div>
@@ -293,7 +411,7 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
       <div style={fieldStyle}>
         <label style={labelRowStyle} htmlFor="dsh-background-dim">
           <span>{t("dim")}</span>
-          <span style={mutedStyle}>{Math.round(config.dim)}%</span>
+          <span style={mutedStyle}>{Math.round(dimSlider.value)}%</span>
         </label>
         <input
           id="dsh-background-dim"
@@ -301,10 +419,14 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
           min={0}
           max={100}
           step={1}
-          value={config.dim}
+          value={dimSlider.value}
           disabled={disabled}
           style={sliderStyle}
-          onChange={(event) => write("dim", Number(event.target.value))}
+          onChange={(event) => dimSlider.change(Number(event.target.value))}
+          onPointerUp={dimSlider.flush}
+          onPointerCancel={dimSlider.flush}
+          onKeyUp={dimSlider.flush}
+          onBlur={dimSlider.flush}
         />
         <p style={hintStyle}>{t("dimHint")}</p>
       </div>
@@ -312,7 +434,7 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
       <div style={fieldStyle}>
         <label style={labelRowStyle} htmlFor="dsh-background-blur">
           <span>{t("blur")}</span>
-          <span style={mutedStyle}>{Math.round(config.blur)} px</span>
+          <span style={mutedStyle}>{Math.round(blurSlider.value)} px</span>
         </label>
         <input
           id="dsh-background-blur"
@@ -320,10 +442,14 @@ export function SettingsPage({ form, t }: SettingsPageProps) {
           min={0}
           max={40}
           step={1}
-          value={config.blur}
+          value={blurSlider.value}
           disabled={disabled}
           style={sliderStyle}
-          onChange={(event) => write("blur", Number(event.target.value))}
+          onChange={(event) => blurSlider.change(Number(event.target.value))}
+          onPointerUp={blurSlider.flush}
+          onPointerCancel={blurSlider.flush}
+          onKeyUp={blurSlider.flush}
+          onBlur={blurSlider.flush}
         />
         <p style={hintStyle}>{t("blurHint")}</p>
       </div>

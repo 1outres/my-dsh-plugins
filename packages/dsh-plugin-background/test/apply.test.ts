@@ -3,6 +3,11 @@ import { apply } from "../src/client/index"
 import { BACKGROUND_CSS } from "../src/client/styles"
 import type { BackgroundConfig, ClientContext, ThemeSnapshot } from "../src/client/types"
 
+// The primitives barrel carries browser-only CSS and undeclared runtime
+// dependencies; these tests exercise the host wiring, so the Switch only has
+// to exist.
+vi.mock("@deepseek-ai/dsh-client-ui-primitives", () => ({ Switch: () => null }))
+
 interface FakeStyle {
   setProperty(name: string, value: string): void
   removeProperty(name: string): void
