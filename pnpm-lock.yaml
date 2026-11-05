@@ -203,11 +203,26 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1
 
+  packages/dsh-plugin-notify:
+    dependencies:
+      '@deepseek-ai/cordis':
+        specifier: ~4.0.5
+        version: 4.0.5
+      '@deepseek-ai/schemastery':
+        specifier: ~3.18.5
+        version: 3.18.5
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+
   packages/dsh-plugins:
     dependencies:
       '@1outres/dsh-plugin-background':
         specifier: workspace:*
         version: link:../dsh-plugin-background
+      '@1outres/dsh-plugin-notify':
+        specifier: workspace:*
+        version: link:../dsh-plugin-notify
 
 packages:
 

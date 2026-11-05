@@ -3,3 +3,5 @@
 - insert:
     - id: background
       name: "@1outres/dsh-plugin-background"
+    - id: notify
+      name: "@1outres/dsh-plugin-notify"

@@ -26,7 +26,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@1outres/dsh-plugin-background": "workspace:*"
+    "@1outres/dsh-plugin-background": "workspace:*",
+    "@1outres/dsh-plugin-notify": "workspace:*"
   },
   "dsh": {
     "bundle": {

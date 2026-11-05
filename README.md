@@ -10,9 +10,10 @@ dsh plugin add @1outres/dsh-plugins
 
 ## Plugins
 
-| Plugin                                                             | Row id       | What it does                                                                        |
-| ------------------------------------------------------------------ | ------------ | ----------------------------------------------------------------------------------- |
-| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background) | `background` | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls. |
+| Plugin                                                             | Row id       | What it does                                                                                                                   |
+| ------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background) | `background` | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                            |
+| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)         | `notify`     | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background. |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle.
 
@@ -100,6 +101,7 @@ version. Publish the plugin packages before the bundle if you publish by hand.
 packages/
   dsh-plugins/            @1outres/dsh-plugins — the bundle (patch + dependencies)
   dsh-plugin-background/  @1outres/dsh-plugin-background — host + browser halves
+  dsh-plugin-notify/      @1outres/dsh-plugin-notify — browser-side desktop notifications
 scripts/
   build.mjs               esbuild host/client build + client wrapper
   new-plugin.mjs          plugin generator
