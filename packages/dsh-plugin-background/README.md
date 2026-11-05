@@ -2,7 +2,8 @@
 
 Paint an image behind the whole DeepSeek Harness Web UI. The interface stays
 usable: panels become translucent, a configurable veil keeps text readable, and
-the image can be blurred.
+the image can be blurred. The Settings dialog stays opaque so its controls remain
+readable over any image.
 
 Installed through the [`@1outres/dsh-plugins`](../dsh-plugins) bundle.
 
@@ -44,7 +45,10 @@ a component. Instead it:
 2. reads the active theme's alias colors from the stylesheet and re-registers
    them through `ctx.theme.overrideTokens()` as `color-mix(... transparent)`
    surfaces, so panels, cards, popovers and the sidebar let the image through;
-3. registers a `settings.section` page that reads and writes the Host settings
+3. restores the opaque alias colors inside the body-portaled Settings dialog
+   (`[data-shortcut-modal="settings"]`), so opening Settings never shows the
+   image through the panel;
+4. registers a `settings.section` page that reads and writes the Host settings
    entry (`background`) through `ctx.configForms`.
 
 Theme switches re-read the palette, so the effect follows light and dark mode.

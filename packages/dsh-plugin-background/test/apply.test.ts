@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { apply } from "../src/client/index"
+import { BACKGROUND_CSS } from "../src/client/styles"
 import type { BackgroundConfig, ClientContext, ThemeSnapshot } from "../src/client/types"
 
 interface FakeStyle {
@@ -188,6 +189,13 @@ describe("background client half", () => {
       light: "color-mix(in srgb, #e9ecf2 90%, transparent)",
       dark: "color-mix(in srgb, #e9ecf2 90%, transparent)",
     })
+
+    // The body-portaled Settings dialog gets the opaque colors back.
+    const css = styleTags[0]?.textContent ?? ""
+    expect(css).toContain('[data-shortcut-modal="settings"]')
+    expect(css).toContain("--dsw-alias-bg-base: #ffffff;")
+    expect(css).toContain("--dsw-alias-bg-overlay: #e9ecf2;")
+    expect(css).not.toContain("color-mix")
   })
 
   it("re-reads the palette when the theme switches", async () => {
@@ -204,6 +212,7 @@ describe("background client half", () => {
       light: "color-mix(in srgb, #151517 70%, transparent)",
       dark: "color-mix(in srgb, #151517 70%, transparent)",
     })
+    expect(styleTags[0]?.textContent).toContain("--dsw-alias-bg-base: #151517;")
   })
 
   it("deactivates when the image is cleared or the switch is turned off", async () => {
@@ -214,11 +223,13 @@ describe("background client half", () => {
     await form.set("image", "")
     expect(rootAttributes.has("data-dsh-background")).toBe(false)
     expect(overrides).toHaveLength(0)
+    expect(styleTags[0]?.textContent).toBe(BACKGROUND_CSS)
 
     await form.set("image", "/tmp/bg.png")
     await form.set("enabled", false)
     expect(rootAttributes.has("data-dsh-background")).toBe(false)
     expect(overrides).toHaveLength(0)
+    expect(styleTags[0]?.textContent).toBe(BACKGROUND_CSS)
   })
 
   it("rejects relative image paths", async () => {

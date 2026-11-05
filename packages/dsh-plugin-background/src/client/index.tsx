@@ -2,7 +2,7 @@ import { CONFIG_NAMESPACE, normalizeConfig, TOKEN_NAMES } from "./config"
 import { alphaColor, clamp, dimColor, imageCssValue, resolveImageSource } from "./format"
 import { en } from "./i18n"
 import { SettingsPage } from "./SettingsPage"
-import { BACKGROUND_CSS } from "./styles"
+import { BACKGROUND_CSS, settingsSurfaceCss } from "./styles"
 import type { BackgroundConfig, ClientContext, ThemeSnapshot } from "./types"
 
 /** Cordis services required by the browser half. */
@@ -18,13 +18,19 @@ export function apply(ctx: ClientContext): void {
 
   ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en }), "background: dictionaries")
 
+  let styleTag: HTMLStyleElement | undefined
+
   ctx.effect(() => {
     const tag = document.createElement("style")
     tag.dataset.plugin = PLUGIN_ID
     tag.dataset.pluginCss = `${PLUGIN_ID}/background.css`
     tag.textContent = BACKGROUND_CSS
     document.head.append(tag)
-    return () => tag.remove()
+    styleTag = tag
+    return () => {
+      tag.remove()
+      styleTag = undefined
+    }
   }, "background: stylesheet")
 
   const form = ctx.configForms.get<BackgroundConfig>(CONFIG_NAMESPACE)
@@ -50,6 +56,7 @@ export function apply(ctx: ClientContext): void {
     tokenDispose?.()
     tokenDispose = undefined
     const tokens: Record<string, { light: string; dark: string }> = {}
+    const solid: Record<string, string> = {}
     for (const name of TOKEN_NAMES) {
       const base = readBaseColor(name)
       if (base === undefined) continue
@@ -57,8 +64,12 @@ export function apply(ctx: ClientContext): void {
         name === OVERLAY_TOKEN ? Math.min(100, config.panelOpacity + 20) : config.panelOpacity
       const value = alphaColor(base, percent)
       tokens[name] = { light: value, dark: value }
+      solid[name] = base
     }
     if (Object.keys(tokens).length > 0) tokenDispose = ctx.theme.overrideTokens(PLUGIN_ID, tokens)
+    // The Settings dialog is portaled outside #root and would otherwise inherit
+    // the translucent aliases; restore the opaque theme colors there only.
+    if (styleTag !== undefined) styleTag.textContent = BACKGROUND_CSS + settingsSurfaceCss(solid)
   }
 
   const deactivate = () => {
@@ -70,6 +81,7 @@ export function apply(ctx: ClientContext): void {
     root.style.removeProperty("--dsh-background-image")
     root.style.removeProperty("--dsh-background-blur")
     root.style.removeProperty("--dsh-background-dim")
+    if (styleTag !== undefined) styleTag.textContent = BACKGROUND_CSS
   }
 
   const applyConfig = (config: BackgroundConfig) => {
