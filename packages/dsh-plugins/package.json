@@ -33,7 +33,8 @@
   "dependencies": {
     "@1outres/dsh-plugin-background": "workspace:*",
     "@1outres/dsh-plugin-notify": "workspace:*",
-    "@1outres/dsh-plugin-claude-subscription": "workspace:*"
+    "@1outres/dsh-plugin-claude-subscription": "workspace:*",
+    "@1outres/dsh-plugin-model-picker": "workspace:*"
   },
   "dsh": {
     "bundle": {

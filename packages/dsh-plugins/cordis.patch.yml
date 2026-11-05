@@ -10,3 +10,5 @@
       name: "@1outres/dsh-plugin-notify"
     - id: claude-subscription
       name: "@1outres/dsh-plugin-claude-subscription"
+    - id: model-picker
+      name: "@1outres/dsh-plugin-model-picker"
