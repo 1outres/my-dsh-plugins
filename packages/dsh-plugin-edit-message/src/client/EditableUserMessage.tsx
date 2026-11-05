@@ -139,11 +139,6 @@ function failureText(t: Translate, reason: EditFailure, detail: string | undefin
   return t(`error.${reason}`, { detail: detail ?? "" })
 }
 
-const MOD_KEY =
-  typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform ?? "")
-    ? "⌘"
-    : "Ctrl"
-
 function MessageEditor({
   t,
   message,
@@ -233,9 +228,7 @@ function MessageEditor({
               {error}
             </span>
           )}
-          <span>{t("editor.note")}</span>
           {images > 0 ? <span>{t("editor.images", { count: images })}</span> : null}
-          <span>{t("editor.keys", { mod: MOD_KEY })}</span>
         </div>
         <div className="dsh-em-buttons">
           <button

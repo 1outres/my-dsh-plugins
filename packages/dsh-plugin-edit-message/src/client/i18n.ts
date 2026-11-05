@@ -8,10 +8,7 @@ export const en: Record<string, string> = {
   "editor.cancel": "Cancel",
   "editor.send": "Send",
   "editor.sending": "Sending…",
-  "editor.note":
-    "Sending restarts the conversation from here in a new session and archives this one. Files are not reverted.",
   "editor.images": "{count} image(s) from the original message are sent again.",
-  "editor.keys": "{mod}+Enter to send, Esc to cancel",
   "error.unavailable": "This session is not loaded.",
   "error.running": "The session is running. Stop it, then send again.",
   "error.empty": "Enter a message.",
