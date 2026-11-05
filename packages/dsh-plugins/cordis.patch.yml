@@ -1,0 +1,5 @@
+# Row ids are the settings namespaces the plugins read. Disable a row here (or
+# in your profile patch) to turn that plugin off without uninstalling it.
+- insert:
+    - id: background
+      name: "@1outres/dsh-plugin-background"

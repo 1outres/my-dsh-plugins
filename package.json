@@ -1,0 +1,28 @@
+{
+  "name": "my-dsh-plugins",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.9.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run",
+    "new-plugin": "node scripts/new-plugin.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.5",
+    "@deepseek-ai/cordis": "~4.0.5",
+    "@types/node": "^24.19.2",
+    "@types/react": "^18.3.31",
+    "esbuild": "^0.28.2",
+    "react": "^18.3.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}

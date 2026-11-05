@@ -1,0 +1,34 @@
+{
+  "name": "@1outres/dsh-plugins",
+  "version": "0.1.0",
+  "description": "Personal DeepSeek Harness plugin bundle. Installs every plugin in this repository.",
+  "type": "module",
+  "exports": {
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "cordis.patch.yml"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-bundle",
+    "deepseek-harness"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "dsh": ">=0.2.1-rc.5 <0.3.0",
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@1outres/dsh-plugin-background": "workspace:*"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
