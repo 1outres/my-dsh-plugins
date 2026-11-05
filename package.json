@@ -13,7 +13,8 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "test": "vitest run",
-    "new-plugin": "node scripts/new-plugin.mjs"
+    "new-plugin": "node scripts/new-plugin.mjs",
+    "release": "pnpm build && pnpm -r publish --access public"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.5",

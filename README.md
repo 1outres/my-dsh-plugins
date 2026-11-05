@@ -80,8 +80,7 @@ packages. The bundle is the only package users install.
 Keep every package on the same version and publish the workspace:
 
 ```sh
-pnpm build
-pnpm -r publish --access public
+pnpm release   # build, then pnpm -r publish --access public
 ```
 
 `pnpm` replaces the bundle's `workspace:*` dependency with the published
