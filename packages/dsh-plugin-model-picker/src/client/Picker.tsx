@@ -160,6 +160,8 @@ export function ModelPicker(props: PickerProps) {
   const [toast, setToast] = useState<{ seq: number; text: string } | null>(null)
   const toastSeq = useRef(0)
   const lastAction = useRef<"load" | "select">("load")
+  /** Set by `show()`: hand the keyboard to search once the menu is placed. */
+  const focusSearchOnPlace = useRef(false)
 
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -261,6 +263,7 @@ export function ModelPicker(props: PickerProps) {
     setQuery("")
     setHighlightId(null)
     setPreferFirst(false)
+    focusSearchOnPlace.current = true
     setOpen(true)
     reload()
   }
@@ -368,10 +371,24 @@ export function ModelPicker(props: PickerProps) {
     if (locked && open) setOpen(false)
   }, [locked, open])
 
-  // Opening hands the keyboard to search.
-  useEffect(() => {
-    if (open) searchRef.current?.focus()
-  }, [open])
+  // Opening hands the keyboard to search. The first frame measures the menu
+  // with `visibility: hidden`, where focus() is refused, so wait until it is
+  // placed; retry on the next frame when something else kept focus.
+  const placed = menuPos !== null
+  useLayoutEffect(() => {
+    if (!open || !placed || !focusSearchOnPlace.current) return
+    focusSearchOnPlace.current = false
+    const focusSearch = () => {
+      const input = searchRef.current
+      if (input !== null && document.activeElement !== input) input.focus({ preventScroll: true })
+    }
+    focusSearch()
+    if (document.activeElement === searchRef.current) return
+    const frame = requestAnimationFrame(focusSearch)
+    return () => {
+      cancelAnimationFrame(frame)
+    }
+  }, [open, placed])
 
   // Place the menu above the trigger, right-aligned, inside the viewport.
   // biome-ignore lint/correctness/useExhaustiveDependencies: content changes resize the menu
