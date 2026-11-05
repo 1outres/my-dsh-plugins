@@ -4,6 +4,8 @@ coverage/
 *.log
 core.*
 .DS_Store
+.secrets/
+.local/
 .env
 .env.*
 !.env.example
