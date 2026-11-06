@@ -2,7 +2,7 @@ import { CONFIG_NAMESPACE, normalizeConfig, TOKEN_NAMES } from "./config"
 import { alphaColor, clamp, dimColor, imageCssValue, resolveImageSource } from "./format"
 import { en } from "./i18n"
 import { SettingsPage } from "./SettingsPage"
-import { BACKGROUND_CSS, settingsSurfaceCss } from "./styles"
+import { BACKGROUND_CSS, opaqueSurfaceCss } from "./styles"
 import type { BackgroundConfig, ClientContext, ThemeSnapshot } from "./types"
 
 /** Cordis services required by the browser half. */
@@ -67,9 +67,9 @@ export function apply(ctx: ClientContext): void {
       solid[name] = base
     }
     if (Object.keys(tokens).length > 0) tokenDispose = ctx.theme.overrideTokens(PLUGIN_ID, tokens)
-    // The Settings dialog is portaled outside #root and would otherwise inherit
-    // the translucent aliases; restore the opaque theme colors there only.
-    if (styleTag !== undefined) styleTag.textContent = BACKGROUND_CSS + settingsSurfaceCss(solid)
+    // Surfaces over the conversation (Settings, a fullscreen right panel, the
+    // mobile drawer) would otherwise show the chat through; keep them opaque.
+    if (styleTag !== undefined) styleTag.textContent = BACKGROUND_CSS + opaqueSurfaceCss(solid)
   }
 
   const deactivate = () => {

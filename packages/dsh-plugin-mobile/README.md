@@ -65,6 +65,15 @@ The plugin also adds the home-screen tags (`apple-mobile-web-app-capable`,
 `mobile-web-app-capable`, `apple-mobile-web-app-title`), so **Add to Home
 Screen** opens the Harness without the browser bar.
 
+### With the other plugins in this repository
+
+- [`@1outres/dsh-plugin-background`](../dsh-plugin-background) keeps the
+  drawer and the fullscreen right panel opaque, so the conversation does not
+  show through them.
+- [`@1outres/dsh-plugin-model-picker`](../dsh-plugin-model-picker) does not
+  focus its search field on a touch screen, fits above the keyboard, and stays
+  open when the keyboard is dismissed, so the Effort row stays reachable.
+
 ## Settings
 
 Edit them in **Settings → Mobile**, or in the profile patch under the

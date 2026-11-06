@@ -2,8 +2,10 @@
 
 Paint an image behind the whole DeepSeek Harness Web UI. The interface stays
 usable: panels become translucent, a configurable veil keeps text readable, and
-the image can be blurred. The Settings dialog stays opaque so its controls remain
-readable over any image.
+the image can be blurred. Surfaces drawn over the conversation (the Settings
+dialog, the right panel while it covers the page, and the sidebar drawer of
+[`@1outres/dsh-plugin-mobile`](../dsh-plugin-mobile)) stay opaque, so their text
+never sits on top of the chat.
 
 Install just this plugin:
 
@@ -53,9 +55,13 @@ a component. Instead it:
 2. reads the active theme's alias colors from the stylesheet and re-registers
    them through `ctx.theme.overrideTokens()` as `color-mix(... transparent)`
    surfaces, so panels, cards, popovers and the sidebar let the image through;
-3. restores the opaque alias colors inside the body-portaled Settings dialog
-   (`[data-shortcut-modal="settings"]`), so opening Settings never shows the
-   image through the panel;
+3. restores the opaque alias colors on the surfaces that cover the
+   conversation: the body-portaled Settings dialog
+   (`[data-shortcut-modal="settings"]`), the right panel in fullscreen
+   (`[data-sidebar-right-panel="fullscreen"]`, used below 768px) and its
+   floating tabs, and the mobile plugin's sidebar drawer (under
+   `html[data-dsh-mobile]`). Only tokens are re-declared, so a collapsed panel
+   stays see-through;
 4. registers a `settings.section` page that reads and writes the Host settings
    entry (`background`) through `ctx.configForms`.
 

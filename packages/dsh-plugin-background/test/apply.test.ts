@@ -195,9 +195,12 @@ describe("background client half", () => {
       dark: "color-mix(in srgb, #e9ecf2 90%, transparent)",
     })
 
-    // The body-portaled Settings dialog gets the opaque colors back.
+    // Surfaces over the conversation get the opaque colors back: the
+    // body-portaled Settings dialog, a fullscreen right panel and the mobile drawer.
     const css = styleTags[0]?.textContent ?? ""
     expect(css).toContain('[data-shortcut-modal="settings"]')
+    expect(css).toContain('[data-sidebar-right-panel="fullscreen"]')
+    expect(css).toContain('html[data-dsh-background="on"][data-dsh-mobile]')
     expect(css).toContain("--dsw-alias-bg-base: #ffffff;")
     expect(css).toContain("--dsw-alias-bg-overlay: #e9ecf2;")
     expect(css).not.toContain("color-mix")

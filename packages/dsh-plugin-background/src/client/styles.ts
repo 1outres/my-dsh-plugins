@@ -35,30 +35,45 @@ html[data-dsh-background="on"] #root {
 }
 `
 
-/**
- * Stable marker the shell puts on its body-portaled Settings dialog
- * (`data-shortcut-modal="settings"`), the only dialog that carries it.
- */
-const SETTINGS_DIALOG = '[data-shortcut-modal="settings"]'
+const ON = 'html[data-dsh-background="on"]'
 
 /**
- * Restore opaque theme surfaces inside the Settings dialog.
+ * Surfaces drawn over the conversation. Through translucent panels their text
+ * would sit on top of the chat text, so they keep the opaque theme colors:
  *
- * The dialog is portaled to `document.body`, outside the app root, and it
- * paints itself from the same alias tokens the plugin made translucent. Theme
- * tokens are applied as inline styles on `body`, so re-declaring them on the
- * dialog element wins for its whole subtree while the rest of the UI keeps
- * showing the wallpaper.
+ * - the body-portaled Settings dialog (`data-shortcut-modal="settings"`, the
+ *   only dialog that carries it);
+ * - the right panel while it covers the page (`data-sidebar-right-panel` is
+ *   `fullscreen`, which the Harness always uses below 768px), and its floating
+ *   tabs (`data-dockkit-float`);
+ * - the sidebar drawer of `@1outres/dsh-plugin-mobile`, which marks the root
+ *   with `data-dsh-mobile` while its phone layout slides the sidebar column
+ *   over the conversation.
+ */
+export const OPAQUE_SURFACES: readonly string[] = [
+  `${ON} [data-shortcut-modal="settings"]`,
+  `${ON} [data-sidebar-right-panel="fullscreen"]`,
+  `${ON} [data-dockkit-float]`,
+  `${ON}[data-dsh-mobile] div:has(> [data-rightbar-col]) > :has(> [data-slot="sidebar"])`,
+]
+
+/**
+ * Restore opaque theme colors on the surfaces that cover the conversation.
+ *
+ * Theme tokens are applied as inline styles on `body`, so re-declaring them on
+ * a surface element wins for its whole subtree, portaled or not, while the rest
+ * of the UI keeps showing the wallpaper. Only tokens are re-declared: a
+ * collapsed panel keeps its own transparency and never blocks the page.
  *
  * @param solid - alias token name to its opaque theme color.
  * @returns a scoped rule, or an empty string when no token was captured.
  */
-export function settingsSurfaceCss(solid: Readonly<Record<string, string>>): string {
+export function opaqueSurfaceCss(solid: Readonly<Record<string, string>>): string {
   const declarations = Object.entries(solid)
     .filter(([, value]) => isSafeCssValue(value))
     .map(([name, value]) => `  ${name}: ${value};`)
   if (declarations.length === 0) return ""
-  return `html[data-dsh-background="on"] ${SETTINGS_DIALOG} {\n${declarations.join("\n")}\n}\n`
+  return `${OPAQUE_SURFACES.join(",\n")} {\n${declarations.join("\n")}\n}\n`
 }
 
 /** Reject theme values that could close the declaration or rule block. */
