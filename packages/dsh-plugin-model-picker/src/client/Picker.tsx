@@ -38,6 +38,7 @@ import {
   providerName,
   stepIndex,
 } from "./model"
+import { isCoarsePointer, type MenuPlacement, placeMenu, viewBoxOf } from "./placement"
 import type { RecentStore } from "./recent"
 import type {
   ModelDirectoryState,
@@ -76,8 +77,6 @@ interface PickerRow {
 
 /** Hidden but laid out at the origin so the first measurement is real. */
 const MEASURE_STYLE: CSSProperties = { visibility: "hidden", left: 0, top: 0 }
-const MARGIN = 12
-const GAP = 8
 const ROW_HEIGHT = 34
 const TOAST_HOLD_MS = 3000
 const TOAST_FADE_MS = 1000
@@ -159,7 +158,7 @@ export function ModelPicker(props: PickerProps) {
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const [preferFirst, setPreferFirst] = useState(false)
   const [selectionFocus, setSelectionFocus] = useState(false)
-  const [menuPos, setMenuPos] = useState<{ left: number; top: number } | null>(null)
+  const [menuPos, setMenuPos] = useState<MenuPlacement | null>(null)
   const [toast, setToast] = useState<{ seq: number; text: string } | null>(null)
   const toastSeq = useRef(0)
   const lastAction = useRef<"load" | "select">("load")
@@ -266,7 +265,9 @@ export function ModelPicker(props: PickerProps) {
     setQuery("")
     setHighlightId(null)
     setPreferFirst(false)
-    focusSearchOnPlace.current = true
+    // On a touch screen focus would open the keyboard over the list and Effort;
+    // search there starts with a tap on the field.
+    focusSearchOnPlace.current = !isCoarsePointer(window)
     setOpen(true)
     reload()
   }
@@ -357,19 +358,20 @@ export function ModelPicker(props: PickerProps) {
     ;(checked ?? chips[0])?.focus()
   }
 
-  // Close on a press outside the trigger and the menu.
+  // Close on a press outside the trigger and the menu. Pointer events also
+  // cover taps on elements a touch browser sends no mouse events to.
   useEffect(() => {
     if (!open) return
-    const onPointer = (event: MouseEvent) => {
+    const onPointer = (event: Event) => {
       const target = event.target
       if (!(target instanceof Node)) return
       if (rootRef.current?.contains(target) === true) return
       if (menuRef.current?.contains(target) === true) return
       setOpen(false)
     }
-    document.addEventListener("mousedown", onPointer)
+    document.addEventListener("pointerdown", onPointer)
     return () => {
-      document.removeEventListener("mousedown", onPointer)
+      document.removeEventListener("pointerdown", onPointer)
     }
   }, [open])
 
@@ -409,7 +411,8 @@ export function ModelPicker(props: PickerProps) {
     }
   }, [open, placed])
 
-  // Place the menu above the trigger, right-aligned, inside the viewport.
+  // Place the menu above the trigger, right-aligned, inside the visible part of
+  // the page (the visual viewport excludes an on-screen keyboard).
   // biome-ignore lint/correctness/useExhaustiveDependencies: content changes resize the menu
   useLayoutEffect(() => {
     if (!available || !open) {
@@ -419,21 +422,26 @@ export function ModelPicker(props: PickerProps) {
     const place = () => {
       const rect = triggerRef.current?.getBoundingClientRect()
       if (rect === undefined) return
-      const width = menuRef.current?.offsetWidth ?? 0
-      const height = menuRef.current?.offsetHeight ?? 0
-      let left = rect.right - width
-      let top = rect.top - GAP - height
-      if (width > 0) left = Math.min(Math.max(left, MARGIN), window.innerWidth - width - MARGIN)
-      if (height > 0) top = Math.min(Math.max(top, MARGIN), window.innerHeight - height - MARGIN)
+      const next = placeMenu(
+        rect,
+        { width: menuRef.current?.offsetWidth ?? 0, height: menuRef.current?.offsetHeight ?? 0 },
+        viewBoxOf(window),
+      )
       setMenuPos((previous) =>
-        previous !== null && previous.left === left && previous.top === top
+        previous !== null &&
+        previous.left === next.left &&
+        previous.top === next.top &&
+        previous.maxHeight === next.maxHeight
           ? previous
-          : { left, top },
+          : next,
       )
     }
     place()
     window.addEventListener("scroll", place, true)
     window.addEventListener("resize", place)
+    const view = window.visualViewport
+    view?.addEventListener("resize", place)
+    view?.addEventListener("scroll", place)
     const menu = menuRef.current
     const observer =
       typeof ResizeObserver !== "undefined" && menu !== null ? new ResizeObserver(place) : null
@@ -442,6 +450,8 @@ export function ModelPicker(props: PickerProps) {
       observer?.disconnect()
       window.removeEventListener("scroll", place, true)
       window.removeEventListener("resize", place)
+      view?.removeEventListener("resize", place)
+      view?.removeEventListener("scroll", place)
     }
   }, [available, open, state, sections, choices])
 
@@ -592,6 +602,9 @@ export function ModelPicker(props: PickerProps) {
     ) {
       return
     }
+    // Dismissing the on-screen keyboard blurs search with nowhere to go; the
+    // menu stays, and a tap outside still closes it.
+    if (next === null && isCoarsePointer(window)) return
     close()
   }
 
@@ -684,7 +697,15 @@ export function ModelPicker(props: PickerProps) {
             id={menuId}
             className="dsh-mp-menu"
             data-menu-material="translucent"
-            style={menuPos ?? MEASURE_STYLE}
+            style={
+              menuPos === null
+                ? MEASURE_STYLE
+                : {
+                    left: menuPos.left,
+                    top: menuPos.top,
+                    maxHeight: `min(560px, 100vh - 96px, ${menuPos.maxHeight}px)`,
+                  }
+            }
             role="group"
             aria-label={t("menu.aria")}
             aria-busy={loading || busy}

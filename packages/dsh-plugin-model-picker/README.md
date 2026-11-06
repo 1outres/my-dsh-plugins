@@ -18,7 +18,13 @@ insert the same `model-picker` row.
 ## Using the picker
 
 Click the model name in the composer. The menu opens above it with the
-search field focused.
+search field focused. The menu never grows past the room above the button in
+the visible part of the page, so the Effort row stays on screen.
+
+On a touch screen the search field is not focused on open, since the
+on-screen keyboard would cover the list and the Effort row; tap the field to
+search. Dismissing the keyboard keeps the menu open, and a tap outside closes
+it.
 
 - **Empty search**: ★ Favorites, then the five most recent models you picked
   here (favorites excluded), then every provider with its heading pinned
