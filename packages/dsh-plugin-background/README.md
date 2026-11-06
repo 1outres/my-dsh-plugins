@@ -3,7 +3,8 @@
 Paint an image behind the whole DeepSeek Harness Web UI. The interface stays
 usable: panels become translucent, a configurable veil keeps text readable, and
 the image can be blurred. Surfaces drawn over the conversation (the Settings
-dialog, the right panel while it covers the page, and the sidebar drawer of
+dialog, the right panel while it covers the page, and the navigation drawer
+that the Harness shows below 768px (marked on the root by
 [`@1outres/dsh-plugin-mobile`](../dsh-plugin-mobile)) stay opaque, so their text
 never sits on top of the chat.
 
@@ -59,8 +60,9 @@ a component. Instead it:
    conversation: the body-portaled Settings dialog
    (`[data-shortcut-modal="settings"]`), the right panel in fullscreen
    (`[data-sidebar-right-panel="fullscreen"]`, used below 768px) and its
-   floating tabs, and the mobile plugin's sidebar drawer (under
-   `html[data-dsh-mobile]`). Only tokens are re-declared, so a collapsed panel
+   floating tabs, and the Harness navigation drawer that
+   [`@1outres/dsh-plugin-mobile`](../dsh-plugin-mobile) marks with
+   `html[data-dsh-mobile]`. Only tokens are re-declared, so a collapsed panel
    stays see-through;
 4. registers a `settings.section` page that reads and writes the Host settings
    entry (`background`) through `ctx.configForms`.

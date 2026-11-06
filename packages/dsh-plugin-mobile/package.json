@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-mobile",
   "version": "0.6.0",
-  "description": "Makes the DeepSeek Harness Web UI work on phones: the sidebar becomes a swipeable drawer, the composer follows the on-screen keyboard and Enter adds a line, and the layout respects notches and touch.",
+  "description": "Adds phone refinements to the DeepSeek Harness Web UI: fits the page to the on-screen keyboard, makes Enter add a line, keeps the keyboard closed until the composer is tapped, adds edge swipes to the Harness navigation drawer, and respects notches and touch.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -37,14 +37,14 @@
     "prepublishOnly": "node ../../scripts/build.mjs"
   },
   "engines": {
-    "dsh": ">=0.2.1-rc.5 <0.3.0",
+    "dsh": ">=0.2.2-rc.1 <0.3.0",
     "node": ">=22"
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "~3.18.5"
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/cordis": "~4.1.0",
     "react": "^18.2.0"
   },
   "dsh": {

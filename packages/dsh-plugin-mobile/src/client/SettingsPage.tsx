@@ -1,33 +1,16 @@
-import type { CSSProperties, KeyboardEvent } from "react"
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react"
-import { DEFAULT_CONFIG, MAX_BREAKPOINT, MIN_BREAKPOINT, normalizeConfig } from "./config"
-import type {
-  ConfigForm,
-  EnterKey,
-  LayoutMode,
-  MobileConfig,
-  ModeState,
-  Observable,
-  Translate,
-} from "./types"
+import type { CSSProperties } from "react"
+import { useCallback, useState, useSyncExternalStore } from "react"
+import { DEFAULT_CONFIG, normalizeConfig } from "./config"
+import type { ConfigForm, EnterKey, MobileConfig, Observable, PageState, Translate } from "./types"
 
 export interface SettingsPageProps {
   form: ConfigForm<Partial<MobileConfig>>
-  mode: Observable<ModeState>
+  page: Observable<PageState>
   t: Translate
 }
 
 const FIELDS = Object.keys(DEFAULT_CONFIG) as (keyof MobileConfig)[]
-const MODES: readonly LayoutMode[] = ["auto", "always", "off"]
 const ENTER_KEYS: readonly EnterKey[] = ["newline", "send"]
-
-/** A whole number of CSS pixels inside the supported range, or undefined. */
-export function parseBreakpoint(text: string): number | undefined {
-  const trimmed = text.trim()
-  if (!/^\d+$/.test(trimmed)) return undefined
-  const value = Number(trimmed)
-  return value >= MIN_BREAKPOINT && value <= MAX_BREAKPOINT ? value : undefined
-}
 
 const sectionStyle: CSSProperties = {
   maxWidth: 680,
@@ -92,18 +75,6 @@ const groupStyle: CSSProperties = {
   borderTop: "1px solid var(--dsw-alias-border-l2)",
 }
 
-const inputStyle: CSSProperties = {
-  width: 96,
-  boxSizing: "border-box",
-  padding: "6px 10px",
-  borderRadius: 8,
-  border: "1px solid var(--dsw-alias-border-l2)",
-  background: "var(--dsw-specific-input-major, var(--dsw-alias-bg-layer-1))",
-  color: "inherit",
-  font: "inherit",
-  outline: "none",
-}
-
 const buttonStyle: CSSProperties = {
   marginTop: 26,
   padding: "8px 12px",
@@ -144,46 +115,30 @@ function useViewportWidth(): number {
 }
 
 /**
- * Settings page: the layout switch, the breakpoint, Enter, and the three
- * behaviors. Every control writes one field; the browser half picks it up at once.
+ * Settings page: Enter, the drawer swipe, the keyboard fit and the two touch
+ * guards. Every control writes one field; the browser half picks it up at once.
  */
-export function SettingsPage({ form, mode, t }: SettingsPageProps) {
+export function SettingsPage({ form, page, t }: SettingsPageProps) {
   const subscribe = useCallback((listener: () => void) => form.subscribe(listener), [form])
   const getSnapshot = useCallback(() => form.getSnapshot(), [form])
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
   const config = normalizeConfig(snapshot.value)
-  const state = useObservable(mode)
+  const state = useObservable(page)
   const width = useViewportWidth()
 
-  const [draft, setDraft] = useState(String(config.breakpoint))
-  const [writeError, setWriteError] = useState(false)
-
-  useEffect(() => {
-    setDraft(String(config.breakpoint))
-  }, [config.breakpoint])
+  const [writeFailed, setWriteFailed] = useState(false)
 
   const write = (field: keyof MobileConfig, value: unknown) => {
     void form
       .set(field, value)
-      .then((accepted) => setWriteError(!accepted))
-      .catch(() => setWriteError(true))
-  }
-
-  const parsed = parseBreakpoint(draft)
-  const commitBreakpoint = () => {
-    if (parsed === undefined) return
-    if (parsed !== config.breakpoint) write("breakpoint", parsed)
-  }
-  const onBreakpointKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== "Enter" || event.nativeEvent.isComposing) return
-    event.preventDefault()
-    event.currentTarget.blur()
+      .then((accepted) => setWriteFailed(!accepted))
+      .catch(() => setWriteFailed(true))
   }
 
   const reset = () => {
     void Promise.all(FIELDS.map((field) => form.unset(field)))
-      .then((results) => setWriteError(results.some((accepted) => !accepted)))
-      .catch(() => setWriteError(true))
+      .then((results) => setWriteFailed(results.some((accepted) => !accepted)))
+      .catch(() => setWriteFailed(true))
   }
 
   if (snapshot.status === "unavailable") {
@@ -196,69 +151,28 @@ export function SettingsPage({ form, mode, t }: SettingsPageProps) {
     <div style={sectionStyle} className="dsh-mobile-settings">
       <h2 style={headingStyle}>{t("settings.title")}</h2>
       <p style={introStyle}>{t("settings.description")}</p>
-      {width > 0 ? (
-        <p style={statusStyle} role="status">
-          {state.mobile
-            ? t("settings.statusMobile", { width })
-            : t("settings.statusDesktop", { width })}
-        </p>
-      ) : null}
+      <p style={statusStyle} role="status">
+        {state.mobile
+          ? t("settings.statusMobile", { width })
+          : t("settings.statusDesktop", { width })}
+      </p>
 
       <div style={fieldStyle}>
-        <span style={labelStyle}>{t("settings.mode")}</span>
+        <span style={labelStyle}>{t("settings.enterKey")}</span>
         <Segmented
-          label={t("settings.mode")}
-          options={MODES.map((value) => ({ value, label: t(`settings.mode.${value}`) }))}
-          value={config.mode}
+          label={t("settings.enterKey")}
+          options={ENTER_KEYS.map((value) => ({
+            value,
+            label: t(`settings.enterKey.${value}`),
+          }))}
+          value={config.enterKey}
           disabled={disabled}
-          onChange={(next) => write("mode", next)}
+          onChange={(next) => write("enterKey", next)}
         />
-        <p style={hintStyle}>{t("settings.modeHint")}</p>
-      </div>
-
-      <div style={fieldStyle}>
-        <label style={labelStyle} htmlFor="dsh-mobile-breakpoint">
-          {t("settings.breakpoint")}
-        </label>
-        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <input
-            id="dsh-mobile-breakpoint"
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            spellCheck={false}
-            value={draft}
-            disabled={disabled}
-            aria-invalid={parsed === undefined}
-            style={inputStyle}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={commitBreakpoint}
-            onKeyDown={onBreakpointKeyDown}
-          />
-          <span style={mutedStyle}>px</span>
-        </span>
-        {parsed === undefined ? (
-          <p style={errorStyle}>{t("settings.breakpointInvalid")}</p>
-        ) : (
-          <p style={hintStyle}>{t("settings.breakpointHint")}</p>
-        )}
+        <p style={hintStyle}>{t("settings.enterKeyHint")}</p>
       </div>
 
       <div style={groupStyle}>
-        <div style={fieldStyle}>
-          <span style={labelStyle}>{t("settings.enterKey")}</span>
-          <Segmented
-            label={t("settings.enterKey")}
-            options={ENTER_KEYS.map((value) => ({
-              value,
-              label: t(`settings.enterKey.${value}`),
-            }))}
-            value={config.enterKey}
-            disabled={disabled}
-            onChange={(next) => write("enterKey", next)}
-          />
-          <p style={hintStyle}>{t("settings.enterKeyHint")}</p>
-        </div>
         <Toggle
           label={t("settings.autoFocusComposer")}
           hint={t("settings.autoFocusComposerHint")}
@@ -290,7 +204,7 @@ export function SettingsPage({ form, mode, t }: SettingsPageProps) {
       </div>
 
       {disabled ? <p style={{ ...hintStyle, marginTop: 20 }}>{t("settings.readOnly")}</p> : null}
-      {writeError ? (
+      {writeFailed ? (
         <p style={{ ...errorStyle, marginTop: 20 }}>{t("settings.writeError")}</p>
       ) : null}
 

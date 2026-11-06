@@ -5,13 +5,22 @@ function frame(attributes: string[]) {
   return { hasAttribute: (name: string) => attributes.includes(name) }
 }
 
-function root(frameAttributes: string[] | null, modal = false) {
+function element(attributes: string[]) {
+  return {
+    parentElement: frame(attributes),
+    hasAttribute: (name: string) => attributes.includes(name),
+  }
+}
+
+function root(frameAttributes: string[] | null, modal: false | "sidebar" | "settings" = false) {
   return {
     querySelector: (selector: string) => {
       if (selector === "[data-rightbar-col]") {
-        return frameAttributes === null ? null : { parentElement: frame(frameAttributes) }
+        return frameAttributes === null ? null : element(frameAttributes)
       }
-      if (selector === "[aria-modal='true']") return modal ? { parentElement: null } : null
+      if (selector === "[aria-modal='true']:not([data-shortcut-modal='sidebar'])") {
+        return modal === "settings" ? element([]) : null
+      }
       return null
     },
   }
@@ -53,11 +62,15 @@ describe("swipe blocking", () => {
     expect(swipeBlocked(null, root([]), overflowOf as never)).toBe(false)
   })
 
-  it("blocks while the right panel covers the screen or a modal is open", () => {
+  it("blocks while the right panel covers the screen or another modal is open", () => {
     expect(
       swipeBlocked(probe() as never, root(["data-rightbar-fullscreen"]), overflowOf as never),
     ).toBe(true)
-    expect(swipeBlocked(probe() as never, root([], true), overflowOf as never)).toBe(true)
+    expect(swipeBlocked(probe() as never, root([], "settings"), overflowOf as never)).toBe(true)
+  })
+
+  it("allows a swipe that closes the Harness navigation drawer", () => {
+    expect(swipeBlocked(probe() as never, root([], "sidebar"), overflowOf as never)).toBe(false)
   })
 
   it("blocks form controls and sideways scrollers", () => {

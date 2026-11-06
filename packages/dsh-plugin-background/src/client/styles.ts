@@ -46,9 +46,8 @@ const ON = 'html[data-dsh-background="on"]'
  * - the right panel while it covers the page (`data-sidebar-right-panel` is
  *   `fullscreen`, which the Harness always uses below 768px), and its floating
  *   tabs (`data-dockkit-float`);
- * - the sidebar drawer of `@1outres/dsh-plugin-mobile`, which marks the root
- *   with `data-dsh-mobile` while its phone layout slides the sidebar column
- *   over the conversation.
+ * - the Harness navigation drawer below 768px, which
+ *   `@1outres/dsh-plugin-mobile` marks on the root with `data-dsh-mobile`.
  */
 export const OPAQUE_SURFACES: readonly string[] = [
   `${ON} [data-shortcut-modal="settings"]`,

@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Mobile",
-    "description": "Makes the Web UI comfortable on a phone. Below a set width the sidebar becomes a drawer opened from a menu button or an edge swipe, the conversation fits the visible area while the on-screen keyboard is up, Enter adds a line instead of sending, and controls avoid notches and the home indicator."
+    "description": "Adds phone refinements to the Harness Web UI: fits the page to the on-screen keyboard, makes Enter add a line, keeps the keyboard closed until the composer is tapped, adds edge swipes to the Harness navigation drawer, and respects notches and touch."
   }
 }

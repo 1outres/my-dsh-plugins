@@ -8,20 +8,6 @@ export const name = "mobile"
  * `configForms` and applies a change at once, without restarting this half.
  */
 export const Config = z.object({
-  mode: z
-    .union(["auto", "always", "off"])
-    .default("auto")
-    .description(
-      "When to use the phone layout: auto below the breakpoint width, always, or never (off).",
-    )
-    .volatile(),
-  breakpoint: z
-    .natural()
-    .min(360)
-    .max(1024)
-    .default(768)
-    .description("Viewport width in CSS pixels below which auto mode uses the phone layout.")
-    .volatile(),
   enterKey: z
     .union(["newline", "send"])
     .default("newline")
@@ -32,7 +18,9 @@ export const Config = z.object({
   swipe: z
     .boolean()
     .default(true)
-    .description("Open the sidebar by swiping right from the left edge, close it by swiping left.")
+    .description(
+      "Open the Harness navigation drawer by swiping right from the left edge, close it by swiping left.",
+    )
     .volatile(),
   fitKeyboard: z
     .boolean()
@@ -50,7 +38,7 @@ export const Config = z.object({
     .boolean()
     .default(false)
     .description(
-      "Let the composer take focus by itself on a touch screen in the phone layout, as on desktop: when a session opens or a composer button is pressed. Off keeps the on-screen keyboard closed until you tap the input.",
+      "Let the Harness focus the composer on a touch screen in the phone layout, as on desktop, when a composer control or another action moves focus to it. Off keeps the on-screen keyboard closed until you tap the input.",
     )
     .volatile(),
 })

@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { type DrawerFace, DrawerOverlay, HeaderMenuButton } from "../src/client/components"
 import { NAMESPACE } from "../src/client/config"
-import { apply, HEADER_SLOT, inject, OVERLAY_SLOT, SETTINGS_SLOT } from "../src/client/index"
+import { DRAWER_ATTRIBUTE } from "../src/client/drawer"
+import { FRAME_ANCHOR } from "../src/client/frame"
+import { apply, inject, SETTINGS_SLOT } from "../src/client/index"
+import { TOUCH_QUERY } from "../src/client/page"
 import { MOBILE_ATTRIBUTE, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "../src/client/styles"
 import type { ClientContext, MobileConfig } from "../src/client/types"
 import { HEIGHT_VARIABLE } from "../src/client/viewport"
@@ -17,7 +19,21 @@ interface FakeNode {
 
 type Listener = (...args: unknown[]) => void
 
-function createPage(options: { narrow: boolean; touch: boolean }) {
+function media(matches: boolean) {
+  const listeners = new Set<() => void>()
+  return {
+    matches,
+    addEventListener: (_type: "change", listener: () => void) => listeners.add(listener),
+    removeEventListener: (_type: "change", listener: () => void) => listeners.delete(listener),
+    change(next: boolean) {
+      this.matches = next
+      for (const listener of [...listeners]) listener()
+    },
+    listeners,
+  }
+}
+
+function createPage(options: { phone: boolean; touch: boolean }) {
   const head: FakeNode[] = []
   const node = (tag: string): FakeNode => {
     const created: FakeNode = {
@@ -42,17 +58,28 @@ function createPage(options: { narrow: boolean; touch: boolean }) {
   const documentListeners = new Map<string, Listener>()
   const windowListeners = new Map<string, Listener>()
   const viewportListeners = new Map<string, Listener>()
+  const touch = media(options.touch)
+  const state = { drawer: options.phone }
+  const mutationCallbacks: (() => void)[] = []
+  const frame = {
+    isConnected: true,
+    hasAttribute: (name: string) => name === DRAWER_ATTRIBUTE && state.drawer,
+  }
 
-  const query = (matches: boolean) => ({
-    matches,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  })
+  class FakeMutationObserver {
+    constructor(private readonly callback: () => void) {}
+    observe() {
+      mutationCallbacks.push(this.callback)
+    }
+    disconnect() {}
+  }
+  vi.stubGlobal("MutationObserver", FakeMutationObserver)
 
   vi.stubGlobal("document", {
     head: { append: (added: FakeNode) => head.push(added) },
     createElement: node,
     querySelector: (selector: string) => {
+      if (selector === FRAME_ANCHOR) return { parentElement: frame }
       const name = /name="([^"]+)"/.exec(selector)?.[1]
       return head.find((tag) => tag.name === name) ?? null
     },
@@ -67,13 +94,16 @@ function createPage(options: { narrow: boolean; touch: boolean }) {
         return force
       },
       removeAttribute: (name: string) => attributes.delete(name),
+      hasAttribute: (name: string) => attributes.has(name),
     },
     addEventListener: (type: string, listener: Listener) => documentListeners.set(type, listener),
     removeEventListener: (type: string) => documentListeners.delete(type),
   })
   vi.stubGlobal("window", {
-    matchMedia: (text: string) =>
-      query(text.includes("max-width") ? options.narrow : options.touch),
+    matchMedia: (text: string) => {
+      if (text === TOUCH_QUERY) return touch
+      throw new Error(`unexpected media query: ${text}`)
+    },
     addEventListener: (type: string, listener: Listener) => windowListeners.set(type, listener),
     removeEventListener: (type: string) => windowListeners.delete(type),
     visualViewport: {
@@ -98,6 +128,11 @@ function createPage(options: { narrow: boolean; touch: boolean }) {
     documentListeners,
     windowListeners,
     viewportListeners,
+    touch,
+    setDrawer(next: boolean) {
+      state.drawer = next
+      for (const callback of mutationCallbacks) callback()
+    },
   }
 }
 
@@ -185,26 +220,20 @@ describe("mobile client half", () => {
     expect(inject).toEqual(["slots", "locale", "configForms", "layout"])
   })
 
-  it("adds the header menu button and the drawer overlay", () => {
-    createPage({ narrow: true, touch: true })
+  it("adds only its Settings page; the Harness owns the drawer chrome", () => {
+    createPage({ phone: true, touch: true })
     const h = createHarness()
     apply(h.ctx)
 
-    expect(entry(h, HEADER_SLOT).component).toBe(HeaderMenuButton)
-    expect(entry(h, HEADER_SLOT).options.locale).toBe(NAMESPACE)
-    expect(entry(h, OVERLAY_SLOT).component).toBe(DrawerOverlay)
-    expect(entry(h, OVERLAY_SLOT).options.id).toBe("mobile-drawer")
+    expect(h.registrations.map((registration) => registration.options.name)).toEqual([
+      SETTINGS_SLOT,
+    ])
     expect(entry(h, SETTINGS_SLOT).options).toMatchObject({ id: "mobile", locale: NAMESPACE })
     expect((entry(h, SETTINGS_SLOT).options.label as () => string)()).toBe("nav")
-
-    const face = (entry(h, HEADER_SLOT).options.inject as () => DrawerFace)()
-    expect(face.mode.getSnapshot()).toEqual({ mobile: true, touch: true })
-    face.toggle()
-    expect(h.toggleSidebar).toHaveBeenCalledTimes(1)
   })
 
-  it("marks a narrow touch screen and fits the page to the keyboard", () => {
-    const page = createPage({ narrow: true, touch: true })
+  it("marks a phone page and fits it to the keyboard", () => {
+    const page = createPage({ phone: true, touch: true })
     const h = createHarness()
     apply(h.ctx)
 
@@ -218,16 +247,27 @@ describe("mobile client half", () => {
     expect(page.documentListeners.has("focusin")).toBe(true)
   })
 
+  it("follows the Harness when the drawer closes", () => {
+    const page = createPage({ phone: true, touch: true })
+    const h = createHarness()
+    apply(h.ctx)
+
+    page.setDrawer(false)
+    expect([...page.attributes]).toEqual([TOUCH_ATTRIBUTE])
+    expect(page.props.size).toBe(0)
+  })
+
   it("leaves a wide desktop page alone", () => {
-    const page = createPage({ narrow: false, touch: false })
+    const page = createPage({ phone: false, touch: false })
     const h = createHarness()
     apply(h.ctx)
     expect(page.attributes.size).toBe(0)
     expect(page.props.size).toBe(0)
+    expect(h.registrations).toHaveLength(1)
   })
 
   it("follows settings changes without a reload", () => {
-    const page = createPage({ narrow: true, touch: true })
+    const page = createPage({ phone: true, touch: true })
     const h = createHarness()
     apply(h.ctx)
 
@@ -236,16 +276,13 @@ describe("mobile client half", () => {
     expect(page.attributes.has(NO_PULL_ATTRIBUTE)).toBe(false)
     expect(page.attributes.has(MOBILE_ATTRIBUTE)).toBe(true)
 
-    h.configure({ mode: "off" })
-    expect(page.attributes.size).toBe(0)
-
-    h.configure({})
-    expect(page.attributes.has(MOBILE_ATTRIBUTE)).toBe(true)
+    h.configure({ fitKeyboard: true, blockPullToRefresh: true })
     expect(page.props.get(HEIGHT_VARIABLE)).toBe("760px")
+    expect(page.attributes.has(NO_PULL_ATTRIBUTE)).toBe(true)
   })
 
   it("removes everything on teardown", () => {
-    const page = createPage({ narrow: true, touch: true })
+    const page = createPage({ phone: true, touch: true })
     const h = createHarness()
     apply(h.ctx)
     expect(page.head.some((tag) => tag.dataset.plugin === "@1outres/dsh-plugin-mobile")).toBe(true)
@@ -260,5 +297,6 @@ describe("mobile client half", () => {
     expect(page.windowListeners.size).toBe(0)
     expect(page.documentListeners.size).toBe(0)
     expect(page.viewportListeners.size).toBe(0)
+    expect(page.touch.listeners.size).toBe(0)
   })
 })
