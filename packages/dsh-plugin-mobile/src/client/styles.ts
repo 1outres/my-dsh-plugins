@@ -14,8 +14,13 @@ const SETTINGS = `${M} [data-shortcut-modal="settings"][role="dialog"]`
 
 /**
  * Plugin controls use theme tokens only. Host elements are addressed through
- * slot anchors (`data-slot`), data attributes and ARIA roles; the two
- * `[class*=...]` selectors are scoped to Session rows and only add affordances.
+ * slot anchors (`data-slot`), data attributes and ARIA roles; the
+ * `[class*=...]` selectors are scoped to sidebar rows.
+ *
+ * iOS treats a tap that reveals content through `:hover` as a hover and
+ * swallows the click, so a Session row needed two taps. On touch screens the
+ * rows no longer change what they show on hover: the selected Session and every
+ * Workspace keep their buttons visible, other Sessions keep their time.
  */
 export const MOBILE_CSS = `
 .dsh-mobile-menu {
@@ -305,6 +310,19 @@ ${T} [data-row-key^="session:"][aria-selected="true"] > :is([class*="_time"], [c
 }
 ${T} [data-row-key] > [class*="_rowActions"] {
   gap: 4px;
+}
+${T} [data-row-key^="session:"]:not([aria-selected="true"]):hover > [class*="_rowActions"],
+${T} [data-row-key^="workspace:"]:hover > [class*="_chevron"],
+${T} [class*="_searchResultRow"]:hover [class*="_rowActions"] {
+  display: none;
+}
+${T} [data-row-key^="session:"]:not([aria-selected="true"]):hover > [class*="_time"] {
+  display: inline;
+}
+${T} [data-row-key^="session:"]:not([aria-selected="true"]):hover > [class*="_pinIndicator"],
+${T} [data-row-key^="workspace:"]:hover > [class*="_folder"],
+${T} [data-row-key^="workspace:"] > [class*="_rowActions"] {
+  display: inline-flex;
 }
 ${T} [data-row-key] > [class*="_rowActions"] button {
   width: 28px;

@@ -46,6 +46,13 @@ export const Config = z.object({
     .default(true)
     .description("Stop pull-to-refresh and overscroll bounce from reloading or moving the page.")
     .volatile(),
+  autoFocusComposer: z
+    .boolean()
+    .default(false)
+    .description(
+      "Let the composer take focus by itself on a touch screen in the phone layout, as on desktop: when a session opens or a composer button is pressed. Off keeps the on-screen keyboard closed until you tap the input.",
+    )
+    .volatile(),
 })
 
 interface SettingsLike {

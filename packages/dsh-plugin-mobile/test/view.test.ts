@@ -108,6 +108,7 @@ describe("settings page", () => {
       "settings.swipe",
       "settings.fitKeyboard",
       "settings.blockPullToRefresh",
+      "settings.autoFocusComposer",
       "settings.reset",
     ]) {
       expect(html).toContain(key)

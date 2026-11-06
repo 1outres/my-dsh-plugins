@@ -260,6 +260,13 @@ export function SettingsPage({ form, mode, t }: SettingsPageProps) {
           <p style={hintStyle}>{t("settings.enterKeyHint")}</p>
         </div>
         <Toggle
+          label={t("settings.autoFocusComposer")}
+          hint={t("settings.autoFocusComposerHint")}
+          checked={config.autoFocusComposer}
+          disabled={disabled}
+          onChange={(next) => write("autoFocusComposer", next)}
+        />
+        <Toggle
           label={t("settings.swipe")}
           hint={t("settings.swipeHint")}
           checked={config.swipe}

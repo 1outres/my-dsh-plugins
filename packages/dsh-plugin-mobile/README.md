@@ -34,6 +34,12 @@ fullscreen).
 - **Enter adds a line.** On a touch screen Enter in the composer inserts a line
   break and the send button sends. Enter that confirms an IME conversion, and
   Enter in the slash-command or reference menu, keep working as before.
+- **The keyboard opens only when you tap the input.** The Harness focuses the
+  composer whenever a session opens and when a composer button such as the
+  model picker or Send is pressed, which pops the keyboard over the
+  conversation. On a touch screen the composer takes focus only right after a
+  tap on the input (or on the empty part of the composer card, or the `+`
+  command button) or a hardware key press; other focuses are undone at once.
 - **Notches and the home indicator.** The page asks for the full screen
   (`viewport-fit=cover`) and pads by the safe-area insets; the composer clears
   the home indicator while the keyboard is down.
@@ -48,8 +54,11 @@ On any touch screen (also a tablet wider than the breakpoint):
 - Text fields use at least 16px type, so iOS does not zoom in when one gets
   focus.
 - Tooltips, which stick after a tap, are hidden.
-- The selected session row always shows its "..." menu and row buttons, with
-  28px tap targets; other rows still show them on tap.
+- One tap opens a session. iOS treats a tap that reveals content on `:hover`
+  as a hover and drops the click, and the sidebar rows reveal their buttons on
+  hover, so a row needed two taps. Rows no longer change on hover: the selected
+  session and every workspace keep their "..." menu and buttons visible, with
+  28px tap targets, and other sessions keep their time.
 - No tap highlight flash and no double-tap zoom delay on buttons.
 
 The plugin also adds the home-screen tags (`apple-mobile-web-app-capable`,
@@ -71,6 +80,7 @@ which width, to help pick the breakpoint.
 | `swipe`              | `true`    | Edge swipe opens the drawer, swipe left closes it.                                                |
 | `fitKeyboard`        | `true`    | Fit the page to the area the on-screen keyboard leaves visible.                                   |
 | `blockPullToRefresh` | `true`    | Stop pull-to-refresh and overscroll bounce.                                                       |
+| `autoFocusComposer`  | `false`   | Let the composer focus itself (and open the keyboard) on a touch screen, as on desktop.           |
 
 `mode: off` removes every change, the touch ones included.
 
@@ -92,7 +102,10 @@ which width, to help pick the breakpoint.
 4. Enter: a capturing `keydown` listener hides a plain Enter in the composer
    from the composer's own handlers. The key's default action still runs, and
    the editor turns the browser's paragraph break into a line break.
-5. The Host half only declares the settings and turns off the
+5. Focus: capturing `pointerdown` and `keydown` listeners remember what the
+   user last did; a `focusin` on the composer that no recent tap on it or key
+   press explains is blurred in the same event.
+6. The Host half only declares the settings and turns off the
    schema-generated form, since the plugin ships its own Settings page.
 
 ## Limits

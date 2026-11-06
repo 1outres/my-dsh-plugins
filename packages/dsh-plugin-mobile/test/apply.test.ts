@@ -215,6 +215,7 @@ describe("mobile client half", () => {
     expect(page.viewport.content).toContain("viewport-fit=cover")
     expect(page.windowListeners.has("keydown")).toBe(true)
     expect(page.documentListeners.has("touchstart")).toBe(true)
+    expect(page.documentListeners.has("focusin")).toBe(true)
   })
 
   it("leaves a wide desktop page alone", () => {

@@ -23,6 +23,9 @@ export const en: Record<string, string> = {
     "On a touch screen in the phone layout. With New line, send with the send button. IME conversion and command menus keep their Enter.",
   "settings.enterKey.newline": "New line",
   "settings.enterKey.send": "Send",
+  "settings.autoFocusComposer": "Focus the composer automatically",
+  "settings.autoFocusComposerHint":
+    "Opening a session or pressing a composer button focuses the input, as on desktop, and the on-screen keyboard opens. Off: tap the input to type.",
   "settings.swipe": "Swipe to open the sidebar",
   "settings.swipeHint": "Swipe right from the left edge to open, swipe left to close.",
   "settings.fitKeyboard": "Fit the page to the keyboard",
@@ -60,6 +63,9 @@ export const zh: Record<string, string> = {
     "仅在触屏设备的手机布局中生效。选择换行时用发送按钮发送。输入法确认和命令菜单仍使用 Enter。",
   "settings.enterKey.newline": "换行",
   "settings.enterKey.send": "发送",
+  "settings.autoFocusComposer": "自动聚焦输入框",
+  "settings.autoFocusComposerHint":
+    "打开会话或按下输入框中的按钮时自动聚焦输入框（与桌面相同），屏幕键盘会弹出。关闭时点按输入框才开始输入。",
   "settings.swipe": "滑动打开侧边栏",
   "settings.swipeHint": "从左边缘向右滑动打开，向左滑动关闭。",
   "settings.fitKeyboard": "页面适配键盘",
@@ -97,6 +103,9 @@ export const ja: Record<string, string> = {
     "タッチ端末のスマホ表示でだけ効きます。「改行」のときは送信ボタンで送ります。変換の確定とコマンドメニューでは従来どおり Enter が効きます。",
   "settings.enterKey.newline": "改行",
   "settings.enterKey.send": "送信",
+  "settings.autoFocusComposer": "入力欄に自動でフォーカスする",
+  "settings.autoFocusComposerHint":
+    "セッションを開いたときや入力欄のボタンを押したときに、デスクトップと同じく入力欄にフォーカスし、キーボードが開きます。オフにすると、入力欄をタップするまでキーボードは開きません。",
   "settings.swipe": "スワイプでサイドバーを開く",
   "settings.swipeHint": "左端から右へスワイプで開き、左へスワイプで閉じます。",
   "settings.fitKeyboard": "キーボードに合わせてページを縮める",

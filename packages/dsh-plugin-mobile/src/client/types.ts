@@ -21,6 +21,7 @@ export interface MobileConfig {
   swipe: boolean
   fitKeyboard: boolean
   blockPullToRefresh: boolean
+  autoFocusComposer: boolean
 }
 
 /** Whether the page currently uses the phone layout, and whether it is a touch screen. */

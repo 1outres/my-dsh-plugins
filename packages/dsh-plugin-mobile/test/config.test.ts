@@ -12,6 +12,7 @@ describe("settings", () => {
       swipe: true,
       fitKeyboard: true,
       blockPullToRefresh: true,
+      autoFocusComposer: false,
     })
   })
 

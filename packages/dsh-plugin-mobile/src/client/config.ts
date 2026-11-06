@@ -17,6 +17,7 @@ export const DEFAULT_CONFIG: MobileConfig = {
   swipe: true,
   fitKeyboard: true,
   blockPullToRefresh: true,
+  autoFocusComposer: false,
 }
 
 const MODES: readonly LayoutMode[] = ["auto", "always", "off"]
@@ -47,5 +48,6 @@ export function normalizeConfig(
     swipe: flag(value?.swipe, DEFAULT_CONFIG.swipe),
     fitKeyboard: flag(value?.fitKeyboard, DEFAULT_CONFIG.fitKeyboard),
     blockPullToRefresh: flag(value?.blockPullToRefresh, DEFAULT_CONFIG.blockPullToRefresh),
+    autoFocusComposer: flag(value?.autoFocusComposer, DEFAULT_CONFIG.autoFocusComposer),
   }
 }

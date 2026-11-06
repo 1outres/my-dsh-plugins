@@ -1,6 +1,7 @@
 import { type DrawerFace, DrawerOverlay, HeaderMenuButton } from "./components"
 import { NAMESPACE, normalizeConfig } from "./config"
 import { installEnterNewline } from "./enter"
+import { installFocusGuard } from "./focus"
 import { findFrame, isExpanded, swipeBlocked } from "./frame"
 import { en, ja, zh } from "./i18n"
 import { createModeStore } from "./mode"
@@ -102,6 +103,15 @@ export function apply(ctx: ClientContext): void {
         return state.mobile && state.touch && config.enterKey === "newline"
       }),
     "mobile: Enter adds a line",
+  )
+
+  ctx.effect(
+    () =>
+      installFocusGuard(document, () => {
+        const state = mode.getSnapshot()
+        return state.mobile && state.touch && !config.autoFocusComposer
+      }),
+    "mobile: keyboard stays closed until the composer is tapped",
   )
 
   ctx.effect(
