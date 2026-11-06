@@ -48,8 +48,21 @@ export const Config = z.object({
     .volatile(),
 })
 
+interface SettingsLike {
+  configure(presentation: { auto?: boolean }, owner?: unknown): () => void
+}
+
 /**
  * Host half. It owns no runtime behavior: the layout belongs to the browser
- * looking at the page, so this half only declares the settings.
+ * looking at the page. This half declares the settings and tells Settings that
+ * the plugin ships its own page instead of the schema-generated one.
  */
-export function apply(_ctx: Context): void {}
+export function apply(ctx: Context): void {
+  ctx.inject(["settings"], (child) => {
+    const settings = (child as Context & { settings: SettingsLike }).settings
+    child.effect(
+      () => settings.configure({ auto: false }, ctx.fiber),
+      "mobile: settings page policy",
+    )
+  })
+}

@@ -78,6 +78,83 @@ export const MOBILE_CSS = `
   opacity: 1;
   pointer-events: auto;
 }
+.dsh-mobile-segmented {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+.dsh-mobile-segment {
+  box-sizing: border-box;
+  min-height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dsh-mobile-segment[aria-pressed="true"] {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 0.5px var(--dsw-alias-border-l2);
+}
+.dsh-mobile-segment:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.dsh-mobile-segment:focus-visible,
+.dsh-mobile-switch:focus-visible {
+  outline: var(--dsw-focus-ring-width) solid
+    var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: 2px;
+}
+.dsh-mobile-switch {
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 20px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dsw-alias-border-l3);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dsh-mobile-switch[aria-checked="true"] {
+  background: var(--dsw-alias-brand-primary);
+}
+.dsh-mobile-switch:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.dsh-mobile-thumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--dsw-alias-label-primary-foreground);
+  transition: transform 0.12s ease;
+}
+.dsh-mobile-switch[aria-checked="false"] .dsh-mobile-thumb {
+  background: var(--dsw-alias-switch-thumb);
+}
+.dsh-mobile-switch[aria-checked="true"] .dsh-mobile-thumb {
+  transform: translate(16px);
+}
 
 ${M} {
   --dsh-frame-top-clearance: 44px;

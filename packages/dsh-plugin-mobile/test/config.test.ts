@@ -38,6 +38,26 @@ describe("settings", () => {
   it("declares the same fields in the Host schema", () => {
     expect(Object.keys(Config.dict ?? {}).sort()).toEqual(Object.keys(DEFAULT_CONFIG).sort())
     expect(() => Config({ mode: "nope" } as never)).toThrow()
-    expect(() => apply({} as never)).not.toThrow()
+  })
+
+  it("tells Settings the plugin ships its own page", () => {
+    const configured: unknown[] = []
+    const ctx = {
+      fiber: "fiber",
+      inject: (deps: string[], callback: (child: unknown) => void) => {
+        expect(deps).toEqual(["settings"])
+        callback({
+          settings: {
+            configure: (presentation: unknown, owner: unknown) => {
+              configured.push([presentation, owner])
+              return () => {}
+            },
+          },
+          effect: (run: () => unknown) => run(),
+        })
+      },
+    }
+    apply(ctx as never)
+    expect(configured).toEqual([[{ auto: false }, "fiber"]])
   })
 })

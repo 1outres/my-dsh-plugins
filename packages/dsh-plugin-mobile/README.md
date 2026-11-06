@@ -58,8 +58,10 @@ Screen** opens the Harness without the browser bar.
 
 ## Settings
 
-Edit them on the plugin's settings page, or in the profile patch under the
-`mobile` row. Every change applies immediately.
+Edit them in **Settings → Mobile**, or in the profile patch under the
+`mobile` row. Every change applies immediately in every open page. The page
+also says whether the page you are looking at uses the phone layout, and at
+which width, to help pick the breakpoint.
 
 | Field                | Default   | Meaning                                                                                           |
 | -------------------- | --------- | ------------------------------------------------------------------------------------------------- |
@@ -90,7 +92,8 @@ Edit them on the plugin's settings page, or in the profile patch under the
 4. Enter: a capturing `keydown` listener hides a plain Enter in the composer
    from the composer's own handlers. The key's default action still runs, and
    the editor turns the browser's paragraph break into a line break.
-5. The Host half only declares the settings.
+5. The Host half only declares the settings and turns off the
+   schema-generated form, since the plugin ships its own Settings page.
 
 ## Limits
 
@@ -112,4 +115,6 @@ Edit them on the plugin's settings page, or in the profile patch under the
   use SVG touch icons, and the Harness ships no PNG.
 - An edge swipe in Safari can also trigger the browser's own back gesture; the
   home-screen app has none.
-- English and Chinese button labels.
+- Buttons and the Settings page are in English, Chinese and Japanese (the
+  Japanese copy shows only with a Japanese language pack); the field
+  descriptions in the profile schema are English.

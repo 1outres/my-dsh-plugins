@@ -32,15 +32,26 @@ export interface ModeState {
 export interface ConfigFormSnapshot<T> {
   status: "loading" | "ready" | "unavailable"
   value: T | undefined
+  /** False when a higher layer (home patch, command line) owns the entry. */
+  writable?: boolean
 }
 
 export interface ConfigForm<T> {
   getSnapshot(): ConfigFormSnapshot<T>
   subscribe(listener: () => void): () => void
+  /** Write one field to the profile patch; resolves to whether the Host accepted it. */
+  set(field: string, value: unknown): Promise<boolean>
+  /** Drop the profile override so the schema default applies again. */
+  unset(field: string): Promise<boolean>
 }
 
 export interface ConfigFormsService {
   get<T>(namespace: string): ConfigForm<T>
+  /** Run `register` while the Host serves forms for these namespaces. */
+  whileServed(
+    namespaces: readonly string[],
+    register: (served: ReadonlySet<string>) => () => void,
+  ): () => void
 }
 
 export type Translate = (key: string, params?: Record<string, unknown>) => string
@@ -54,6 +65,7 @@ export interface SlotRegistration {
   name: string
   id?: string
   order?: number
+  label?: string | (() => string)
   locale?: string
   inject?: () => object
 }

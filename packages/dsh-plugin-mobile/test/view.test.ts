@@ -2,8 +2,11 @@ import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import { DrawerOverlay, HeaderMenuButton, mainSessionOf } from "../src/client/components"
+import { parseBreakpoint, SettingsPage } from "../src/client/SettingsPage"
 import { MOBILE_CSS } from "../src/client/styles"
 import type {
+  ConfigForm,
+  MobileConfig,
   ModeState,
   Observable,
   PanelInfo,
@@ -73,6 +76,72 @@ describe("drawer overlay", () => {
       createElement(DrawerOverlay, { mode: fixed(phone), toggle, t, ...hooks("plugins") }),
     )
     expect(html).toContain("dsh-mobile-floating")
+  })
+})
+
+function form(
+  value: Partial<MobileConfig>,
+  status: "ready" | "unavailable" = "ready",
+  writable = true,
+): ConfigForm<Partial<MobileConfig>> {
+  return {
+    getSnapshot: () => ({ status, value, writable }),
+    subscribe: () => () => {},
+    set: async () => true,
+    unset: async () => true,
+  }
+}
+
+describe("settings page", () => {
+  it("shows every setting with its current value", () => {
+    const html = renderToStaticMarkup(
+      createElement(SettingsPage, {
+        form: form({ mode: "always", enterKey: "send", swipe: false }),
+        mode: fixed(phone),
+        t,
+      }),
+    )
+    for (const key of [
+      "settings.mode",
+      "settings.breakpoint",
+      "settings.enterKey",
+      "settings.swipe",
+      "settings.fitKeyboard",
+      "settings.blockPullToRefresh",
+      "settings.reset",
+    ]) {
+      expect(html).toContain(key)
+    }
+    expect(html).toMatch(/aria-pressed="true"[^>]*>settings\.mode\.always</)
+    expect(html).toMatch(/aria-pressed="true"[^>]*>settings\.enterKey\.send</)
+    expect(html).toMatch(/aria-pressed="false"[^>]*>settings\.mode\.auto</)
+    expect(html).toMatch(/role="switch" aria-checked="false" aria-label="settings\.swipe"/)
+    expect(html).toContain('value="768"')
+  })
+
+  it("disables the controls when a higher layer owns the entry", () => {
+    const html = renderToStaticMarkup(
+      createElement(SettingsPage, { form: form({}, "ready", false), mode: fixed(phone), t }),
+    )
+    expect(html).toContain("settings.readOnly")
+    expect(html).toContain("disabled")
+  })
+
+  it("explains an unavailable entry", () => {
+    const html = renderToStaticMarkup(
+      createElement(SettingsPage, { form: form({}, "unavailable"), mode: fixed(phone), t }),
+    )
+    expect(html).toContain("settings.unavailable")
+  })
+
+  it("accepts only whole breakpoints in range", () => {
+    expect(parseBreakpoint(" 600 ")).toBe(600)
+    expect(parseBreakpoint("360")).toBe(360)
+    expect(parseBreakpoint("1024")).toBe(1024)
+    expect(parseBreakpoint("359")).toBeUndefined()
+    expect(parseBreakpoint("1025")).toBeUndefined()
+    expect(parseBreakpoint("600.5")).toBeUndefined()
+    expect(parseBreakpoint("")).toBeUndefined()
   })
 })
 

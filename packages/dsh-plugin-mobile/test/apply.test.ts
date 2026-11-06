@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { type DrawerFace, DrawerOverlay, HeaderMenuButton } from "../src/client/components"
 import { NAMESPACE } from "../src/client/config"
-import { apply, HEADER_SLOT, inject, OVERLAY_SLOT } from "../src/client/index"
+import { apply, HEADER_SLOT, inject, OVERLAY_SLOT, SETTINGS_SLOT } from "../src/client/index"
 import { MOBILE_ATTRIBUTE, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "../src/client/styles"
 import type { ClientContext, MobileConfig } from "../src/client/types"
 import { HEIGHT_VARIABLE } from "../src/client/viewport"
@@ -135,12 +135,19 @@ function createHarness() {
     },
     configForms: {
       get: () => ({
-        getSnapshot: () => ({ status: "ready", value }),
+        getSnapshot: () => ({ status: "ready", value, writable: true }),
         subscribe: (listener: () => void) => {
           formListeners.add(listener)
           return () => formListeners.delete(listener)
         },
+        set: async (field: string, next: unknown) => {
+          value = { ...value, [field]: next }
+          for (const listener of [...formListeners]) listener()
+          return true
+        },
+        unset: async () => true,
       }),
+      whileServed: (_namespaces: readonly string[], register: () => () => void) => register(),
     },
     layout: { toggleSidebar },
   }
@@ -187,6 +194,8 @@ describe("mobile client half", () => {
     expect(entry(h, HEADER_SLOT).options.locale).toBe(NAMESPACE)
     expect(entry(h, OVERLAY_SLOT).component).toBe(DrawerOverlay)
     expect(entry(h, OVERLAY_SLOT).options.id).toBe("mobile-drawer")
+    expect(entry(h, SETTINGS_SLOT).options).toMatchObject({ id: "mobile", locale: NAMESPACE })
+    expect((entry(h, SETTINGS_SLOT).options.label as () => string)()).toBe("nav")
 
     const face = (entry(h, HEADER_SLOT).options.inject as () => DrawerFace)()
     expect(face.mode.getSnapshot()).toEqual({ mobile: true, touch: true })

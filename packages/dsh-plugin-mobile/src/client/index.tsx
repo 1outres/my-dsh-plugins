@@ -2,8 +2,9 @@ import { type DrawerFace, DrawerOverlay, HeaderMenuButton } from "./components"
 import { NAMESPACE, normalizeConfig } from "./config"
 import { installEnterNewline } from "./enter"
 import { findFrame, isExpanded, swipeBlocked } from "./frame"
-import { en, zh } from "./i18n"
+import { en, ja, zh } from "./i18n"
 import { createModeStore } from "./mode"
+import { SettingsPage } from "./SettingsPage"
 import { MOBILE_ATTRIBUTE, MOBILE_CSS, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "./styles"
 import { installSwipe } from "./swipe"
 import type { ClientContext, MobileConfig } from "./types"
@@ -18,6 +19,8 @@ const PLUGIN_ID = "@1outres/dsh-plugin-mobile"
 export const HEADER_SLOT = "conversation.header.leading"
 /** Frame-wide floating layer, above every column. */
 export const OVERLAY_SLOT = "shell.overlay"
+/** One page of the Settings dialog. */
+export const SETTINGS_SLOT = "settings.section"
 
 /**
  * Browser half. Below the breakpoint it marks the root element so the
@@ -26,7 +29,8 @@ export const OVERLAY_SLOT = "shell.overlay"
  * Enter and swipe behavior. Everything is undone on teardown.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NAMESPACE, { en, zh }), "mobile: dictionaries")
+  ctx.effect(() => ctx.locale.register(NAMESPACE, { en, zh, ja }), "mobile: dictionaries")
+  const t = ctx.locale.bind(NAMESPACE)
 
   ctx.effect(() => {
     const tag = document.createElement("style")
@@ -136,5 +140,27 @@ export function apply(ctx: ClientContext): void {
         ),
       ),
     "mobile: drawer scrim",
+  )
+
+  // biome-ignore lint/correctness/noComponentHookFactories: the page closes over the shared form, mode and translator
+  const Page = () => <SettingsPage form={form} mode={mode} t={t} />
+
+  ctx.effect(
+    () =>
+      ctx.configForms.whileServed([NAMESPACE], () =>
+        ctx.slots.inject(SETTINGS_SLOT, () =>
+          ctx.slots.register(
+            {
+              name: SETTINGS_SLOT,
+              id: "mobile",
+              order: 62,
+              label: () => t("nav"),
+              locale: NAMESPACE,
+            },
+            Page,
+          ),
+        ),
+      ),
+    "mobile: settings section",
   )
 }
