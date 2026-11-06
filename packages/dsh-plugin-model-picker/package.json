@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-model-picker",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "A searchable composer model picker with favorites and recent models for DeepSeek Harness profiles with many providers.",
   "repository": {
     "type": "git",

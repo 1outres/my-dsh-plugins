@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-claude-subscription",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Use your own Claude subscription in DeepSeek Harness through the official Claude Code CLI. Unofficial; not affiliated with Anthropic.",
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-notify",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Desktop notifications for approval prompts, agent questions, and finished turns in the DeepSeek Harness Web UI.",
   "repository": {
     "type": "git",
