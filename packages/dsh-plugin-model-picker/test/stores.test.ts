@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 import { normalizeConfig, normalizeRefs, refKey } from "../src/client/config"
+import { createEffortStore, EFFORTS_STORAGE_KEY, EFFORTS_STORED } from "../src/client/efforts"
 import { createFavoritesStore } from "../src/client/favorites"
 import { RECENT_STORED } from "../src/client/model"
 import {
@@ -120,9 +121,12 @@ describe("favorites store", () => {
   })
 })
 
-function memoryStorage(initial?: string): StorageLike & { data: Map<string, string> } {
+function memoryStorage(
+  initial?: string,
+  key: string = RECENT_STORAGE_KEY,
+): StorageLike & { data: Map<string, string> } {
   const data = new Map<string, string>()
-  if (initial !== undefined) data.set(RECENT_STORAGE_KEY, initial)
+  if (initial !== undefined) data.set(key, initial)
   return {
     data,
     getItem: (key) => data.get(key) ?? null,
@@ -185,6 +189,98 @@ describe("recent store", () => {
     handler?.({ key: RECENT_STORAGE_KEY })
     expect(store.getSnapshot()).toEqual([{ provider: "p", model: "b" }])
     expect(seen).toHaveBeenCalledTimes(1)
+    disconnect()
+    expect(handler).toBeUndefined()
+  })
+})
+
+describe("effort store", () => {
+  it("loads the level remembered for each model and ignores malformed data", () => {
+    const stored = memoryStorage(
+      JSON.stringify([
+        { provider: "p", model: "a", effort: "high" },
+        { provider: "p", model: "b" },
+        { provider: "p", model: "c", effort: "" },
+        { provider: "p", model: "a", effort: "low" },
+        3,
+      ]),
+      EFFORTS_STORAGE_KEY,
+    )
+    const store = createEffortStore(stored)
+    expect(store.get({ provider: "p", model: "a" })).toBe("high")
+    expect(store.get({ provider: "p", model: "b" })).toBeUndefined()
+    expect(store.get({ provider: "p", model: "c" })).toBeUndefined()
+    expect(
+      createEffortStore(memoryStorage("{not json", EFFORTS_STORAGE_KEY)).get({
+        provider: "p",
+        model: "a",
+      }),
+    ).toBeUndefined()
+    expect(createEffortStore(undefined).get({ provider: "p", model: "a" })).toBeUndefined()
+  })
+
+  it("remembers a level per model, newest first, and forgets one reset to Default", () => {
+    const storage = memoryStorage(undefined, EFFORTS_STORAGE_KEY)
+    const store = createEffortStore(storage)
+    store.remember({ provider: "p", model: "a" }, "high")
+    store.remember({ provider: "p", model: "b" }, "low")
+    store.remember({ provider: "p", model: "a" }, "xhigh")
+    expect(store.get({ provider: "p", model: "a" })).toBe("xhigh")
+    expect(store.get({ provider: "p", model: "b" })).toBe("low")
+    expect(JSON.parse(storage.data.get(EFFORTS_STORAGE_KEY) ?? "[]")).toEqual([
+      { provider: "p", model: "a", effort: "xhigh" },
+      { provider: "p", model: "b", effort: "low" },
+    ])
+    store.remember({ provider: "p", model: "a" }, undefined)
+    expect(store.get({ provider: "p", model: "a" })).toBeUndefined()
+    expect(JSON.parse(storage.data.get(EFFORTS_STORAGE_KEY) ?? "[]")).toEqual([
+      { provider: "p", model: "b", effort: "low" },
+    ])
+  })
+
+  it("caps the stored models", () => {
+    const storage = memoryStorage(undefined, EFFORTS_STORAGE_KEY)
+    const store = createEffortStore(storage)
+    for (let index = 0; index < EFFORTS_STORED + 3; index += 1) {
+      store.remember({ provider: "p", model: String(index) }, "high")
+    }
+    expect(store.get({ provider: "p", model: String(EFFORTS_STORED + 2) })).toBe("high")
+    expect(store.get({ provider: "p", model: "0" })).toBeUndefined()
+    expect(JSON.parse(storage.data.get(EFFORTS_STORAGE_KEY) ?? "[]")).toHaveLength(EFFORTS_STORED)
+  })
+
+  it("keeps working in memory when storage refuses writes", () => {
+    const store = createEffortStore({
+      getItem: () => null,
+      setItem: () => {
+        throw new Error("quota")
+      },
+    })
+    store.remember({ provider: "p", model: "a" }, "high")
+    expect(store.get({ provider: "p", model: "a" })).toBe("high")
+  })
+
+  it("follows writes from other tabs while connected", () => {
+    const storage = memoryStorage(undefined, EFFORTS_STORAGE_KEY)
+    let handler: ((event: StorageEventLike) => void) | undefined
+    const events = {
+      addEventListener: (_type: "storage", listener: (event: StorageEventLike) => void) => {
+        handler = listener
+      },
+      removeEventListener: () => {
+        handler = undefined
+      },
+    }
+    const store = createEffortStore(storage, events)
+    const disconnect = store.connect()
+    storage.data.set(
+      EFFORTS_STORAGE_KEY,
+      JSON.stringify([{ provider: "p", model: "a", effort: "low" }]),
+    )
+    handler?.({ key: "other" })
+    expect(store.get({ provider: "p", model: "a" })).toBeUndefined()
+    handler?.({ key: EFFORTS_STORAGE_KEY })
+    expect(store.get({ provider: "p", model: "a" })).toBe("low")
     disconnect()
     expect(handler).toBeUndefined()
   })

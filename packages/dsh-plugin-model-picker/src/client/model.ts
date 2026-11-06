@@ -256,6 +256,19 @@ export function carriedEffort(
   return target.efforts.some((level) => level.id === effort) ? effort : undefined
 }
 
+/**
+ * The effort to send when switching to another model: the level remembered
+ * for that model when it still offers it, otherwise the current level when
+ * the target offers it, otherwise none (the target's default).
+ */
+export function preferredEffort(
+  remembered: string | undefined,
+  current: string | undefined,
+  target: ModelReasoning | undefined,
+): string | undefined {
+  return carriedEffort(remembered, target) ?? carriedEffort(current, target)
+}
+
 export interface EffortChoice {
   key: string
   /** Undefined selects the provider default. */

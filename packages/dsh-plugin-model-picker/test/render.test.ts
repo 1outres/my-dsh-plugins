@@ -1,6 +1,7 @@
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { createEffortStore } from "../src/client/efforts"
 import { createFavoritesStore } from "../src/client/favorites"
 import { ModelPicker, type PickerProps } from "../src/client/Picker"
 import { createRecentStore } from "../src/client/recent"
@@ -49,6 +50,7 @@ function render(overrides: Partial<PickerProps> = {}): string {
     select: async () => ({ ok: true, value: undefined }),
     favorites: createFavoritesStore(form),
     recent: createRecentStore(undefined),
+    efforts: createEffortStore(undefined),
     t: (key, params) => (params === undefined ? key : `${key} ${JSON.stringify(params)}`),
     ...overrides,
   }

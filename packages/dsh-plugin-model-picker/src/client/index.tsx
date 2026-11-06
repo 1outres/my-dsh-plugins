@@ -1,4 +1,5 @@
 import { CONFIG_NAMESPACE } from "./config"
+import { createEffortStore } from "./efforts"
 import { createFavoritesStore } from "./favorites"
 import { en } from "./i18n"
 import { ModelPicker } from "./Picker"
@@ -67,8 +68,10 @@ export function apply(ctx: ClientContext): void {
 
   const favorites = createFavoritesStore(ctx.configForms.get<ModelPickerConfig>(CONFIG_NAMESPACE))
   const recent = createRecentStore(browserStorage(), storageEvents())
+  const efforts = createEffortStore(browserStorage(), storageEvents())
   ctx.effect(() => favorites.connect(), "model-picker: favorites")
   ctx.effect(() => recent.connect(), "model-picker: recent models")
+  ctx.effect(() => efforts.connect(), "model-picker: per-model efforts")
 
   ctx.effect(
     () =>
@@ -91,6 +94,7 @@ export function apply(ctx: ClientContext): void {
                   available ? directory.select(selection) : Promise.resolve(undefined),
                 favorites,
                 recent,
+                efforts,
               }
             },
           },

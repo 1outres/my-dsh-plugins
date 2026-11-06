@@ -14,6 +14,7 @@ import {
 } from "react"
 import { createPortal } from "react-dom"
 import { refKey } from "./config"
+import type { EffortStore } from "./efforts"
 import type { FavoritesStore } from "./favorites"
 import {
   IconCheck,
@@ -26,7 +27,6 @@ import {
 } from "./icons"
 import {
   buildSections,
-  carriedEffort,
   catalogEntries,
   type EffortChoice,
   effectiveEffort,
@@ -34,6 +34,7 @@ import {
   effortChoices,
   isSelected,
   type ModelEntry,
+  preferredEffort,
   providerName,
   stepIndex,
 } from "./model"
@@ -61,6 +62,8 @@ export interface PickerProps {
   select: (selection: ModelSelection) => Promise<RemoteResult<void> | undefined>
   favorites: FavoritesStore
   recent: RecentStore
+  /** The level last used with each model, restored when switching back. */
+  efforts: EffortStore
   t: Translate
 }
 
@@ -146,7 +149,7 @@ function PickerToast(props: { text: string; anchor: Element | null; onDone: () =
  * through the same per-Session directory as `/model`.
  */
 export function ModelPicker(props: PickerProps) {
-  const { locked, available, directory, load, select, favorites, recent, t } = props
+  const { locked, available, directory, load, select, favorites, recent, efforts, t } = props
   const state = useObservable(directory)
   const favoriteRefs = useObservable(favorites)
   const recentRefs = useObservable(recent)
@@ -287,6 +290,10 @@ export function ModelPicker(props: PickerProps) {
       (result) => {
         if (result === undefined) return
         if (result.ok) {
+          efforts.remember(
+            { provider: selection.provider, model: selection.model },
+            selection.reasoningEffort,
+          )
           if (record !== undefined) recent.push(record)
           if (rootRef.current !== null) closeAfterSelection()
           return
@@ -309,7 +316,7 @@ export function ModelPicker(props: PickerProps) {
       closeAfterSelection()
       return
     }
-    const effort = carriedEffort(effective, entry.model.reasoning)
+    const effort = preferredEffort(efforts.get(refOf(entry)), effective, entry.model.reasoning)
     submit(
       {
         provider: entry.provider.id,
@@ -370,6 +377,18 @@ export function ModelPicker(props: PickerProps) {
   useEffect(() => {
     if (locked && open) setOpen(false)
   }, [locked, open])
+
+  // Keep the memory in step with the Session's selection too, so a model
+  // chosen outside this picker (the shipped selector or `/model`) keeps the
+  // level it was last used with.
+  const selectedProvider = current?.provider
+  const selectedModel = current?.model
+  const selectedEffort = current?.reasoningEffort
+  useEffect(() => {
+    if (selectedProvider === undefined || selectedModel === undefined) return
+    if (selectedEffort === undefined) return
+    efforts.remember({ provider: selectedProvider, model: selectedModel }, selectedEffort)
+  }, [selectedProvider, selectedModel, selectedEffort, efforts])
 
   // Opening hands the keyboard to search. The first frame measures the menu
   // with `visibility: hidden`, where focus() is refused, so wait until it is

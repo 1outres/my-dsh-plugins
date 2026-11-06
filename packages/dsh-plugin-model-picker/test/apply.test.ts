@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { CONFIG_NAMESPACE } from "../src/client/config"
+import type { EffortStore } from "../src/client/efforts"
 import { apply, inject, SEAT, SEAT_PRIORITY } from "../src/client/index"
 import { ModelPicker } from "../src/client/Picker"
 import type {
@@ -164,6 +165,7 @@ type Face = {
   select: (selection: ModelSelection) => Promise<unknown>
   favorites: { getSnapshot(): unknown }
   recent: { getSnapshot(): unknown }
+  efforts: EffortStore
 }
 
 function faceOf(harness: ReturnType<typeof createHarness>, sessionId: string): Face {
@@ -207,6 +209,9 @@ describe("model-picker client half", () => {
     expect(face.directory).toBe(faceOf(harness, "s1").directory)
     expect(face.favorites.getSnapshot()).toEqual([{ provider: "p", model: "m" }])
     expect(face.recent.getSnapshot()).toEqual([])
+    expect(face.efforts.get({ provider: "p", model: "m" })).toBeUndefined()
+    face.efforts.remember({ provider: "p", model: "m" }, "high")
+    expect(face.efforts.get({ provider: "p", model: "m" })).toBe("high")
     face.load()
     await expect(face.select({ provider: "p", model: "m" })).resolves.toEqual({
       ok: true,

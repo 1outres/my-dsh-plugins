@@ -30,8 +30,10 @@ search field focused.
   matches come first, then prefixes, word starts, and other substrings; ties
   go to favorites, then recent models, then catalog order.
 - **Effort**: the row at the bottom lists the current model's reasoning
-  levels (plus Default when the model has no default level). Switching to
-  another model keeps the current level when that model offers it.
+  levels (plus Default when the model has no default level). Each model
+  remembers the level you last used with it, so switching back restores it.
+  A model without a remembered level keeps the current one when it offers
+  it, and otherwise falls back to its own default.
 
 Each row shows a check for the current model, the model name, and the model
 id when it differs from the name.
@@ -67,8 +69,9 @@ profile patch:
         model: claude-opus-5-5
 ```
 
-Recent models are kept in this browser's local storage
-(`dsh-plugin-model-picker:recent:v1`), so every browser has its own list.
+Recent models and the effort remembered for each model are kept in this
+browser's local storage (`dsh-plugin-model-picker:recent:v1` and
+`dsh-plugin-model-picker:efforts:v1`), so every browser has its own lists.
 Only selections made in this picker count.
 
 A favorite or recent model whose provider is gone disappears from the menu but

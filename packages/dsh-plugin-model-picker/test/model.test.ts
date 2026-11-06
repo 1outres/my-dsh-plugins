@@ -9,6 +9,7 @@ import {
   effortChoices,
   matchTier,
   orderProviders,
+  preferredEffort,
   pushRecent,
   RECENT_VISIBLE,
   searchEntries,
@@ -198,6 +199,14 @@ describe("effort", () => {
     expect(carriedEffort("max", reasoning)).toBeUndefined()
     expect(carriedEffort("high", undefined)).toBeUndefined()
     expect(carriedEffort(undefined, reasoning)).toBeUndefined()
+  })
+
+  it("prefers the level remembered for a model, then the current one", () => {
+    expect(preferredEffort("low", "xhigh", reasoning)).toBe("low")
+    expect(preferredEffort("max", "xhigh", reasoning)).toBe("xhigh")
+    expect(preferredEffort("max", "max", reasoning)).toBeUndefined()
+    expect(preferredEffort(undefined, "high", reasoning)).toBe("high")
+    expect(preferredEffort("high", undefined, undefined)).toBeUndefined()
   })
 
   it("offers Default only when the model has no default level", () => {
