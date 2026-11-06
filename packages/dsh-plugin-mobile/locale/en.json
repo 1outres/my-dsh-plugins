@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Mobile",
+    "description": "Makes the Web UI comfortable on a phone. Below a set width the sidebar becomes a drawer opened from a menu button or an edge swipe, the conversation fits the visible area while the on-screen keyboard is up, Enter adds a line instead of sending, and controls avoid notches and the home indicator."
+  }
+}

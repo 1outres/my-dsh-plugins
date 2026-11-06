@@ -16,3 +16,5 @@
       name: "@1outres/dsh-plugin-edit-message"
     - id: scratchpad
       name: "@1outres/dsh-plugin-scratchpad"
+    - id: mobile
+      name: "@1outres/dsh-plugin-mobile"
