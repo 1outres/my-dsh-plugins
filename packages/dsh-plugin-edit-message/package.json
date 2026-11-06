@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-edit-message",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Edit a sent message in the DeepSeek Harness Web UI: the conversation restarts from just before it with the edited text.",
   "repository": {
     "type": "git",
