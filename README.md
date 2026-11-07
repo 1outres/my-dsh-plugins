@@ -29,6 +29,7 @@ bundle insert the same row id, so selecting both inserts that row twice.
 | [`@1outres/dsh-plugin-mobile`](packages/dsh-plugin-mobile)                           | `mobile`              | Adds phone refinements to the Web UI: fits the page above the on-screen keyboard, makes Enter add a line, swipes the Harness navigation drawer, and respects notches. |
 | [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.                       |
 | [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Sends a desktop notification when an approval, a question, or a finished turn needs you while the Web UI is in the background.                                        |
+| [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | `remote`              | Works on remote SSH hosts without installing anything there: commands, files, and interactive shells, with passwords typed in a masked card.                          |
 | [`@1outres/dsh-plugin-scratchpad`](packages/dsh-plugin-scratchpad)                   | `scratchpad`          | Opens a session in a new empty directory registered as its own workspace, for work outside any repository; archiving moves the directory aside.                       |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
@@ -142,6 +143,7 @@ packages/
   dsh-plugin-model-picker/
                           @1outres/dsh-plugin-model-picker — searchable composer model picker
   dsh-plugin-notify/      @1outres/dsh-plugin-notify — browser-side desktop notifications
+  dsh-plugin-remote/      @1outres/dsh-plugin-remote — remote SSH tools, password cards, interactive sessions
   dsh-plugin-scratchpad/  @1outres/dsh-plugin-scratchpad — scratch directories as workspaces
 scripts/
   build.mjs               esbuild host/client/standalone build + client wrapper

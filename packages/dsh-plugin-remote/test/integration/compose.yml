@@ -1,0 +1,17 @@
+services:
+  jump:
+    build: ./sshd
+    ports:
+      - "127.0.0.1::22"
+    networks:
+      - edge
+      - internal
+  target:
+    build: ./sshd
+    networks:
+      - internal
+
+networks:
+  edge:
+  internal:
+    internal: true

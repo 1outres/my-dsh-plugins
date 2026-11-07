@@ -1,0 +1,94 @@
+import type { ExecResult, RemoteHostKey, RemoteTarget, TransportId } from "../../shared/types"
+
+export interface TransportCapabilities {
+  exec: boolean
+  sudo: boolean
+  files: boolean
+  jump: boolean
+  interactive: boolean
+}
+
+/** One tool call's identity, cancellation, and card channel. */
+export interface TransportCall {
+  sessionId: string
+  callId: string
+  signal: AbortSignal
+  prompter: TransportPrompter
+}
+
+export interface TransportPrompter {
+  /** Ask for one secret field and return its value. */
+  secret(target: RemoteTarget, field: string, options: SecretPromptOptions): Promise<string>
+  /** Ask whether to accept one host key. */
+  hostKey(target: RemoteTarget, hostKey: RemoteHostKey | undefined): Promise<boolean>
+}
+
+export interface SecretPromptOptions {
+  /** Human wording for a keyboard-interactive prompt the plugin does not know. */
+  label?: string
+  /** True when the last value was refused, so the card asks again. */
+  retry?: boolean
+}
+
+export interface FileReadOutcome {
+  exists: boolean
+  hash: string
+  content: string
+}
+
+export interface FileHashOutcome {
+  exists: boolean
+  hash: string
+}
+
+export interface FileWriteOptions {
+  sudo: boolean
+}
+
+export interface ExecOptions {
+  command: string
+  stdin?: string
+  sudo: boolean
+  timeoutMs: number
+}
+
+export interface ShellHandle {
+  readonly pid: number | undefined
+  write(data: string): void
+  onData(listener: (chunk: string) => void): () => void
+  onExit(listener: (code: number | null) => void): () => void
+  readonly exitCode: number | null
+  kill(): void
+}
+
+/** One connection method. SSH is the only implementation in this version. */
+export interface RemoteTransport {
+  readonly id: TransportId
+  capabilities(target: RemoteTarget): TransportCapabilities
+  connect(target: RemoteTarget, call: TransportCall): Promise<void>
+  disconnect(target: RemoteTarget, sessionId: string): Promise<void>
+  isConnected(target: RemoteTarget, sessionId: string): Promise<boolean>
+  exec(target: RemoteTarget, options: ExecOptions, call: TransportCall): Promise<ExecResult>
+  readFile(
+    target: RemoteTarget,
+    path: string,
+    sudo: boolean,
+    call: TransportCall,
+  ): Promise<FileReadOutcome>
+  hashFile(
+    target: RemoteTarget,
+    path: string,
+    sudo: boolean,
+    call: TransportCall,
+  ): Promise<FileHashOutcome>
+  writeFile(
+    target: RemoteTarget,
+    path: string,
+    content: string,
+    expectedHash: string | null,
+    options: FileWriteOptions,
+    call: TransportCall,
+  ): Promise<void>
+  openShell(target: RemoteTarget, call: TransportCall): Promise<ShellHandle>
+  disposeSession(sessionId: string): Promise<void>
+}

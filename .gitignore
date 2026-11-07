@@ -11,3 +11,6 @@ core.*
 .env
 .env.*
 !.env.example
+
+.docker/
+.pnpm-store/

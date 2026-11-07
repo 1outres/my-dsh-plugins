@@ -18,3 +18,5 @@
       name: "@1outres/dsh-plugin-scratchpad"
     - id: mobile
       name: "@1outres/dsh-plugin-mobile"
+    - id: remote
+      name: "@1outres/dsh-plugin-remote"
