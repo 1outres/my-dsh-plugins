@@ -76,6 +76,9 @@ format for you:
   `window.__ModuleLoader__.load({ id, factory })` synchronously. `scripts/build.mjs`
   bundles the browser entry as CommonJS (React stays external) and wraps it in
   that factory.
+- `packages/*/src/worker/*.ts` build to `lib/<name>.js` as **classic scripts**
+  for service workers (the mobile plugin's `src/worker/sw.ts` becomes
+  `lib/sw.js`).
 
 To try the working tree against a live profile, link the package instead of
 publishing:

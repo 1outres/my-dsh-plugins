@@ -53,6 +53,56 @@ async function standaloneEntries(targetDir) {
     .map((file) => join(standaloneDir, file))
 }
 
+async function workerEntries(targetDir) {
+  const workerDir = join(targetDir, "worker")
+  if (!(await fileExists(workerDir))) return []
+  const files = await readdir(workerDir)
+  return files
+    .filter((file) => file.endsWith(".ts"))
+    .sort()
+    .map((file) => join(workerDir, file))
+}
+
+/**
+ * Build each `src/worker/*.ts` to `lib/<name>.js` as a classic script. A
+ * service worker has no module loader: the browser evaluates the file as a
+ * plain script, so it bundles everything it imports and emits no ESM syntax.
+ */
+async function buildWorkerScripts(name, entries, outDir) {
+  for (const entry of entries) {
+    const script = basename(entry, ".ts")
+    const label = `${name}/lib/${script}.js`
+    const options = {
+      entryPoints: [entry],
+      outfile: join(outDir, `${script}.js`),
+      bundle: true,
+      format: "iife",
+      platform: "browser",
+      target: "es2022",
+      logLevel: "warning",
+    }
+    if (watch) {
+      const buildContext = await context({
+        ...options,
+        plugins: [
+          {
+            name: "log-worker",
+            setup(buildApi) {
+              buildApi.onEnd((result) => {
+                if (result.errors.length === 0) console.log(`rebuilt ${label}`)
+              })
+            },
+          },
+        ],
+      })
+      await buildContext.watch()
+    } else {
+      await build(options)
+      console.log(`built ${label}`)
+    }
+  }
+}
+
 /**
  * Build each `src/standalone/*.ts` to `lib/<name>.js`. These run as their own Node process, so
  * they bundle everything they import.
@@ -108,11 +158,15 @@ async function buildPackage(name) {
 
   const hasHost = await fileExists(hostEntry)
   const standalone = await standaloneEntries(targetDir)
-  if (!hasHost && clientEntry === undefined && standalone.length === 0) return
+  const workers = await workerEntries(targetDir)
+  if (!hasHost && clientEntry === undefined && standalone.length === 0 && workers.length === 0) {
+    return
+  }
 
   await mkdir(outDir, { recursive: true })
 
   await buildStandaloneScripts(name, standalone, outDir)
+  await buildWorkerScripts(name, workers, outDir)
 
   if (hasHost) {
     const options = {
