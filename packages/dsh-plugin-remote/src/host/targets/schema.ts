@@ -1,7 +1,15 @@
 import { z } from "zod"
 import type { RemoteTarget, RemoteTargetsView } from "../../shared/types"
 
-export const targetSchema = z.object({
+export const serialSettingsSchema = z.object({
+  baudRate: z.number(),
+  dataBits: z.union([z.literal(5), z.literal(6), z.literal(7), z.literal(8)]),
+  parity: z.union([z.literal("none"), z.literal("even"), z.literal("odd")]),
+  stopBits: z.union([z.literal(1), z.literal(2)]),
+  flowControl: z.union([z.literal("none"), z.literal("rtscts"), z.literal("xonxoff")]),
+})
+
+export const sshTargetSchema = z.object({
   name: z.string(),
   transport: z.literal("ssh"),
   kind: z.union([z.literal("linux"), z.literal("network")]),
@@ -14,6 +22,22 @@ export const targetSchema = z.object({
   promptPattern: z.string().optional(),
   initCommands: z.array(z.string()),
 })
+
+export const serialTargetSchema = z.object({
+  name: z.string(),
+  transport: z.literal("serial"),
+  kind: z.union([z.literal("linux"), z.literal("network")]),
+  agent: z.string(),
+  agentFingerprint: z.string(),
+  device: z.string(),
+  serial: serialSettingsSchema,
+  lineEnding: z.union([z.literal("cr"), z.literal("lf"), z.literal("crlf")]),
+  secrets: z.array(z.string()),
+  promptPattern: z.string().optional(),
+  initCommands: z.array(z.string()),
+})
+
+export const targetSchema = z.discriminatedUnion("transport", [sshTargetSchema, serialTargetSchema])
 
 export const targetsViewSchema = z.object({
   targets: z.array(targetSchema),

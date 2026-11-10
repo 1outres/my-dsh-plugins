@@ -47,7 +47,7 @@ export function registerExecTool(ctx: Context, host: HostRuntime): void {
           host.config.execTimeoutMs,
           host.config.execMaxTimeoutMs,
         )
-        const result = await runtime.transport.exec(
+        const result = await runtime.transportFor(target).exec(
           target,
           {
             command: args.command,

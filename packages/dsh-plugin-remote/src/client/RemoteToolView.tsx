@@ -1,10 +1,6 @@
 import { type FormEvent, useCallback, useState, useSyncExternalStore } from "react"
-import type {
-  RemoteHostKey,
-  RemotePromptAnswer,
-  RemotePromptRequest,
-  RemoteTarget,
-} from "../shared/types"
+import type { RemoteHostKey, RemotePromptAnswer, RemotePromptRequest } from "../shared/types"
+import { TargetSummary } from "./TargetSummary"
 import type { ContentBlock, PromptBridge, ToolCallBlock, ToolCallProps, Translate } from "./types"
 
 export interface RemoteToolViewProps extends ToolCallProps {
@@ -16,6 +12,7 @@ const TOOL_NAMES = [
   "remote_target_add",
   "remote_target_list",
   "remote_target_remove",
+  "remote_serial_agents",
   "remote_exec",
   "remote_read",
   "remote_write",
@@ -23,6 +20,7 @@ const TOOL_NAMES = [
   "remote_session_open",
   "remote_session_send",
   "remote_session_read",
+  "remote_session_break",
   "remote_session_close",
 ] as const
 
@@ -185,43 +183,6 @@ function PromptCard({ prompt, bridge, t }: PromptCardProps): React.JSX.Element {
   )
 }
 
-function TargetSummary({ target, t }: { target: RemoteTarget; t: Translate }): React.JSX.Element {
-  return (
-    <dl className="remote-grid">
-      <dt>{t("label.host")}</dt>
-      <dd>{target.host}</dd>
-      {target.user === undefined ? null : (
-        <>
-          <dt>{t("label.user")}</dt>
-          <dd>{target.user}</dd>
-        </>
-      )}
-      {target.port === undefined ? null : (
-        <>
-          <dt>{t("label.port")}</dt>
-          <dd>{target.port}</dd>
-        </>
-      )}
-      <dt>{t("label.kind")}</dt>
-      <dd>{target.kind === "linux" ? t("kind.linux") : t("kind.network")}</dd>
-      <dt>{t("label.jump")}</dt>
-      <dd>{target.jump ?? t("label.none")}</dd>
-      {target.sshOptions.length === 0 ? null : (
-        <>
-          <dt>{t("label.options")}</dt>
-          <dd>{target.sshOptions.join(" ")}</dd>
-        </>
-      )}
-      {target.initCommands.length === 0 ? null : (
-        <>
-          <dt>{t("label.initCommands")}</dt>
-          <dd>{target.initCommands.join(" ; ")}</dd>
-        </>
-      )}
-    </dl>
-  )
-}
-
 function HostKeySummary({
   hostKey,
   t,
@@ -288,11 +249,15 @@ function summaryOf(block: Partial<ToolCallBlock>): string {
   const args = block.args
   if (args === undefined) return ""
   const target = args.text("target")
+  const agent = args.text("agent")
+  const device = args.text("device")
   const command = args.text("command")
   const path = args.text("path")
   const session = args.text("sessionId")
   const parts: string[] = []
   if (target !== undefined) parts.push(target)
+  if (agent !== undefined) parts.push(agent)
+  if (device !== undefined) parts.push(device)
   if (session !== undefined) parts.push(session)
   if (path !== undefined) parts.push(path)
   if (command !== undefined) parts.push(command)

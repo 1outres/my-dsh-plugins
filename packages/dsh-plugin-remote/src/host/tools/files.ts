@@ -87,12 +87,14 @@ export function registerFileTools(ctx: Context, host: HostRuntime): void {
         if (!isUsablePath(args.path)) throw new Error("path must be a non-empty path")
         const offset = positiveInteger(args.offset, 1, "offset")
         const limit = positiveInteger(args.limit, 2000, "limit")
-        const outcome = await runtime.transport.readFile(
-          target,
-          args.path,
-          args.sudo === true,
-          runtime.call(exec.callId, exec.signal, !delegated),
-        )
+        const outcome = await runtime
+          .transportFor(target)
+          .readFile(
+            target,
+            args.path,
+            args.sudo === true,
+            runtime.call(exec.callId, exec.signal, !delegated),
+          )
         if (!outcome.exists) throw new Error(`No such remote file: ${args.path}`)
         runtime.readHashes.set(runtime.readKey(target, args.path, args.sudo === true), outcome.hash)
         const result = sliceFileLines(outcome.content, args.path, offset, limit)
@@ -140,7 +142,7 @@ export function registerFileTools(ctx: Context, host: HostRuntime): void {
         if (!isUsablePath(args.path)) throw new Error("path must be a non-empty path")
         const sudo = args.sudo === true
         const call = runtime.call(exec.callId, exec.signal, !delegated)
-        const current = await runtime.transport.hashFile(target, args.path, sudo, call)
+        const current = await runtime.transportFor(target).hashFile(target, args.path, sudo, call)
         const key = runtime.readKey(target, args.path, sudo)
         let expectedHash: string | null = null
         if (current.exists) {
@@ -150,14 +152,9 @@ export function registerFileTools(ctx: Context, host: HostRuntime): void {
           }
           expectedHash = seen
         }
-        await runtime.transport.writeFile(
-          target,
-          args.path,
-          args.content,
-          expectedHash,
-          { sudo },
-          call,
-        )
+        await runtime
+          .transportFor(target)
+          .writeFile(target, args.path, args.content, expectedHash, { sudo }, call)
         runtime.readHashes.set(key, createHash("sha256").update(args.content, "utf8").digest("hex"))
         return {
           path: args.path,
@@ -210,7 +207,7 @@ export function registerFileTools(ctx: Context, host: HostRuntime): void {
         if (!isUsablePath(args.path)) throw new Error("path must be a non-empty path")
         const sudo = args.sudo === true
         const call = runtime.call(exec.callId, exec.signal, !delegated)
-        const outcome = await runtime.transport.readFile(target, args.path, sudo, call)
+        const outcome = await runtime.transportFor(target).readFile(target, args.path, sudo, call)
         if (!outcome.exists) throw new Error(`No such remote file: ${args.path}`)
         const replaced = replaceLiteral(
           outcome.content,
@@ -218,14 +215,9 @@ export function registerFileTools(ctx: Context, host: HostRuntime): void {
           args.new_string,
           args.replace_all === true,
         )
-        await runtime.transport.writeFile(
-          target,
-          args.path,
-          replaced.content,
-          outcome.hash,
-          { sudo },
-          call,
-        )
+        await runtime
+          .transportFor(target)
+          .writeFile(target, args.path, replaced.content, outcome.hash, { sudo }, call)
         runtime.readHashes.set(
           runtime.readKey(target, args.path, sudo),
           createHash("sha256").update(replaced.content, "utf8").digest("hex"),

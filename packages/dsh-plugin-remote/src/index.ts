@@ -1,13 +1,18 @@
 import type { Context } from "@deepseek-ai/cordis"
+import type {} from "@deepseek-ai/dsh-host-webserver"
 import type {} from "@deepseek-ai/dsh-workspace"
 import z from "@deepseek-ai/schemastery"
 import { PromptBroker } from "./host/prompts/broker"
 import { RemotePromptService } from "./host/prompts/service"
 import { type HostRuntime, RootRuntimes, type RuntimeConfig } from "./host/runtime"
 import { SecretStore } from "./host/secrets/store"
+import { type AuthorizedSerialAgent, SerialAgents } from "./host/serial/agents"
+import { SerialGateway } from "./host/serial/gateway"
+import { parseAgentPublicKey, type SerialAgentKey } from "./host/serial/identity"
 import { remoteTargetsProjection } from "./host/targets/projection"
 import { registerTools } from "./host/tools/index"
 import { AskpassServer } from "./host/transport/ssh/askpass-server"
+import { isValidTargetName } from "./shared/target"
 
 export const name = "remote"
 
@@ -24,6 +29,10 @@ export interface Config {
   sessionIdleMs: number
   sessionSendTimeoutMs: number
   maxSecretRetries: number
+  serialAgents: Array<{ name: string; publicKey: string }>
+  serialGatewayPath: string
+  serialRequestTimeoutMs: number
+  serialReplayBytes: number
 }
 
 export const Config = z.object({
@@ -80,10 +89,46 @@ export const Config = z.object({
     .max(10)
     .default(2)
     .description("Times a refused password is asked for again."),
+  serialAgents: z
+    .array(
+      z.object({
+        name: z.string(),
+        publicKey: z.string(),
+      }),
+    )
+    .default([])
+    .description(
+      'Authorized dsh-serial-agent keys. Add the JSON line that "dsh-serial-agent pubkey" prints under "config:", for example - {"name":"lab-mac","publicKey":"..."}.',
+    ),
+  serialGatewayPath: z
+    .string()
+    .default("/remote-serial/agent")
+    .description("Path where dsh-serial-agent opens its WebSocket."),
+  serialRequestTimeoutMs: z
+    .number()
+    .step(1)
+    .min(1000)
+    .default(10000)
+    .description("Milliseconds before a request to a serial agent fails."),
+  serialReplayBytes: z
+    .number()
+    .step(1)
+    .min(0)
+    .default(4096)
+    .description("Bytes of earlier console output shown when a session attaches to an open port."),
 })
 
-/** Host half: tools, SSH connections, in-memory passwords, and the card bridge. */
+/** Host half: tools, SSH and serial connections, in-memory passwords, and the card bridge. */
 export async function apply(ctx: Context, config: Config): Promise<void> {
+  if (!config.serialGatewayPath.startsWith("/")) {
+    throw new Error('serialGatewayPath must start with "/"')
+  }
+  const authorized = authorizeSerialAgents(config.serialAgents)
+  const serial = new SerialAgents(authorized)
+  const gateway = new SerialGateway(serial, {
+    path: config.serialGatewayPath,
+    requestTimeoutMs: config.serialRequestTimeoutMs,
+  })
   const resolved: RuntimeConfig = {
     sshPath: config.sshPath,
     controlPersistSeconds: config.controlPersistSeconds,
@@ -95,6 +140,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     sessionIdleMs: config.sessionIdleMs,
     sessionSendTimeoutMs: Math.min(config.sessionSendTimeoutMs, config.execMaxTimeoutMs),
     maxSecretRetries: config.maxSecretRetries,
+    serialReplayBytes: config.serialReplayBytes,
   }
   const handle = await ctx.sessionProjections.register(remoteTargetsProjection)
   const askpass = await AskpassServer.create()
@@ -104,9 +150,11 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   const host: HostRuntime = {
     config: resolved,
     handle,
+    logger: { warn: (message) => ctx.logger.warn(message) },
     broker,
     secrets,
     askpass,
+    serial,
     runtimeFor: (agent) => {
       if (runtimes === undefined) throw new Error("The remote plugin is still starting")
       return runtimes.get(agent)
@@ -123,6 +171,9 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   runtimes = new RootRuntimes(host)
   new RemotePromptService(ctx, broker)
   registerTools(ctx, host)
+  ctx.inject(["webServer"], (webCtx) => {
+    webCtx.effect(() => gateway.attach(webCtx.webServer), "remote: serial agent gateway")
+  })
 
   ctx.on("session/disposed", (session) => {
     void host.disposeSession(session.id)
@@ -132,9 +183,48 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   ctx.effect(
     () => async () => {
       broker.dispose()
+      serial.closeAll()
       await host.disposeAll()
+      gateway.dispose()
       await askpass.dispose()
     },
     "remote: connections and passwords",
   )
+}
+
+/** Validate the agent keys once at load; a bad entry fails the whole plugin. */
+function authorizeSerialAgents(
+  entries: readonly { name: string; publicKey: string }[],
+): AuthorizedSerialAgent[] {
+  const names = new Set<string>()
+  const fingerprints = new Set<string>()
+  return entries.map((entry) => {
+    if (!isValidTargetName(entry.name)) {
+      throw new Error(
+        `serialAgents: ${JSON.stringify(entry.name)} is not a valid agent name; use 1 to 32 lowercase letters, digits, or hyphens`,
+      )
+    }
+    if (names.has(entry.name)) {
+      throw new Error(
+        `serialAgents: the name ${JSON.stringify(entry.name)} is given more than once`,
+      )
+    }
+    names.add(entry.name)
+    let key: SerialAgentKey
+    try {
+      key = parseAgentPublicKey(entry.publicKey)
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      throw new Error(
+        `serialAgents: the publicKey of ${JSON.stringify(entry.name)} is invalid: ${detail}`,
+      )
+    }
+    if (fingerprints.has(key.fingerprint)) {
+      throw new Error(
+        `serialAgents: the key of ${JSON.stringify(entry.name)} is given more than once`,
+      )
+    }
+    fingerprints.add(key.fingerprint)
+    return { name: entry.name, key }
+  })
 }

@@ -1,24 +1,60 @@
 /** Contracts shared by the host and the browser half. */
 
-export type TransportId = "ssh"
+export type TransportId = "ssh" | "serial"
 
 export type TargetKind = "linux" | "network"
 
-/** One registered connection target. Secret values never appear here. */
-export interface RemoteTarget {
+/** Fields every target has, whatever its transport. */
+interface TargetBase {
   name: string
-  transport: TransportId
   kind: TargetKind
-  host: string
-  user?: string
-  port?: number
-  jump?: string
-  sshOptions: string[]
   /** Names of the secret fields the user fills. */
   secrets: string[]
   promptPattern?: string
   initCommands: string[]
 }
+
+/** A host reached with the OpenSSH client on the Harness Host. */
+export interface SshTarget extends TargetBase {
+  transport: "ssh"
+  host: string
+  user?: string
+  port?: number
+  jump?: string
+  sshOptions: string[]
+}
+
+export type SerialParity = "none" | "even" | "odd"
+
+export type SerialFlowControl = "none" | "rtscts" | "xonxoff"
+
+/** The line settings of one serial port. */
+export interface SerialSettings {
+  baudRate: number
+  dataBits: 5 | 6 | 7 | 8
+  parity: SerialParity
+  stopBits: 1 | 2
+  flowControl: SerialFlowControl
+}
+
+/** The bytes one Enter key sends on a serial console. */
+export type SerialLineEnding = "cr" | "lf" | "crlf"
+
+/** A serial port on a client PC, reached through its dsh-serial-agent. */
+export interface SerialTarget extends TargetBase {
+  transport: "serial"
+  /** Agent name from the `serialAgents` config. */
+  agent: string
+  /** Fingerprint of the agent key the user approved, `SHA256:<base64>`. */
+  agentFingerprint: string
+  /** Device path on the agent machine, such as /dev/ttyUSB0. */
+  device: string
+  serial: SerialSettings
+  lineEnding: SerialLineEnding
+}
+
+/** One registered connection target. Secret values never appear here. */
+export type RemoteTarget = SshTarget | SerialTarget
 
 /** What `remote_target_list` reports for one target. */
 export interface RemoteTargetStatus {
@@ -130,6 +166,51 @@ export interface RemotePromptAnswer {
 export type RemotePromptEvent =
   | { type: "prompt"; prompt: RemotePromptRequest }
   | { type: "close"; id: string }
+
+/** One serial port an agent offers. */
+export interface SerialPortInfo {
+  path: string
+  description?: string
+  usb?: SerialUsbInfo
+  /** Whether the agent holds the port open now. */
+  open: boolean
+  /** Settings of the open port. */
+  settings?: SerialSettings
+  /** The target of this session that uses the port, when one does. */
+  usedBy?: string
+  /** True when another Harness session holds the port. */
+  usedElsewhere: boolean
+}
+
+export interface SerialUsbInfo {
+  vendorId: string
+  productId: string
+  serialNumber?: string
+  manufacturer?: string
+  product?: string
+}
+
+/** What `remote_serial_agents` reports for one authorized agent. */
+export interface SerialAgentStatus {
+  name: string
+  fingerprint: string
+  online: boolean
+  /** Facts the agent reported when it connected. */
+  info?: SerialAgentInfo
+  ports: SerialPortInfo[]
+}
+
+export interface SerialAgentInfo {
+  version: string
+  hostname: string
+  os: string
+  arch: string
+}
+
+export interface SessionBreakResult {
+  sessionId: string
+  durationMs: number
+}
 
 /** Durable card payload recorded in a tool result's `meta`. */
 export type RemoteTargetMeta =

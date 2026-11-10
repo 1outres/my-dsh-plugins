@@ -10,15 +10,21 @@ import type { RemoteTarget } from "../src/shared/types"
 
 class FakeShell implements ShellHandle {
   readonly pid = 1
+  readonly enter = "\n"
   exitCode: number | null = null
   written: string[] = []
+  breaks: number[] = []
   onWrite: (data: string) => void = () => {}
   readonly data = new Set<(chunk: string) => void>()
   readonly exits = new Set<(code: number | null) => void>()
 
-  write(value: string): void {
+  async write(value: string): Promise<void> {
     this.written.push(value)
     this.onWrite(value)
+  }
+
+  async sendBreak(durationMs: number): Promise<void> {
+    this.breaks.push(durationMs)
   }
 
   onData(listener: (chunk: string) => void): () => void {
@@ -68,10 +74,17 @@ function call(): TransportCall {
   return { sessionId: "s", callId: "c", signal: new AbortController().signal, prompter }
 }
 
-function transportWith(shell: FakeShell): RemoteTransport {
+function transportWith(shell: FakeShell, breakable = false): RemoteTransport {
   return {
     id: "ssh",
-    capabilities: () => ({ exec: true, sudo: true, files: true, jump: true, interactive: true }),
+    capabilities: () => ({
+      exec: true,
+      sudo: true,
+      files: true,
+      jump: true,
+      interactive: true,
+      break: breakable,
+    }),
     connect: async () => {},
     disconnect: async () => {},
     isConnected: async () => true,
@@ -90,8 +103,8 @@ function transportWith(shell: FakeShell): RemoteTransport {
   }
 }
 
-function sessions(shell: FakeShell): InteractiveSessions {
-  return new InteractiveSessions(transportWith(shell), {
+function sessions(shell: FakeShell, breakable = false): InteractiveSessions {
+  return new InteractiveSessions(() => transportWith(shell, breakable), {
     defaultPromptPattern: "[>#$%]\\s*$",
     idleMs: 60,
     sendTimeoutMs: 2000,
@@ -163,6 +176,26 @@ describe("interactive sessions", () => {
     )
     expect(sent.output).toContain("0")
     expect(sent.output.includes("s3cret")).toBe(false)
+  })
+
+  it("sends a BREAK when the transport supports it", async () => {
+    const shell = new FakeShell()
+    const manager = sessions(shell, true)
+    setTimeout(() => shell.emit("ops@web1$ "), 5)
+    const opened = await manager.open(target, "shell", call())
+    expect(await manager.sendBreak(opened.session.id, 250)).toEqual({
+      sessionId: opened.session.id,
+      durationMs: 250,
+    })
+    expect(shell.breaks).toEqual([250])
+  })
+
+  it("refuses a BREAK on a transport without the capability", async () => {
+    const shell = new FakeShell()
+    const manager = sessions(shell)
+    setTimeout(() => shell.emit("ops@web1$ "), 5)
+    const opened = await manager.open(target, "shell", call())
+    await expect(manager.sendBreak(opened.session.id, 250)).rejects.toThrow(/cannot send a BREAK/)
   })
 
   it("refuses to send to an exited shell and names its exit code", async () => {

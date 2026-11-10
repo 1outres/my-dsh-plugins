@@ -6,6 +6,8 @@ export interface TransportCapabilities {
   files: boolean
   jump: boolean
   interactive: boolean
+  /** Whether an interactive session can send a line BREAK. */
+  break: boolean
 }
 
 /** One tool call's identity, cancellation, and card channel. */
@@ -54,14 +56,19 @@ export interface ExecOptions {
 
 export interface ShellHandle {
   readonly pid: number | undefined
-  write(data: string): void
+  /** The bytes one Enter key sends, such as "\n" for a PTY or "\r" for a serial console. */
+  readonly enter: string
+  /** Resolves once the transport accepted the data; rejects when it cannot deliver it. */
+  write(data: string): Promise<void>
+  /** Send a line BREAK. Only called when the transport capability `break` is true. */
+  sendBreak(durationMs: number): Promise<void>
   onData(listener: (chunk: string) => void): () => void
   onExit(listener: (code: number | null) => void): () => void
   readonly exitCode: number | null
   kill(): void
 }
 
-/** One connection method. SSH is the only implementation in this version. */
+/** One connection method: SSH or a serial port behind a dsh-serial-agent. */
 export interface RemoteTransport {
   readonly id: TransportId
   capabilities(target: RemoteTarget): TransportCapabilities

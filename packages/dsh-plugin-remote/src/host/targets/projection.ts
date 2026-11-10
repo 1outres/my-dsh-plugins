@@ -25,7 +25,7 @@ type RemoteTargetsProjection = Omit<
 export const remoteTargetsProjection: RemoteTargetsProjection = {
   key: REMOTE_TARGETS_KEY,
   stateSchema: targetsViewSchema,
-  stateVersion: 2,
+  stateVersion: 3,
   init: () => EMPTY,
   apply: (state, event) => {
     const meta = targetMetaOf(event)

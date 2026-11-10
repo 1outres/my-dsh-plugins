@@ -2,7 +2,7 @@ import { type ChildProcess, spawn } from "node:child_process"
 import { createHash, randomUUID } from "node:crypto"
 import { stat } from "node:fs/promises"
 import { join } from "node:path"
-import type { ExecResult, RemoteTarget } from "../../../shared/types"
+import type { ExecResult, RemoteTarget, SshTarget } from "../../../shared/types"
 import { truncateTail } from "../../output"
 import { runProcess } from "../../process"
 import type { SecretStore } from "../../secrets/store"
@@ -81,7 +81,7 @@ export class SshConnections {
   }
 
   async connect(
-    target: RemoteTarget,
+    target: SshTarget,
     prompter: TransportPrompter,
     signal: AbortSignal,
   ): Promise<void> {
@@ -100,12 +100,12 @@ export class SshConnections {
     }
   }
 
-  async isConnected(target: RemoteTarget, signal: AbortSignal): Promise<boolean> {
+  async isConnected(target: SshTarget, signal: AbortSignal): Promise<boolean> {
     return await this.#isAlive(target, this.#state(target), signal)
   }
 
   async exec(
-    target: RemoteTarget,
+    target: SshTarget,
     command: string,
     stdin: string | undefined,
     sudo: boolean,
@@ -150,7 +150,7 @@ export class SshConnections {
   }
 
   async readFile(
-    target: RemoteTarget,
+    target: SshTarget,
     path: string,
     sudo: boolean,
     prompter: TransportPrompter,
@@ -187,7 +187,7 @@ export class SshConnections {
   }
 
   async hashFile(
-    target: RemoteTarget,
+    target: SshTarget,
     path: string,
     sudo: boolean,
     prompter: TransportPrompter,
@@ -216,7 +216,7 @@ export class SshConnections {
   }
 
   async writeFile(
-    target: RemoteTarget,
+    target: SshTarget,
     path: string,
     content: string,
     expectedHash: string | null,
@@ -246,7 +246,7 @@ export class SshConnections {
   }
 
   async openShell(
-    target: RemoteTarget,
+    target: SshTarget,
     prompter: TransportPrompter,
     signal: AbortSignal,
   ): Promise<ShellHandle> {
@@ -272,7 +272,17 @@ export class SshConnections {
     })
     return {
       pid: child.pid,
-      write: (data: string) => child.stdin.write(data),
+      enter: "\n",
+      write: (data: string) =>
+        new Promise<void>((resolve, reject) => {
+          child.stdin.write(data, (error) => {
+            if (error === null || error === undefined) resolve()
+            else reject(error)
+          })
+        }),
+      sendBreak: async () => {
+        throw new Error("The ssh transport does not support a BREAK")
+      },
       onData: (listener) => {
         listeners.add(listener)
         return () => listeners.delete(listener)
@@ -317,7 +327,7 @@ export class SshConnections {
     await Promise.all([...this.#states.keys()].map(async (name) => this.disconnect(name)))
   }
 
-  #state(target: RemoteTarget): MasterState {
+  #state(target: SshTarget): MasterState {
     let state = this.#states.get(target.name)
     if (state === undefined) {
       const digest = createHash("sha256")
@@ -335,16 +345,12 @@ export class SshConnections {
     return state
   }
 
-  async #isAlive(target: RemoteTarget, state: MasterState, signal: AbortSignal): Promise<boolean> {
+  async #isAlive(target: SshTarget, state: MasterState, signal: AbortSignal): Promise<boolean> {
     if (!state.ready) return false
     return await this.#checkMaster(target, state, signal)
   }
 
-  async #checkMaster(
-    target: RemoteTarget,
-    state: MasterState,
-    signal: AbortSignal,
-  ): Promise<boolean> {
+  async #checkMaster(target: SshTarget, state: MasterState, signal: AbortSignal): Promise<boolean> {
     const outcome = await runProcess(
       [this.#options.sshPath, "-S", state.controlPath, "-O", "check", target.host],
       {
@@ -358,7 +364,7 @@ export class SshConnections {
   }
 
   async #connectWithRetry(
-    target: RemoteTarget,
+    target: SshTarget,
     prompter: TransportPrompter,
     signal: AbortSignal,
   ): Promise<void> {
@@ -378,24 +384,12 @@ export class SshConnections {
   }
 
   async #connectOnce(
-    target: RemoteTarget,
+    target: SshTarget,
     prompter: TransportPrompter,
     signal: AbortSignal,
   ): Promise<{ kind: string; message: string } | undefined> {
-    if (target.jump !== undefined) {
-      const jump = this.#resolveTarget(target.jump)
-      if (jump === undefined)
-        throw new SshConnectionError(
-          "REMOTE_JUMP_MISSING",
-          `The jump target ${JSON.stringify(target.jump)} is not registered`,
-        )
-      if (jump.transport !== "ssh")
-        throw new SshConnectionError(
-          "REMOTE_JUMP_UNSUPPORTED",
-          "The jump target must use the ssh transport",
-        )
-      await this.connect(jump, prompter, signal)
-    }
+    const jump = this.#jumpTarget(target)
+    if (jump !== undefined) await this.connect(jump, prompter, signal)
     const state = this.#state(target)
     await this.#exitMaster(state)
     state.passwordlessSudo = undefined
@@ -404,7 +398,6 @@ export class SshConnections {
       state.token,
       this.#askpassHandler(target, prompter, state),
     )
-    const jump = target.jump === undefined ? undefined : this.#resolveTarget(target.jump)
     const proxy =
       jump === undefined
         ? undefined
@@ -459,6 +452,22 @@ export class SshConnections {
     }
   }
 
+  #jumpTarget(target: SshTarget): SshTarget | undefined {
+    if (target.jump === undefined) return undefined
+    const jump = this.#resolveTarget(target.jump)
+    if (jump === undefined)
+      throw new SshConnectionError(
+        "REMOTE_JUMP_MISSING",
+        `The jump target ${JSON.stringify(target.jump)} is not registered`,
+      )
+    if (jump.transport !== "ssh")
+      throw new SshConnectionError(
+        "REMOTE_JUMP_UNSUPPORTED",
+        "The jump target must use the ssh transport",
+      )
+    return jump
+  }
+
   #markReady(state: MasterState, child: ChildProcess): undefined {
     state.ready = true
     this.#options.askpass.unbind(state.token)
@@ -468,7 +477,7 @@ export class SshConnections {
   }
 
   #askpassHandler(
-    target: RemoteTarget,
+    target: SshTarget,
     prompter: TransportPrompter,
     state: MasterState,
   ): (prompt: string) => Promise<string> {
@@ -495,7 +504,7 @@ export class SshConnections {
   }
 
   async #runCommand(
-    target: RemoteTarget,
+    target: SshTarget,
     command: string,
     stdin: string | undefined,
     sudo: boolean,
@@ -542,7 +551,7 @@ export class SshConnections {
   }
 
   async #sudoPassword(
-    target: RemoteTarget,
+    target: SshTarget,
     prompter: TransportPrompter,
     retry: boolean,
     signal: AbortSignal,
@@ -555,7 +564,7 @@ export class SshConnections {
     return value
   }
 
-  async #refreshPasswordlessSudo(target: RemoteTarget, signal: AbortSignal): Promise<boolean> {
+  async #refreshPasswordlessSudo(target: SshTarget, signal: AbortSignal): Promise<boolean> {
     const state = this.#state(target)
     if (state.passwordlessSudo !== undefined) return state.passwordlessSudo
     const outcome = await this.#runRaw(target, "sudo -n true", signal)
@@ -564,7 +573,7 @@ export class SshConnections {
   }
 
   async #runRaw(
-    target: RemoteTarget,
+    target: SshTarget,
     command: string,
     signal: AbortSignal,
   ): Promise<{ code: number | null }> {

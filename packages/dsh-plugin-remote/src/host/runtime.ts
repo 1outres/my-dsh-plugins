@@ -7,13 +7,16 @@ import type {
   RemoteTarget,
   RemoteTargetsView,
 } from "../shared/types"
+import type { LoggerLike } from "./logger"
 import type { PromptBroker } from "./prompts/broker"
 import { secretFieldLabel } from "./prompts/labels"
 import type { SecretStore } from "./secrets/store"
+import type { SerialAgents } from "./serial/agents"
 import { InteractiveSessions } from "./sessions/session"
+import { SerialTransport } from "./transport/serial/serial-transport"
 import { type SshConnectionOptions, SshConnections } from "./transport/ssh/connection"
 import { SshTransport } from "./transport/ssh/ssh-transport"
-import type { TransportCall, TransportPrompter } from "./transport/transport"
+import type { RemoteTransport, TransportCall, TransportPrompter } from "./transport/transport"
 
 export interface RuntimeConfig {
   sshPath: string
@@ -26,6 +29,7 @@ export interface RuntimeConfig {
   sessionIdleMs: number
   sessionSendTimeoutMs: number
   maxSecretRetries: number
+  serialReplayBytes: number
 }
 
 const MAX_FILE_BYTES = 64_000_000
@@ -103,7 +107,11 @@ export class CallPrompter implements TransportPrompter {
       kind: "hostkey",
       title: "",
       target,
-      hostKey: hostKey ?? { host: target.host, algorithm: "", fingerprint: "" },
+      hostKey: hostKey ?? {
+        host: target.transport === "ssh" ? target.host : target.name,
+        algorithm: "",
+        fingerprint: "",
+      },
       fields: [],
     })
     return answer.decision === "approve"
@@ -141,7 +149,8 @@ export class RootRuntime {
   readonly root: Agent
   readonly sessionId: string
   readonly connections: SshConnections
-  readonly transport: SshTransport
+  readonly sshTransport: SshTransport
+  readonly serialTransport: SerialTransport
   readonly sessions: InteractiveSessions
   readonly readHashes = new Map<string, string>()
   readonly #host: HostRuntime
@@ -166,14 +175,24 @@ export class RootRuntime {
       (name) => this.find(name),
       this.#connectionOptions,
     )
-    this.transport = new SshTransport(this.connections)
-    this.sessions = new InteractiveSessions(this.transport, {
+    this.sshTransport = new SshTransport(this.connections)
+    this.serialTransport = new SerialTransport({
+      sessionId: this.sessionId,
+      agents: host.serial,
+      replayBytes: config.serialReplayBytes,
+      logger: host.logger,
+    })
+    this.sessions = new InteractiveSessions((target) => this.transportFor(target), {
       defaultPromptPattern: config.defaultPromptPattern,
       idleMs: config.sessionIdleMs,
       sendTimeoutMs: config.sessionSendTimeoutMs,
       maxOutputBytes: config.maxOutputBytes,
       secretValues: () => this.secretValues(),
     })
+  }
+
+  transportFor(target: RemoteTarget): RemoteTransport {
+    return target.transport === "ssh" ? this.sshTransport : this.serialTransport
   }
 
   targets(): RemoteTarget[] {
@@ -238,15 +257,18 @@ export class RootRuntime {
     this.sessions.dispose()
     this.#host.secrets.deleteSession(this.sessionId)
     await this.connections.disposeSession()
+    await this.serialTransport.disposeSession()
   }
 }
 
 export interface HostRuntime {
   readonly config: RuntimeConfig
   readonly handle: ProjectionHandle<RemoteTargetsView>
+  readonly logger: LoggerLike
   readonly broker: PromptBroker
   readonly secrets: SecretStore
   readonly askpass: import("./transport/ssh/askpass-server").AskpassServer
+  readonly serial: SerialAgents
   runtimeFor(agent: Agent): RootRuntime
   disposeSession(sessionId: string): Promise<void>
   disposeAll(): Promise<void>

@@ -2,6 +2,7 @@ import type {
   RemoteSessionStatus,
   RemoteTarget,
   SessionBoundary,
+  SessionBreakResult,
   SessionOpenResult,
   SessionReadResult,
   SessionSendResult,
@@ -82,12 +83,15 @@ class InteractiveSession {
 /** Interactive shells for one root session. */
 export class InteractiveSessions {
   readonly #sessions = new Map<string, InteractiveSession>()
-  readonly #transport: RemoteTransport
+  readonly #transportFor: (target: RemoteTarget) => RemoteTransport
   readonly #options: InteractiveOptions
   #nextId = 1
 
-  constructor(transport: RemoteTransport, options: InteractiveOptions) {
-    this.#transport = transport
+  constructor(
+    transportFor: (target: RemoteTarget) => RemoteTransport,
+    options: InteractiveOptions,
+  ) {
+    this.#transportFor = transportFor
     this.#options = options
   }
 
@@ -104,7 +108,7 @@ export class InteractiveSessions {
       return { session: existing.status(), output: "", reason: "idle", reused: true }
     }
     const pattern = compilePromptPattern(target.promptPattern ?? this.#options.defaultPromptPattern)
-    const shell = await this.#transport.openShell(target, call)
+    const shell = await this.#transportFor(target).openShell(target, call)
     const session = new InteractiveSession(
       `session-${String(this.#nextId++)}`,
       target,
@@ -123,7 +127,7 @@ export class InteractiveSessions {
     session.lastReason = opening.reason
     if (opening.reason !== "exited") {
       for (const command of target.initCommands) {
-        shell.write(`${command}\n`)
+        await shell.write(`${command}${shell.enter}`)
         const boundary = await this.#waitForBoundary(
           session,
           this.#options.sendTimeoutMs,
@@ -162,7 +166,7 @@ export class InteractiveSessions {
     }
     if (text === undefined) throw new Error("remote_session_send needs text or secret")
     const mark = session.buffer.mark()
-    session.shell.write(input.submit ? `${text}\n` : text)
+    await session.shell.write(input.submit ? `${text}${session.shell.enter}` : text)
     const boundary = input.wait
       ? await this.#waitForBoundary(session, input.timeoutMs, call.signal, true)
       : { reason: "idle" as const }
@@ -174,6 +178,20 @@ export class InteractiveSessions {
       state: session.state,
       ...(session.exitCode === undefined ? {} : { exitCode: session.exitCode }),
     }
+  }
+
+  async sendBreak(sessionId: string, durationMs: number): Promise<SessionBreakResult> {
+    const session = this.#require(sessionId)
+    if (session.state === "exited") {
+      throw new Error(`Session ${sessionId} has already exited`)
+    }
+    if (!this.#transportFor(session.target).capabilities(session.target).break) {
+      throw new Error(
+        `The ${session.target.transport} transport cannot send a BREAK; this tool is for serial sessions`,
+      )
+    }
+    await session.shell.sendBreak(durationMs)
+    return { sessionId: session.id, durationMs }
   }
 
   read(sessionId: string, offset: number, count: number): SessionReadResult {

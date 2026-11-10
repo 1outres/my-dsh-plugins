@@ -1,4 +1,4 @@
-import type { RemoteTarget, TransportId } from "../../../shared/types"
+import type { RemoteTarget, SshTarget, TransportId } from "../../../shared/types"
 import type {
   ExecOptions,
   FileHashOutcome,
@@ -26,24 +26,25 @@ export class SshTransport implements RemoteTransport {
       files: target.kind === "linux",
       jump: true,
       interactive: true,
+      break: false,
     }
   }
 
   async connect(target: RemoteTarget, call: TransportCall): Promise<void> {
-    await this.#connections.connect(target, call.prompter, call.signal)
+    await this.#connections.connect(sshTarget(target), call.prompter, call.signal)
   }
 
-  async disconnect(target: RemoteTarget): Promise<void> {
-    await this.#connections.disconnect(target.name)
+  async disconnect(target: RemoteTarget, _sessionId: string): Promise<void> {
+    await this.#connections.disconnect(sshTarget(target).name)
   }
 
-  async isConnected(target: RemoteTarget): Promise<boolean> {
-    return await this.#connections.isConnected(target, AbortSignal.timeout(5000))
+  async isConnected(target: RemoteTarget, _sessionId: string): Promise<boolean> {
+    return await this.#connections.isConnected(sshTarget(target), AbortSignal.timeout(5000))
   }
 
   async exec(target: RemoteTarget, options: ExecOptions, call: TransportCall) {
     return await this.#connections.exec(
-      target,
+      sshTarget(target),
       options.command,
       options.stdin,
       options.sudo,
@@ -59,7 +60,13 @@ export class SshTransport implements RemoteTransport {
     sudo: boolean,
     call: TransportCall,
   ): Promise<FileReadOutcome> {
-    return await this.#connections.readFile(target, path, sudo, call.prompter, call.signal)
+    return await this.#connections.readFile(
+      sshTarget(target),
+      path,
+      sudo,
+      call.prompter,
+      call.signal,
+    )
   }
 
   async hashFile(
@@ -68,7 +75,13 @@ export class SshTransport implements RemoteTransport {
     sudo: boolean,
     call: TransportCall,
   ): Promise<FileHashOutcome> {
-    return await this.#connections.hashFile(target, path, sudo, call.prompter, call.signal)
+    return await this.#connections.hashFile(
+      sshTarget(target),
+      path,
+      sudo,
+      call.prompter,
+      call.signal,
+    )
   }
 
   async writeFile(
@@ -80,7 +93,7 @@ export class SshTransport implements RemoteTransport {
     call: TransportCall,
   ): Promise<void> {
     await this.#connections.writeFile(
-      target,
+      sshTarget(target),
       path,
       content,
       expectedHash,
@@ -91,10 +104,19 @@ export class SshTransport implements RemoteTransport {
   }
 
   async openShell(target: RemoteTarget, call: TransportCall): Promise<ShellHandle> {
-    return await this.#connections.openShell(target, call.prompter, call.signal)
+    return await this.#connections.openShell(sshTarget(target), call.prompter, call.signal)
   }
 
   async disposeSession(): Promise<void> {
     await this.#connections.disposeSession()
   }
+}
+
+function sshTarget(target: RemoteTarget): SshTarget {
+  if (target.transport !== "ssh") {
+    throw new Error(
+      `The ssh transport cannot drive the ${target.transport} target ${JSON.stringify(target.name)}`,
+    )
+  }
+  return target
 }

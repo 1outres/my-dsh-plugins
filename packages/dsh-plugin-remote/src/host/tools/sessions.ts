@@ -3,11 +3,11 @@ import { defineTool } from "@deepseek-ai/dsh-tools"
 import { isValidSecretField } from "../../shared/target"
 import type { HostRuntime } from "../runtime"
 import { clipHead, positiveInteger, runtimeFor, timeoutOf } from "./common"
-import { sessionStatusSchema } from "./schema"
+import { sessionBreakResultSchema, sessionStatusSchema } from "./schema"
 
 const NAME = /^[A-Za-z0-9._-]{0,64}$/u
 
-const openDescription = `Open one interactive shell (or device command line) through the target's SSH connection and keep it open. Opening again with the same target and name reuses the running session.
+const openDescription = `Open one interactive shell (or device command line) through the target's connection and keep it open. SSH and serial targets both work. Opening again with the same target and name reuses the running session.
 
 The opening output is returned after the target's initCommands run and the output reaches its prompt or stops changing. Use this session for a device CLI, for sudo enable prompts, or for work that needs many commands in one shell. It is not a terminal emulator: full-screen programs such as top or vi are not supported.`
 
@@ -18,6 +18,8 @@ The result says why waiting stopped: prompt (the target's prompt matched), idle 
 const readDescription = `Read a page of an open interactive session without sending anything. The offset is a 1-based line number.`
 
 const closeDescription = `Close an interactive session and its remote shell.`
+
+const breakDescription = `Send a serial BREAK to an open serial session, for example to enter the ROMMON or boot loader prompt of a network device. Only serial sessions support this; SSH sessions report an error.`
 
 function renderSession(
   output: string,
@@ -212,6 +214,42 @@ export function registerSessionTools(ctx: Context, host: HostRuntime): void {
         const offset = positiveInteger(args.offset, 1, "offset")
         const count = Math.min(positiveInteger(args.count, 200, "count"), 2000)
         return runtime.sessions.read(args.sessionId, offset, count)
+      },
+    }),
+  )
+
+  ctx.tools.register(
+    defineTool({
+      name: "remote_session_break",
+      description: breakDescription,
+      parameters: {
+        sessionId: {
+          type: "string",
+          required: true,
+          description: "Session id returned by remote_session_open.",
+        },
+        durationMs: {
+          type: "integer",
+          default: 300,
+          description: "Length of the BREAK in milliseconds, from 1 to 5000. Defaults to 300.",
+        },
+      },
+      output: {
+        schema: sessionBreakResultSchema,
+        render: (_args, value) => [
+          {
+            type: "text",
+            text: `Sent a ${String(value.durationMs)} ms BREAK to session ${value.sessionId}.`,
+          },
+        ],
+      },
+      async execute(args, exec) {
+        const { runtime } = runtimeFor(ctx, host, exec)
+        const durationMs = args.durationMs ?? 300
+        if (!Number.isInteger(durationMs) || durationMs < 1 || durationMs > 5000) {
+          throw new Error("durationMs must be an integer from 1 to 5000")
+        }
+        return await runtime.sessions.sendBreak(args.sessionId, durationMs)
       },
     }),
   )

@@ -12,7 +12,7 @@ import { AskpassServer } from "../../src/host/transport/ssh/askpass-server"
 import { SshConnections } from "../../src/host/transport/ssh/connection"
 import { SshTransport } from "../../src/host/transport/ssh/ssh-transport"
 import type { TransportPrompter } from "../../src/host/transport/transport"
-import type { RemoteTarget } from "../../src/shared/types"
+import type { SshTarget } from "../../src/shared/types"
 
 const run = promisify(execFile)
 const enabled = process.env.REMOTE_IT === "1"
@@ -21,8 +21,8 @@ const compose = ["compose", "-f", `${here}compose.yml`, "-p", "dsh-remote-it"]
 const sessionId = "integration"
 const callId = "integration-call"
 
-let jump: RemoteTarget
-let target: RemoteTarget
+let jump: SshTarget
+let target: SshTarget
 let jumpPort: number
 
 describe.skipIf(!enabled)("ssh transport integration", () => {
@@ -159,7 +159,7 @@ describe.skipIf(!enabled)("ssh transport integration", () => {
 
   it("keeps one interactive shell and sends a secret", async () => {
     const transport = new SshTransport(connections)
-    const sessions = new InteractiveSessions(transport, {
+    const sessions = new InteractiveSessions(() => transport, {
       defaultPromptPattern: "[>#$%]\\s*$",
       idleMs: 1500,
       sendTimeoutMs: 15_000,

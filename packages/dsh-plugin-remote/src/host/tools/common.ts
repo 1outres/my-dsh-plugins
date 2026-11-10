@@ -30,17 +30,17 @@ export function requireUserCard(runtime: RootRuntime, agent: Agent): void {
 }
 
 export function requireFileCapability(runtime: RootRuntime, target: RemoteTarget): void {
-  if (!runtime.transport.capabilities(target).files) {
+  if (!runtime.transportFor(target).capabilities(target).files) {
     throw new Error(
-      `File tools are only available for Linux targets; ${JSON.stringify(target.name)} is a ${target.kind} target`,
+      `File tools need the ssh transport; target ${JSON.stringify(target.name)} uses the ${target.transport} transport`,
     )
   }
 }
 
 export function requireExecCapability(runtime: RootRuntime, target: RemoteTarget): void {
-  if (!runtime.transport.capabilities(target).exec) {
+  if (!runtime.transportFor(target).capabilities(target).exec) {
     throw new Error(
-      `Target ${JSON.stringify(target.name)} does not support one-shot commands; use an interactive session`,
+      `The ${target.transport} transport has no one-shot commands; target ${JSON.stringify(target.name)} only supports interactive sessions`,
     )
   }
 }
@@ -50,9 +50,9 @@ export function requireSudoCapability(
   target: RemoteTarget,
   sudo: boolean,
 ): void {
-  if (sudo && !runtime.transport.capabilities(target).sudo) {
+  if (sudo && !runtime.transportFor(target).capabilities(target).sudo) {
     throw new Error(
-      `sudo is not available for the ${target.kind} target ${JSON.stringify(target.name)}`,
+      `sudo is not available on the ${target.transport} target ${JSON.stringify(target.name)}`,
     )
   }
 }

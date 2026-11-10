@@ -30,7 +30,7 @@ bundle insert the same row id, so selecting both inserts that row twice.
 | [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.                           |
 | [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Notifies you when an approval, a question, or a finished turn needs you: in the browser while the page is in the background, and by Web Push to devices that turn it on.  |
 | [`@1outres/dsh-plugin-playwright`](packages/dsh-plugin-playwright)                   | `playwright`          | Gives each top-level session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.                                              |
-| [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | `remote`              | Works on remote SSH hosts without installing anything there: commands, files, and interactive shells, with passwords typed in a masked card.                              |
+| [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | `remote`              | Works on remote SSH hosts and on serial consoles behind `dsh-serial-agent`: commands, files, and interactive shells, with passwords typed in a masked card.               |
 | [`@1outres/dsh-plugin-scratchpad`](packages/dsh-plugin-scratchpad)                   | `scratchpad`          | Opens a session in a new empty directory registered as its own workspace, for work outside any repository; archiving moves the directory aside.                           |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
@@ -109,6 +109,19 @@ Each plugin is its own package: the client module loader resolves exactly one
 packages. The `@1outres/dsh-plugins` bundle stays the one-command install for
 everything; each plugin package is also installable alone.
 
+## Serial agent
+
+[`serial-agent/`](serial-agent) holds `dsh-serial-agent`, the Go daemon that
+lets the remote plugin reach serial consoles on client PCs. It is not an npm
+package; the root flake ships it:
+
+```sh
+nix run github:1outres/my-dsh-plugins#dsh-serial-agent -- pubkey
+```
+
+The flake also exports `nixosModules.dsh-serial-agent` and
+`darwinModules.dsh-serial-agent`. See [`serial-agent/README.md`](serial-agent/README.md).
+
 ## Releasing
 
 Keep every package on the same version, then push a `v*` tag:
@@ -150,6 +163,7 @@ packages/
   dsh-plugin-playwright/  @1outres/dsh-plugin-playwright — isolated Playwright browser per session
   dsh-plugin-remote/      @1outres/dsh-plugin-remote — remote SSH tools, password cards, interactive sessions
   dsh-plugin-scratchpad/  @1outres/dsh-plugin-scratchpad — scratch directories as workspaces
+serial-agent/             dsh-serial-agent — Go daemon that serves client PC serial ports to the remote plugin (Nix flake)
 scripts/
   build.mjs               esbuild host/client/standalone build + client wrapper
   new-plugin.mjs          plugin generator
