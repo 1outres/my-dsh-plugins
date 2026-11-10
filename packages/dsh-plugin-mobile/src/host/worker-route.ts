@@ -18,14 +18,14 @@ export const WORKER_HEADERS: Readonly<Record<string, string>> = {
   "Service-Worker-Allowed": "/",
 }
 
-/**
- * Serve the worker script at the site root. The route only serves the file:
- * whether the browser registers it is the browser half's setting.
- */
 function workerBody(script: Uint8Array | string): BodyInit {
   return typeof script === "string" ? script : new Uint8Array(script).buffer
 }
 
+/**
+ * Serve the worker script at the site root. The route only serves the file:
+ * whether the browser registers it is the browser half's setting.
+ */
 export function createWorkerRoute(script: Uint8Array | string): WebResourceRoute {
   const body = workerBody(script)
   return {
