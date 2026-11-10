@@ -1,5 +1,5 @@
 import type { ComponentType } from "react"
-import type { SessionStatusLike, SessionStatusMap } from "../shared/types"
+import type { SessionStatusMap } from "../shared/types"
 
 export type {
   DiffOptions,
