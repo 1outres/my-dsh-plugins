@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-mobile",
   "version": "0.7.0",
-  "description": "Adds phone refinements to the DeepSeek Harness Web UI: fits the page to the on-screen keyboard, makes Enter add a line, keeps the keyboard closed until the composer is tapped, adds edge swipes to the Harness navigation drawer, and respects notches and touch.",
+  "description": "Adds phone refinements to the DeepSeek Harness Web UI and makes it an installable app: fits the page to the on-screen keyboard, makes Enter add a line, keeps the keyboard closed until the composer is tapped, adds edge swipes to the Harness navigation drawer, respects notches and touch, and registers a service worker for the offline page and push notifications.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -27,6 +27,8 @@
     "dsh-plugin",
     "mobile",
     "responsive",
+    "pwa",
+    "service-worker",
     "deepseek-harness"
   ],
   "license": "MIT",

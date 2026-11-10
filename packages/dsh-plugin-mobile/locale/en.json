@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Mobile",
-    "description": "Adds phone refinements to the Harness Web UI: fits the page to the on-screen keyboard, makes Enter add a line, keeps the keyboard closed until the composer is tapped, adds edge swipes to the Harness navigation drawer, and respects notches and touch."
+    "description": "Adds phone refinements to the Harness Web UI and makes it an installable app: fits the page to the on-screen keyboard, Enter adds a line, edge swipes open the drawer, notches and touch are respected, and a service worker adds an offline page and push notifications."
   }
 }

@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "移动端",
-    "description": "在 Harness 的 Web UI 上补充手机体验：页面适配屏幕键盘上方的可见区域，Enter 换行，点按输入框之前不弹出键盘，屏幕端部的滑动可开闭 Harness 的导航抽屉，并避开刘海等安全区域。"
+    "description": "在 Harness 的 Web UI 上补充手机体验，并使其成为可安装的应用：页面适配屏幕键盘，Enter 换行，屏幕端部的滑动可开闭导航抽屉，避开刘海等安全区域，并通过 Service Worker 提供离线页面和推送通知。"
   }
 }
