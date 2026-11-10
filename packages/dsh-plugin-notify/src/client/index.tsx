@@ -1,6 +1,6 @@
 import { CONFIG_NAMESPACE, normalizeConfig } from "./config"
 import { en } from "./i18n"
-import { diffStatus, formatNotice, type NoticeSpec, shouldNotify } from "./notify"
+import { diffStatus, formatNotice, type NoticeSpec, shouldNotify } from "../shared/notify"
 import { type Notifier, SettingsPage } from "./SettingsPage"
 import { NOTIFY_CSS } from "./styles"
 import type { ClientContext, NotifyConfig, SessionStatusMap, Translate } from "./types"

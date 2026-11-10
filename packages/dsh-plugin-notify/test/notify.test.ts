@@ -7,8 +7,8 @@ import {
   noticeTag,
   shouldNotify,
   truncate,
-} from "../src/client/notify"
-import type { SessionStatusLike, SessionStatusMap } from "../src/client/types"
+} from "../src/shared/notify"
+import type { SessionStatusLike, SessionStatusMap } from "../src/shared/types"
 
 const ALL = { approval: true, question: true, completion: true }
 

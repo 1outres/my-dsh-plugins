@@ -1,20 +1,18 @@
 import type { ComponentType } from "react"
+import type { SessionStatusLike, SessionStatusMap } from "../shared/types"
 
-/** Values persisted in the plugin's settings entry. */
-export interface NotifyConfig {
-  /** Master switch. Off shows no notification at all. */
-  enabled: boolean
-  /** Skip notifications while this page is visible and focused. */
-  onlyWhenUnfocused: boolean
-  /** Notify when a tool call waits for approval. */
-  approval: boolean
-  /** Notify when the agent asks a question or asks for a plan review. */
-  question: boolean
-  /** Notify when a turn stops running. */
-  completion: boolean
-  /** Add the request reason or question text to the body. */
-  showDetail: boolean
-}
+export type {
+  DiffOptions,
+  NoticeEvent,
+  NoticeKind,
+  NoticeSpec,
+  NotifyConfig,
+  PageState,
+  PendingInteractionLike,
+  SessionStatusLike,
+  SessionStatusMap,
+  StatusDiff,
+} from "../shared/types"
 
 export interface ConfigFormSnapshot<T> {
   status: "loading" | "ready" | "unavailable"
@@ -29,33 +27,6 @@ export interface ConfigForm<T> {
   set(field: string, value: unknown): Promise<boolean>
   unset(field: string): Promise<boolean>
 }
-
-/**
- * The parts of a pending interaction the browser half reads. The shipped
- * plugins publish concrete classes (`PendingApproval`, `PendingQuestion`); only
- * these fields matter here, so the plugin depends on the shape instead of the
- * owning packages.
- */
-export interface PendingInteractionLike {
-  /** Request identity; a replacement request publishes a new key. */
-  readonly key: string
-  /** Presentation discriminator: approval, question, or plan-review. */
-  readonly kind: string
-  readonly sessionId?: string
-  readonly toolName?: string
-  readonly reason?: string
-  readonly displayReason?: Readonly<Record<string, string>>
-  readonly questions?: readonly { readonly question?: string; readonly header?: string }[]
-}
-
-/** One Session's UI status as published by `uiSession.sessionStatus`. */
-export interface SessionStatusLike {
-  readonly running?: boolean
-  readonly pendingInteraction?: PendingInteractionLike
-  readonly completionUnread: boolean
-}
-
-export type SessionStatusMap = ReadonlyMap<string, SessionStatusLike>
 
 export interface SessionRowLike {
   title?: string
@@ -114,13 +85,21 @@ export interface ConfigFormsService {
   ): () => void
 }
 
+export interface RemoteService {
+  /** Mount one Host Remote contribution in this plugin's fiber. */
+  $mount(contribution: unknown): Promise<() => Promise<void>>
+}
+
 /** The slice of the browser Cordis context this plugin uses. */
 export interface ClientContext {
   effect(effect: () => (() => void) | undefined, label?: string): void
+  /** Unguarded lookup, used for the namespace this plugin mounts itself. */
+  get(name: string): unknown
   sessions: SessionsService
   uiSession: UiSessionService
   uiWorkspace: UiWorkspaceService
   slots: SlotsService
   locale: LocaleService
   configForms: ConfigFormsService
+  remote: RemoteService
 }

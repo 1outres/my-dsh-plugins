@@ -1,4 +1,4 @@
-import type { NotifyConfig } from "./types"
+import type { NotifyConfig } from "../shared/types"
 
 /**
  * The profile entry id in the bundle patch. It is also the settings namespace
@@ -14,6 +14,7 @@ export const DEFAULT_CONFIG: NotifyConfig = {
   question: true,
   completion: true,
   showDetail: true,
+  push: true,
 }
 
 /** Coerce one Host section into the shape the browser half expects. */
@@ -29,5 +30,6 @@ export function normalizeConfig(value: Partial<NotifyConfig> | undefined): Notif
     question: read("question"),
     completion: read("completion"),
     showDetail: read("showDetail"),
+    push: read("push"),
   }
 }
