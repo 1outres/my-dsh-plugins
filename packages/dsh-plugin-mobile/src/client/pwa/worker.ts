@@ -68,6 +68,8 @@ export function installPwaWorker(
   const unregisterOwn = async (): Promise<void> => {
     if (container === undefined) return
     const registration = await container.getRegistration(WORKER_SCOPE)
+    // The setting may have turned back on while the lookup ran.
+    if (enabled) return
     if (registration?.active?.scriptURL.endsWith(WORKER_SCRIPT_PATH) === true) {
       await registration.unregister()
     }

@@ -197,6 +197,23 @@ describe("service worker registration", () => {
     dispose()
   })
 
+  it("keeps the registration when the setting turns back on while unregistering", async () => {
+    const source = setting(true)
+    const worker = container()
+    const { win } = createWindow({ serviceWorker: worker })
+    const store = createPwaStore()
+    const dispose = installPwaWorker(win, store, source)
+    await flush()
+
+    source.set(false)
+    source.set(true)
+    await flush()
+    expect(worker.unregistered).toEqual([])
+    expect(worker.registrations).toHaveLength(2)
+    expect(store.getSnapshot().worker).toBe("ready")
+    dispose()
+  })
+
   it("leaves another plugin's registration alone", async () => {
     const source = setting(true)
     const worker = container()
