@@ -1,4 +1,4 @@
-import { WORKER_SCRIPT_PATH } from "../worker/protocol"
+import { WORKER_SCRIPT_PATH } from "../worker/sw/protocol"
 
 /** One exact-path route answered by a Fetch resource. */
 export interface WebResourceRoute {

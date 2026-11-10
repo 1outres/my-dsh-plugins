@@ -7,7 +7,7 @@ import {
   WORKER_SCOPE,
   WORKER_SCRIPT_PATH,
   WORKER_SCRIPT_URL,
-} from "../src/worker/protocol"
+} from "../src/worker/sw/protocol"
 
 const message = {
   dshPwa: 1,

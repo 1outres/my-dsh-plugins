@@ -1,4 +1,4 @@
-import { WORKER_SCOPE, WORKER_SCRIPT_PATH, WORKER_SCRIPT_URL } from "../../worker/protocol"
+import { WORKER_SCOPE, WORKER_SCRIPT_PATH, WORKER_SCRIPT_URL } from "../../worker/sw/protocol"
 import type { MediaQueryLike } from "../page"
 import type { BooleanSetting, PwaStore } from "../types"
 import { detectPlatform } from "./state"

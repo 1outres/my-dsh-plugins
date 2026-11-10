@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { serveNavigation } from "../src/worker/navigation"
+import { serveNavigation } from "../src/worker/sw/navigation"
 import {
   OFFLINE_CONTENT_TYPE,
   OFFLINE_STATUS,
   offlineResponse,
   pickLanguage,
   renderOfflinePage,
-} from "../src/worker/offline"
+} from "../src/worker/sw/offline"
 
 describe("offline page", () => {
   it("picks English, Chinese or Japanese from the browser language", () => {

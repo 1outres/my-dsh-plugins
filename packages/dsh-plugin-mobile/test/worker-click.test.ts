@@ -5,8 +5,8 @@ import {
   openUrl,
   pickWindowClient,
   type WindowClientLike,
-} from "../src/worker/click"
-import { PWA_CLICK_MESSAGE } from "../src/worker/protocol"
+} from "../src/worker/sw/click"
+import { PWA_CLICK_MESSAGE } from "../src/worker/sw/protocol"
 
 function client(url: string, options: { focused?: boolean; visible?: boolean } = {}) {
   const calls = { focused: 0, messages: [] as unknown[] }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
-import type { PwaPushMessage } from "../src/worker/protocol"
-import { buildNotification, DEFAULT_NOTIFICATION_TITLE, readPushMessage } from "../src/worker/push"
+import type { PwaPushMessage } from "../src/worker/sw/protocol"
+import {
+  buildNotification,
+  DEFAULT_NOTIFICATION_TITLE,
+  readPushMessage,
+} from "../src/worker/sw/push"
 
 const raw = {
   dshPwa: 1,

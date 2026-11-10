@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import type { WindowClientLike } from "../src/worker/click"
-import { PWA_CLICK_MESSAGE } from "../src/worker/protocol"
+import type { WindowClientLike } from "../src/worker/sw/click"
+import { PWA_CLICK_MESSAGE } from "../src/worker/sw/protocol"
 
 type Listener = (event: unknown) => void
 

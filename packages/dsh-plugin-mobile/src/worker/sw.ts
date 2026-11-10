@@ -1,7 +1,7 @@
-import { clickMessage, openUrl, pickWindowClient, type WindowClientLike } from "./click"
-import { serveNavigation } from "./navigation"
-import { parseNotificationData } from "./protocol"
-import { buildNotification, readPushMessage } from "./push"
+import { clickMessage, openUrl, pickWindowClient, type WindowClientLike } from "./sw/click"
+import { serveNavigation } from "./sw/navigation"
+import { parseNotificationData } from "./sw/protocol"
+import { buildNotification, readPushMessage } from "./sw/push"
 
 interface ExtendableEventLike {
   waitUntil(promise: Promise<unknown>): void
