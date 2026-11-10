@@ -99,11 +99,9 @@ NixOS cannot run the browsers that Playwright downloads. Point
 `executablePath` at a Chromium or Chrome binary from a package, for example:
 
 ```yaml
-- insert:
-    - id: playwright
-      name: "@1outres/dsh-plugin-playwright"
-      config:
-        executablePath: /run/current-system/sw/bin/chromium
+- id: playwright
+  config:
+    executablePath: /run/current-system/sw/bin/chromium
 ```
 
 The browser must be able to start without a sandbox when it runs as the Harness
