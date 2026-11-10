@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react"
 import { useCallback, useState, useSyncExternalStore } from "react"
 import { normalizeConfig } from "./config"
+import type { PushController, PushState } from "./push"
 import type { ConfigForm, NotifyConfig, Translate } from "./types"
 
 /** Notification capability the browser half exposes to this page. */
@@ -17,6 +18,7 @@ export interface SettingsPageProps {
   form: ConfigForm<NotifyConfig>
   t: Translate
   notifier: Notifier
+  push: PushController
 }
 
 type Field = Exclude<keyof NotifyConfig, never>
@@ -26,6 +28,16 @@ const PERMISSION_KEYS: Record<string, string> = {
   denied: "permissionDenied",
   default: "permissionDefault",
   unsupported: "permissionUnsupported",
+}
+
+const PUSH_STATE_KEYS: Record<PushState, string> = {
+  unsupported: "pushUnsupported",
+  "no-worker": "pushNoWorker",
+  "needs-install": "pushNeedsInstall",
+  off: "pushOff",
+  on: "pushOn",
+  denied: "pushDenied",
+  error: "pushError",
 }
 
 const sectionStyle: CSSProperties = {
@@ -97,16 +109,25 @@ const mutedStyle: CSSProperties = {
   lineHeight: 1.6,
 }
 
-/** Settings page: the master switch, the three event kinds, and permission state. */
-export function SettingsPage({ form, t, notifier }: SettingsPageProps) {
+/** Settings page: the switches, the browser permission, and per-device push. */
+export function SettingsPage({ form, t, notifier, push }: SettingsPageProps) {
   const subscribe = useCallback((listener: () => void) => form.subscribe(listener), [form])
   const getSnapshot = useCallback(() => form.getSnapshot(), [form])
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
   const config = normalizeConfig(snapshot.value)
 
+  const subscribePush = useCallback(
+    (listener: () => void) => push.state.subscribe(listener),
+    [push],
+  )
+  const getPush = useCallback(() => push.state.getSnapshot(), [push])
+  const pushState = useSyncExternalStore(subscribePush, getPush, getPush)
+
   const [permission, setPermission] = useState(() => notifier.permission())
   const [busy, setBusy] = useState(false)
+  const [pushBusy, setPushBusy] = useState(false)
   const [message, setMessage] = useState<string | undefined>(undefined)
+  const [pushMessage, setPushMessage] = useState<string | undefined>(undefined)
   const [writeError, setWriteError] = useState(false)
 
   const write = (field: Field, value: boolean) => {
@@ -138,13 +159,51 @@ export function SettingsPage({ form, t, notifier }: SettingsPageProps) {
     }
   }
 
+  const enablePush = async () => {
+    setPushBusy(true)
+    setPushMessage(undefined)
+    try {
+      await push.enable()
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  const disablePush = async () => {
+    setPushBusy(true)
+    setPushMessage(undefined)
+    try {
+      await push.disable()
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
+  const testPush = async () => {
+    setPushBusy(true)
+    setPushMessage(undefined)
+    try {
+      const result = await push.test()
+      setPushMessage(
+        result === "sent"
+          ? t("pushTestSent")
+          : result === "gone"
+            ? t("pushTestGone")
+            : t("pushTestFailed"),
+      )
+    } finally {
+      setPushBusy(false)
+    }
+  }
+
   if (snapshot.status === "unavailable") {
     return <p style={mutedStyle}>{t("unavailable")}</p>
   }
 
-  const disabled = snapshot.writable === false || busy
+  const disabled = snapshot.writable === false || busy || pushBusy
   const unsupported = permission === "unsupported"
   const permissionLabel = t(PERMISSION_KEYS[permission] ?? "permissionDefault")
+  const pushLabel = t(PUSH_STATE_KEYS[pushState])
 
   return (
     <div style={sectionStyle}>
@@ -164,6 +223,13 @@ export function SettingsPage({ form, t, notifier }: SettingsPageProps) {
         checked={config.onlyWhenUnfocused}
         disabled={disabled}
         onChange={(next) => write("onlyWhenUnfocused", next)}
+      />
+      <Toggle
+        label={t("push")}
+        hint={t("pushHint")}
+        checked={config.push}
+        disabled={disabled}
+        onChange={(next) => write("push", next)}
       />
 
       <div style={groupStyle}>
@@ -195,6 +261,33 @@ export function SettingsPage({ form, t, notifier }: SettingsPageProps) {
           disabled={disabled}
           onChange={(next) => write("showDetail", next)}
         />
+      </div>
+
+      <div style={groupStyle}>
+        <div style={toggleStyle}>
+          <span>{t("pushDevice")}</span>
+          <span style={{ fontWeight: 400, color: "var(--dsw-alias-label-secondary)" }}>
+            {pushLabel}
+          </span>
+        </div>
+        <p style={hintStyle}>{t("pushRequirement")}</p>
+        <button
+          type="button"
+          style={buttonStyle}
+          disabled={disabled || pushState === "unsupported"}
+          onClick={() => void (pushState === "on" ? disablePush() : enablePush())}
+        >
+          {pushState === "on" ? t("pushTurnOff") : t("pushTurnOn")}
+        </button>
+        <button
+          type="button"
+          style={buttonStyle}
+          disabled={disabled || pushState !== "on"}
+          onClick={() => void testPush()}
+        >
+          {t("pushTest")}
+        </button>
+        {pushMessage === undefined ? null : <p style={hintStyle}>{pushMessage}</p>}
       </div>
 
       <div style={groupStyle}>

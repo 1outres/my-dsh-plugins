@@ -11,6 +11,8 @@ import type {
 interface FakeOptions {
   body?: string
   tag?: string
+  data?: unknown
+  renotify?: boolean
 }
 
 class FakeNotification {
@@ -46,6 +48,107 @@ class FakeNotification {
   }
 }
 
+interface FakeSubscription {
+  readonly endpoint: string
+  readonly options: { applicationServerKey: ArrayBuffer | null }
+  getKey(name: "p256dh" | "auth"): ArrayBuffer | null
+  unsubscribe(): Promise<boolean>
+}
+
+function fakeSubscription(endpoint = "https://push.example.com/device"): FakeSubscription {
+  return {
+    endpoint,
+    options: { applicationServerKey: null },
+    getKey: (name) => new Uint8Array(name === "p256dh" ? 65 : 16).buffer,
+    unsubscribe: vi.fn(async () => true),
+  }
+}
+
+interface FakeRegistration {
+  showNotification: ReturnType<typeof vi.fn>
+  getNotifications: ReturnType<typeof vi.fn>
+  pushManager: {
+    getSubscription(): Promise<FakeSubscription | null>
+    subscribe(options: unknown): Promise<FakeSubscription>
+  }
+}
+
+function fakeRegistration(subscription: FakeSubscription | null = null): FakeRegistration {
+  return {
+    showNotification: vi.fn(async () => {}),
+    getNotifications: vi.fn(async () => []),
+    pushManager: {
+      getSubscription: async () => subscription,
+      subscribe: vi.fn(async () => fakeSubscription()),
+    },
+  }
+}
+
+interface FakeWorker {
+  readonly controller: unknown
+  readonly ready: Promise<unknown>
+  addEventListener(type: string, listener: (event: MessageEvent) => void): void
+  removeEventListener(type: string, listener: (event: MessageEvent) => void): void
+  emit(data: unknown): void
+}
+
+function fakeWorker(registration: FakeRegistration = fakeRegistration()): FakeWorker {
+  const listeners = new Set<(event: MessageEvent) => void>()
+  return {
+    controller: {},
+    ready: Promise.resolve(registration),
+    addEventListener: (type, listener) => {
+      if (type === "message") listeners.add(listener)
+    },
+    removeEventListener: (type, listener) => {
+      if (type === "message") listeners.delete(listener)
+    },
+    emit: (data) => {
+      for (const listener of [...listeners]) listener({ data } as MessageEvent)
+    },
+  }
+}
+
+interface FakePushRemote {
+  readonly subscribes: {
+    endpoint: string
+    p256dh: string
+    auth: string
+    label: string
+  }[]
+  publicKey(): Promise<{ ok: true; value: { publicKey: string } }>
+  subscribe(input: {
+    endpoint: string
+    p256dh: string
+    auth: string
+    label: string
+  }): Promise<{ ok: true; value: { id: string } }>
+  unsubscribe(endpoint: string): Promise<{ ok: true; value: { removed: boolean } }>
+  presence(
+    endpoint: string,
+    visible: boolean,
+    focused: boolean,
+  ): Promise<{ ok: true; value: { ok: true } }>
+  status(endpoint: string): Promise<{ ok: true; value: { subscribed: boolean } }>
+  test(endpoint: string): Promise<{ ok: true; value: { result: "sent" } }>
+}
+
+function fakePushRemote(): FakePushRemote {
+  const subscribes: FakePushRemote["subscribes"] = []
+  return {
+    subscribes,
+    publicKey: async () => ({ ok: true, value: { publicKey: "AQID" } }),
+    subscribe: async (input) => {
+      subscribes.push(input)
+      return { ok: true, value: { id: "id" } }
+    },
+    unsubscribe: async () => ({ ok: true, value: { removed: true } }),
+    presence: async () => ({ ok: true, value: { ok: true } }),
+    status: async () => ({ ok: true, value: { subscribed: true } }),
+    test: async () => ({ ok: true, value: { result: "sent" } }),
+  }
+}
+
 function approval(key = "approval:1"): SessionStatusLike["pendingInteraction"] {
   return { key, kind: "approval", toolName: "bash", reason: "escalate sandbox" }
 }
@@ -53,8 +156,6 @@ function approval(key = "approval:1"): SessionStatusLike["pendingInteraction"] {
 function createHarness(
   options: {
     config?: Partial<NotifyConfig>
-    visible?: boolean
-    focused?: boolean
     rows?: Record<string, { title?: string; displayTitle?: string; origin?: string }>
   } = {},
 ) {
@@ -65,6 +166,8 @@ function createHarness(
   const effects: (() => void)[] = []
   const registrations: { id?: string; name: string }[] = []
   const rows = options.rows ?? { s1: { title: "Fix login", displayTitle: "Fix login" } }
+  const pushRemote = fakePushRemote()
+  const replaced: { url: string }[] = []
 
   const form = {
     getSnapshot: () => ({
@@ -90,6 +193,8 @@ function createHarness(
       const dispose = effect()
       if (typeof dispose === "function") effects.push(dispose)
     },
+    get: (name: string) => (name === "remote.notifyPush" ? pushRemote : undefined),
+    remote: { $mount: async () => async () => {} },
     sessions: { list: { getSnapshot: () => ({ ids: Object.keys(rows), byId: rows }) } },
     uiSession: {
       sessionStatus: {
@@ -120,8 +225,10 @@ function createHarness(
 
   return {
     ctx: ctx as unknown as ClientContext,
+    pushRemote,
     registrations,
     opened,
+    replaced,
     push(next: Record<string, SessionStatusLike>) {
       snapshot = new Map(Object.entries(next))
       for (const listener of listeners) listener()
@@ -142,8 +249,17 @@ interface StyleTag {
 
 let styleTags: StyleTag[] = []
 
-function page(visible: boolean, focused: boolean) {
+interface PageOptions {
+  url?: string
+  worker?: FakeWorker
+  pushManager?: boolean
+  registration?: FakeRegistration
+}
+
+function page(visible: boolean, focused: boolean, options: PageOptions = {}) {
   styleTags = []
+  const location = new URL(options.url ?? "https://dsh.example/")
+  const replaceState = vi.fn()
   vi.stubGlobal("document", {
     visibilityState: visible ? "visible" : "hidden",
     hasFocus: () => focused,
@@ -164,6 +280,28 @@ function page(visible: boolean, focused: boolean) {
       },
     },
   })
+  vi.stubGlobal("window", {
+    focus: vi.fn(),
+    location,
+    history: { state: null, replaceState },
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    setInterval: vi.fn(() => 1),
+    clearInterval: vi.fn(),
+    matchMedia: vi.fn(() => ({ matches: false })),
+  })
+  vi.stubGlobal("navigator", {
+    userAgent: "Mozilla/5.0 (X11; Linux x86_64) Chrome/120",
+    platform: "Linux",
+    maxTouchPoints: 0,
+    serviceWorker: options.worker,
+  })
+  if (options.pushManager === true) vi.stubGlobal("PushManager", class {})
+  return { replaceState, location }
+}
+
+async function flush(): Promise<void> {
+  for (let index = 0; index < 8; index += 1) await Promise.resolve()
 }
 
 beforeEach(() => {
@@ -172,7 +310,6 @@ beforeEach(() => {
   FakeNotification.instances = []
   page(false, false)
   vi.stubGlobal("Notification", FakeNotification)
-  vi.stubGlobal("window", { focus: vi.fn() })
 })
 
 afterEach(() => {
@@ -182,44 +319,49 @@ afterEach(() => {
 describe("notify client half", () => {
   it("raises a notification for a pending approval", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
-    await Promise.resolve()
+    await flush()
 
     expect(FakeNotification.instances).toHaveLength(1)
     const notification = FakeNotification.instances[0]
     expect(notification?.title).toBe("Approval needed")
     expect(notification?.options.body).toBe("Fix login · bash: escalate sandbox")
     expect(notification?.options.tag).toBe("dsh-notify:approval:s1")
+    expect(notification?.options.data).toEqual({
+      dshPwa: 1,
+      openUrl: "./?dsh-notify-session=s1",
+      payload: { sessionId: "s1" },
+    })
   })
 
   it("stays quiet while the page is visible and focused", async () => {
     page(true, true)
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
-    await Promise.resolve()
+    await flush()
 
     expect(FakeNotification.instances).toHaveLength(0)
   })
 
   it("closes the notification when the approval resolves", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
-    await Promise.resolve()
+    await flush()
 
     harness.push({ s1: { running: true, completionUnread: false } })
-    await Promise.resolve()
+    await flush()
 
     expect(FakeNotification.instances[0]?.closed).toBe(true)
   })
 
   it("opens the Session when the notification is clicked", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
-    await Promise.resolve()
+    await flush()
 
     FakeNotification.instances[0]?.click()
 
@@ -229,9 +371,9 @@ describe("notify client half", () => {
 
   it("does nothing when notifications are disabled", async () => {
     const harness = createHarness({ config: { enabled: false } })
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
-    await Promise.resolve()
+    await flush()
 
     expect(FakeNotification.instances).toHaveLength(0)
   })
@@ -239,17 +381,18 @@ describe("notify client half", () => {
   it("asks for permission once per page load", async () => {
     FakeNotification.permission = "default"
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({
       s1: { running: true, completionUnread: false, pendingInteraction: approval("a1") },
     })
     harness.push({
       s1: { running: true, completionUnread: false, pendingInteraction: approval("a2") },
     })
-    await Promise.resolve()
-    await Promise.resolve()
+    await flush()
+    await flush()
 
     expect(FakeNotification.requests).toBe(1)
+    // The sink does not gate on permission; the notification stays unsent until the page grants it.
     expect(FakeNotification.instances).toHaveLength(0)
   })
 
@@ -257,21 +400,21 @@ describe("notify client half", () => {
     const harness = createHarness({
       rows: { sub: { title: "Child", displayTitle: "Child", origin: "subagent" } },
     })
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({
       sub: { running: true, completionUnread: false, pendingInteraction: approval() },
     })
-    await Promise.resolve()
+    await flush()
 
     expect(FakeNotification.instances).toHaveLength(0)
   })
 
   it("reports a finished turn", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false } })
     harness.push({ s1: { running: false, completionUnread: false } })
-    await Promise.resolve()
+    await flush()
 
     expect(FakeNotification.instances).toHaveLength(1)
     expect(FakeNotification.instances[0]?.title).toBe("Turn finished")
@@ -280,25 +423,25 @@ describe("notify client half", () => {
 
   it("keeps every notification closed on teardown", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
     harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
-    await Promise.resolve()
+    await flush()
 
     harness.dispose()
 
     expect(FakeNotification.instances[0]?.closed).toBe(true)
   })
 
-  it("registers the settings section under the notify id", () => {
+  it("registers the settings section under the notify id", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
 
     expect(harness.registrations.some((entry) => entry.id === "notify")).toBe(true)
   })
 
-  it("injects and removes the switch stylesheet", () => {
+  it("injects and removes the switch stylesheet", async () => {
     const harness = createHarness()
-    apply(harness.ctx)
+    await apply(harness.ctx)
 
     expect(styleTags).toHaveLength(1)
     expect(styleTags[0]?.dataset.plugin).toBe("@1outres/dsh-plugin-notify")
@@ -307,5 +450,68 @@ describe("notify client half", () => {
     harness.dispose()
 
     expect(styleTags[0]?.removed).toBe(true)
+  })
+
+  it("uses the registration sink when a worker controls the page", async () => {
+    const registration = fakeRegistration()
+    const worker = fakeWorker(registration)
+    page(false, false, { worker })
+    const harness = createHarness()
+    await apply(harness.ctx)
+    harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
+    await flush()
+
+    expect(registration.showNotification).toHaveBeenCalledWith("Approval needed", {
+      body: "Fix login · bash: escalate sandbox",
+      tag: "dsh-notify:approval:s1",
+      data: {
+        dshPwa: 1,
+        openUrl: "./?dsh-notify-session=s1",
+        payload: { sessionId: "s1" },
+      },
+      renotify: undefined,
+    })
+    expect(FakeNotification.instances).toHaveLength(0)
+  })
+
+  it("opens a Session from a worker click message", async () => {
+    const worker = fakeWorker()
+    page(false, false, { worker })
+    const harness = createHarness()
+    await apply(harness.ctx)
+
+    worker.emit({ type: "dsh-pwa:notificationclick", payload: { sessionId: "s1" }, tag: "t" })
+
+    expect(harness.opened).toEqual(["s1"])
+    expect(window.focus).toHaveBeenCalled()
+  })
+
+  it("opens a Session from the URL and removes the parameter", async () => {
+    const { replaceState } = page(false, false, {
+      url: "https://dsh.example/?dsh-notify-session=s1&keep=1",
+    })
+    const harness = createHarness()
+    await apply(harness.ctx)
+
+    expect(harness.opened).toEqual(["s1"])
+    expect(replaceState).toHaveBeenCalledTimes(1)
+    const url = replaceState.mock.calls[0]?.[2] as URL
+    expect(url.searchParams.has("dsh-notify-session")).toBe(false)
+    expect(url.searchParams.get("keep")).toBe("1")
+  })
+
+  it("does not raise local notifications when push is on", async () => {
+    const registration = fakeRegistration(fakeSubscription())
+    const worker = fakeWorker(registration)
+    page(false, false, { worker, pushManager: true })
+    const harness = createHarness()
+    await apply(harness.ctx)
+    await vi.waitFor(() => expect(harness.pushRemote.subscribes).toHaveLength(1))
+
+    harness.push({ s1: { running: true, completionUnread: false, pendingInteraction: approval() } })
+    await flush()
+
+    expect(FakeNotification.instances).toHaveLength(0)
+    expect(registration.showNotification).not.toHaveBeenCalled()
   })
 })

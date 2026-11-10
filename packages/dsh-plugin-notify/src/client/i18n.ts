@@ -3,12 +3,34 @@ export const en: Record<string, string> = {
   nav: "Notifications",
   title: "Notifications",
   description:
-    "Raise a desktop notification when this page is in the background: a tool call needs approval, the agent asks a question, or a turn finishes. The notification comes from this browser, on the machine that is showing the page.",
+    "Raise a notification when this page is in the background or closed: a tool call needs approval, the agent asks a question, or a turn finishes. Web Push reaches this device even while the page is closed.",
   enabled: "Enable notifications",
   enabledHint: "Turn every notification off without uninstalling the plugin.",
   onlyWhenUnfocused: "Only while this page is in the background",
   onlyWhenUnfocusedHint:
     "While the window is focused and visible, the prompt is already on screen.",
+  push: "Send push notifications",
+  pushHint:
+    "The Host sends a push to devices that turned it on, so it arrives while the page is closed or in the background.",
+  pushDevice: "Push notifications on this device",
+  pushOn: "On",
+  pushOff: "Off",
+  pushUnsupported: "This browser does not support push notifications.",
+  pushNoWorker:
+    "No service worker controls this page. Turn on the service worker in the Mobile plugin settings, then reload.",
+  pushNeedsInstall:
+    "Add this app to the Home Screen first. Push on iPhone and iPad needs the installed app.",
+  pushDenied:
+    "The browser blocked notifications. Allow notifications for this site in the browser settings.",
+  pushError: "Push is unavailable right now. Reload the page and try again.",
+  pushTurnOn: "Turn on push on this device",
+  pushTurnOff: "Turn off push on this device",
+  pushTest: "Send test push",
+  pushTestSent: "Test push sent.",
+  pushTestGone: "The Host no longer knows this device. Turn push on again.",
+  pushTestFailed: "The test push failed.",
+  pushRequirement:
+    "iPhone and iPad need the app on the Home Screen, and push needs the Mobile plugin's service worker.",
   approval: "Approval prompts",
   approvalHint: "A tool call is waiting for allow or reject.",
   question: "Questions and plan reviews",
