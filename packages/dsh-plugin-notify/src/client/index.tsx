@@ -1,5 +1,5 @@
 import { diffStatus, formatNotice, shouldNotify } from "../shared/notify"
-import type { PwaNotificationData } from "../shared/protocol"
+import type { PwaClickMessage, PwaNotificationData } from "../shared/protocol"
 import { OPEN_SESSION_PARAM, PWA_CLICK_MESSAGE } from "../shared/protocol"
 import type { NoticeSpec } from "../shared/types"
 import { CONFIG_NAMESPACE, normalizeConfig } from "./config"
@@ -252,7 +252,7 @@ export async function apply(ctx: ClientContext): Promise<void> {
     const worker = serviceWorker()
     if (worker === undefined) return
     const listener = (event: MessageEvent) => {
-      const message = event.data as { type?: unknown; payload?: unknown } | null
+      const message = event.data as PwaClickMessage | null
       if (message === null || typeof message !== "object") return
       if (message.type !== PWA_CLICK_MESSAGE) return
       const payload = message.payload
