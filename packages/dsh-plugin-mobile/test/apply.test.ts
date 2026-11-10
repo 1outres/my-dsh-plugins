@@ -4,6 +4,8 @@ import { DRAWER_ATTRIBUTE } from "../src/client/drawer"
 import { FRAME_ANCHOR } from "../src/client/frame"
 import { apply, inject, SETTINGS_SLOT } from "../src/client/index"
 import { TOUCH_QUERY } from "../src/client/page"
+import { THEME_QUERY } from "../src/client/pwa/theme"
+import { STANDALONE_QUERY } from "../src/client/pwa/worker"
 import { MOBILE_ATTRIBUTE, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "../src/client/styles"
 import type { ClientContext, MobileConfig } from "../src/client/types"
 import { HEIGHT_VARIABLE } from "../src/client/viewport"
@@ -33,6 +35,8 @@ function media(matches: boolean) {
   }
 }
 
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+
 function createPage(options: { phone: boolean; touch: boolean }) {
   const head: FakeNode[] = []
   const node = (tag: string): FakeNode => {
@@ -59,11 +63,28 @@ function createPage(options: { phone: boolean; touch: boolean }) {
   const windowListeners = new Map<string, Listener>()
   const viewportListeners = new Map<string, Listener>()
   const touch = media(options.touch)
+  const standalone = media(false)
+  const themeMode = media(false)
   const state = { drawer: options.phone }
   const mutationCallbacks: (() => void)[] = []
   const frame = {
     isConnected: true,
     hasAttribute: (name: string) => name === DRAWER_ATTRIBUTE && state.drawer,
+  }
+  const registrations: { url: string; options: { scope: string } }[] = []
+  const unregistered: string[] = []
+  const serviceWorker = {
+    register: async (url: string, options: { scope: string }) => {
+      registrations.push({ url, options })
+      return { active: null, unregister: async () => true }
+    },
+    getRegistration: async () => ({
+      active: { scriptURL: "/dsh-mobile-sw.js" },
+      unregister: async () => {
+        unregistered.push("/dsh-mobile-sw.js")
+        return true
+      },
+    }),
   }
 
   class FakeMutationObserver {
@@ -77,6 +98,7 @@ function createPage(options: { phone: boolean; touch: boolean }) {
 
   vi.stubGlobal("document", {
     head: { append: (added: FakeNode) => head.push(added) },
+    body: {},
     createElement: node,
     querySelector: (selector: string) => {
       if (selector === FRAME_ANCHOR) return { parentElement: frame }
@@ -102,8 +124,18 @@ function createPage(options: { phone: boolean; touch: boolean }) {
   vi.stubGlobal("window", {
     matchMedia: (text: string) => {
       if (text === TOUCH_QUERY) return touch
+      if (text === STANDALONE_QUERY) return standalone
+      if (text === THEME_QUERY) return themeMode
       throw new Error(`unexpected media query: ${text}`)
     },
+    isSecureContext: true,
+    navigator: {
+      serviceWorker,
+      userAgent: "Mozilla/5.0 (X11; Linux x86_64)",
+      platform: "Linux x86_64",
+      maxTouchPoints: 0,
+    },
+    getComputedStyle: () => ({ backgroundColor: "rgb(32, 33, 36)" }),
     addEventListener: (type: string, listener: Listener) => windowListeners.set(type, listener),
     removeEventListener: (type: string) => windowListeners.delete(type),
     visualViewport: {
@@ -129,6 +161,10 @@ function createPage(options: { phone: boolean; touch: boolean }) {
     windowListeners,
     viewportListeners,
     touch,
+    standalone,
+    themeMode,
+    registrations,
+    unregistered,
     setDrawer(next: boolean) {
       state.drawer = next
       for (const callback of mutationCallbacks) callback()
@@ -281,6 +317,58 @@ describe("mobile client half", () => {
     expect(page.attributes.has(NO_PULL_ATTRIBUTE)).toBe(true)
   })
 
+  it("registers the service worker and unregisters it when the setting turns off", async () => {
+    const page = createPage({ phone: false, touch: false })
+    const h = createHarness()
+    apply(h.ctx)
+    await flush()
+    expect(page.registrations).toEqual([{ url: "./dsh-mobile-sw.js", options: { scope: "./" } }])
+
+    h.configure({ serviceWorker: false })
+    await flush()
+    expect(page.unregistered).toEqual(["/dsh-mobile-sw.js"])
+  })
+
+  it("keeps the service worker registered on teardown", async () => {
+    const page = createPage({ phone: false, touch: false })
+    const h = createHarness()
+    apply(h.ctx)
+    await flush()
+
+    h.dispose()
+    await flush()
+    expect(page.unregistered).toEqual([])
+    expect(page.standalone.listeners.size).toBe(0)
+  })
+
+  it("paints the title bar color and removes its meta tag on teardown", () => {
+    const page = createPage({ phone: false, touch: false })
+    const h = createHarness()
+    apply(h.ctx)
+
+    const meta = page.head.find((tag) => tag.name === "theme-color")
+    expect(meta?.content).toBe("rgb(32, 33, 36)")
+    expect(meta?.dataset.plugin).toBe("@1outres/dsh-plugin-mobile")
+    expect(page.themeMode.listeners.size).toBe(1)
+
+    h.dispose()
+    expect(page.head.some((tag) => tag.name === "theme-color")).toBe(false)
+    expect(page.themeMode.listeners.size).toBe(0)
+  })
+
+  it("captures the install prompt while applied", () => {
+    const page = createPage({ phone: false, touch: false })
+    const h = createHarness()
+    apply(h.ctx)
+
+    expect(page.windowListeners.has("beforeinstallprompt")).toBe(true)
+    expect(page.windowListeners.has("appinstalled")).toBe(true)
+
+    h.dispose()
+    expect(page.windowListeners.has("beforeinstallprompt")).toBe(false)
+    expect(page.windowListeners.has("appinstalled")).toBe(false)
+  })
+
   it("removes everything on teardown", () => {
     const page = createPage({ phone: true, touch: true })
     const h = createHarness()
@@ -298,5 +386,7 @@ describe("mobile client half", () => {
     expect(page.documentListeners.size).toBe(0)
     expect(page.viewportListeners.size).toBe(0)
     expect(page.touch.listeners.size).toBe(0)
+    expect(page.standalone.listeners.size).toBe(0)
+    expect(page.themeMode.listeners.size).toBe(0)
   })
 })

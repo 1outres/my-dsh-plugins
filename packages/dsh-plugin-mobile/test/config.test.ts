@@ -11,6 +11,8 @@ describe("settings", () => {
       fitKeyboard: true,
       blockPullToRefresh: true,
       autoFocusComposer: false,
+      serviceWorker: true,
+      themeColor: true,
     })
   })
 
@@ -22,6 +24,18 @@ describe("settings", () => {
     expect(normalizeConfig({ enterKey: 1, swipe: "yes" })).toMatchObject({
       enterKey: "newline",
       swipe: true,
+    })
+  })
+
+  it("defaults the PWA settings on and keeps written booleans", () => {
+    expect(normalizeConfig(undefined)).toMatchObject({ serviceWorker: true, themeColor: true })
+    expect(normalizeConfig({ serviceWorker: false, themeColor: false })).toMatchObject({
+      serviceWorker: false,
+      themeColor: false,
+    })
+    expect(normalizeConfig({ serviceWorker: "no", themeColor: 0 } as never)).toMatchObject({
+      serviceWorker: true,
+      themeColor: true,
     })
   })
 
@@ -42,6 +56,7 @@ describe("settings", () => {
     const ctx = {
       fiber: "fiber",
       inject: (deps: string[], callback: (child: unknown) => void) => {
+        if (!deps.includes("settings")) return
         expect(deps).toEqual(["settings"])
         callback({
           settings: {

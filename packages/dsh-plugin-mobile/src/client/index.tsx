@@ -1,10 +1,14 @@
-import { NAMESPACE, normalizeConfig } from "./config"
+import { booleanSetting, NAMESPACE, normalizeConfig } from "./config"
 import { createDrawerSource, observeMutations } from "./drawer"
 import { installEnterNewline } from "./enter"
 import { installFocusGuard } from "./focus"
 import { findFrame, isExpanded, swipeBlocked } from "./frame"
 import { en, ja, zh } from "./i18n"
 import { createPageStore, mediaSource, TOUCH_QUERY } from "./page"
+import { createInstallPrompt } from "./pwa/install"
+import { createPwaStore } from "./pwa/state"
+import { installTheme } from "./pwa/theme"
+import { installPwaWorker } from "./pwa/worker"
 import { SettingsPage } from "./SettingsPage"
 import { MOBILE_ATTRIBUTE, MOBILE_CSS, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "./styles"
 import { installSwipe } from "./swipe"
@@ -23,7 +27,9 @@ export const SETTINGS_SLOT = "settings.section"
  * Browser half. It follows the Harness phone layout, fits the page to the
  * on-screen keyboard, keeps the on-screen keyboard closed until the composer
  * is tapped, lets Enter add a line, and adds edge swipes to the Harness
- * navigation drawer. Everything is undone on teardown.
+ * navigation drawer. It also registers the app's service worker, offers the
+ * install prompt, and paints the title bar. Everything is undone on teardown
+ * except the service worker registration, which push subscriptions outlive.
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NAMESPACE, { en, zh, ja }), "mobile: dictionaries")
@@ -49,6 +55,18 @@ export function apply(ctx: ClientContext): void {
     touch: mediaSource((query) => window.matchMedia(query), TOUCH_QUERY),
   })
   ctx.effect(() => () => page.dispose(), "mobile: page state")
+
+  const pwa = createPwaStore()
+  const installPrompt = createInstallPrompt(window, pwa)
+  ctx.effect(() => installPrompt.start(), "mobile: install prompt")
+  ctx.effect(
+    () => installPwaWorker(window, pwa, booleanSetting(form, "serviceWorker")),
+    "mobile: service worker",
+  )
+  ctx.effect(
+    () => installTheme(document, window, booleanSetting(form, "themeColor")),
+    "mobile: theme color",
+  )
 
   ctx.effect(() => {
     const root = document.documentElement
@@ -124,8 +142,10 @@ export function apply(ctx: ClientContext): void {
     "mobile: drawer swipe",
   )
 
-  // biome-ignore lint/correctness/noComponentHookFactories: the page closes over the shared form, page and translator
-  const Page = () => <SettingsPage form={form} page={page} t={t} />
+  // biome-ignore lint/correctness/noComponentHookFactories: the page closes over the shared form, page, PWA store and translator
+  const Page = () => (
+    <SettingsPage form={form} page={page} pwa={pwa} install={installPrompt.install} t={t} />
+  )
 
   ctx.effect(
     () =>

@@ -19,6 +19,8 @@ export interface MobileConfig {
   fitKeyboard: boolean
   blockPullToRefresh: boolean
   autoFocusComposer: boolean
+  serviceWorker: boolean
+  themeColor: boolean
 }
 
 /**
@@ -28,6 +30,34 @@ export interface MobileConfig {
 export interface PageState {
   readonly mobile: boolean
   readonly touch: boolean
+}
+
+/** State of the app's service worker registration. */
+export type WorkerState = "unsupported" | "insecure" | "off" | "registering" | "ready" | "failed"
+
+/** The phone platform, used only to choose the install instructions. */
+export type PwaPlatform = "ios" | "other"
+
+/** What the browser said about the install dialog. */
+export type InstallOutcome = "accepted" | "dismissed" | "unavailable"
+
+/** What the PWA modules publish for the Settings page. */
+export interface PwaState {
+  readonly worker: WorkerState
+  readonly standalone: boolean
+  readonly installable: boolean
+  readonly platform: PwaPlatform
+}
+
+/** A PWA state store that notifies only on a real change. */
+export interface PwaStore extends Observable<PwaState> {
+  update(next: Partial<PwaState>): void
+}
+
+/** A boolean setting read at decision time and followed when it changes. */
+export interface BooleanSetting {
+  get(): boolean
+  subscribe(listener: () => void): () => void
 }
 
 export interface ConfigFormSnapshot<T> {

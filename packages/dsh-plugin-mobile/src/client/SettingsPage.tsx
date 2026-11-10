@@ -1,11 +1,22 @@
 import type { CSSProperties } from "react"
 import { useCallback, useState, useSyncExternalStore } from "react"
 import { DEFAULT_CONFIG, normalizeConfig } from "./config"
-import type { ConfigForm, EnterKey, MobileConfig, Observable, PageState, Translate } from "./types"
+import type {
+  ConfigForm,
+  EnterKey,
+  InstallOutcome,
+  MobileConfig,
+  Observable,
+  PageState,
+  PwaState,
+  Translate,
+} from "./types"
 
 export interface SettingsPageProps {
   form: ConfigForm<Partial<MobileConfig>>
   page: Observable<PageState>
+  pwa: Observable<PwaState>
+  install: () => Promise<InstallOutcome>
   t: Translate
 }
 
@@ -19,6 +30,8 @@ const sectionStyle: CSSProperties = {
 }
 
 const headingStyle: CSSProperties = { margin: 0, fontSize: 18, fontWeight: 600, lineHeight: 1.4 }
+
+const groupHeadingStyle: CSSProperties = { margin: "0 0 4px", fontSize: 14, fontWeight: 600 }
 
 const introStyle: CSSProperties = {
   margin: "8px 0 0",
@@ -86,6 +99,8 @@ const buttonStyle: CSSProperties = {
   cursor: "pointer",
 }
 
+const installButtonStyle: CSSProperties = { ...buttonStyle, marginTop: 12 }
+
 const mutedStyle: CSSProperties = {
   color: "var(--dsw-alias-label-tertiary)",
   fontSize: 13,
@@ -115,15 +130,17 @@ function useViewportWidth(): number {
 }
 
 /**
- * Settings page: Enter, the drawer swipe, the keyboard fit and the two touch
- * guards. Every control writes one field; the browser half picks it up at once.
+ * Settings page: the app status, install and title bar, then Enter, the drawer
+ * swipe, the keyboard fit and the two touch guards. Every control writes one
+ * field; the browser half picks it up at once.
  */
-export function SettingsPage({ form, page, t }: SettingsPageProps) {
+export function SettingsPage({ form, page, pwa, install, t }: SettingsPageProps) {
   const subscribe = useCallback((listener: () => void) => form.subscribe(listener), [form])
   const getSnapshot = useCallback(() => form.getSnapshot(), [form])
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
   const config = normalizeConfig(snapshot.value)
   const state = useObservable(page)
+  const pwaState = useObservable(pwa)
   const width = useViewportWidth()
 
   const [writeFailed, setWriteFailed] = useState(false)
@@ -156,6 +173,38 @@ export function SettingsPage({ form, page, t }: SettingsPageProps) {
           ? t("settings.statusMobile", { width })
           : t("settings.statusDesktop", { width })}
       </p>
+
+      <div style={groupStyle}>
+        <h3 style={groupHeadingStyle}>{t("settings.app")}</h3>
+        <p style={statusStyle} role="status">
+          {pwaState.standalone ? t("settings.appInstalled") : t("settings.appBrowser")}
+          {" · "}
+          {t("settings.workerStatus")}: {t(`settings.worker.${pwaState.worker}`)}
+        </p>
+        {pwaState.installable ? (
+          <button type="button" style={installButtonStyle} onClick={() => void install()}>
+            {t("settings.install")}
+          </button>
+        ) : null}
+        {pwaState.platform === "ios" && !pwaState.standalone ? (
+          <p style={{ ...hintStyle, marginTop: 8 }}>{t("settings.installHint")}</p>
+        ) : null}
+        <Toggle
+          label={t("settings.serviceWorker")}
+          hint={t("settings.serviceWorkerHint")}
+          checked={config.serviceWorker}
+          disabled={disabled}
+          onChange={(next) => write("serviceWorker", next)}
+        />
+        <Toggle
+          label={t("settings.themeColor")}
+          hint={t("settings.themeColorHint")}
+          checked={config.themeColor}
+          disabled={disabled}
+          onChange={(next) => write("themeColor", next)}
+        />
+        <p style={{ ...hintStyle, marginTop: 12 }}>{t("settings.pushHint")}</p>
+      </div>
 
       <div style={fieldStyle}>
         <span style={labelStyle}>{t("settings.enterKey")}</span>

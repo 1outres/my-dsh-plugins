@@ -1,4 +1,4 @@
-import type { EnterKey, MobileConfig } from "./types"
+import type { BooleanSetting, ConfigForm, EnterKey, MobileConfig } from "./types"
 
 /**
  * The profile entry id in the bundle patch. It is also the settings namespace
@@ -13,6 +13,8 @@ export const DEFAULT_CONFIG: MobileConfig = {
   fitKeyboard: true,
   blockPullToRefresh: true,
   autoFocusComposer: false,
+  serviceWorker: true,
+  themeColor: true,
 }
 
 const ENTER_KEYS: readonly EnterKey[] = ["newline", "send"]
@@ -37,5 +39,26 @@ export function normalizeConfig(
     fitKeyboard: flag(value?.fitKeyboard, DEFAULT_CONFIG.fitKeyboard),
     blockPullToRefresh: flag(value?.blockPullToRefresh, DEFAULT_CONFIG.blockPullToRefresh),
     autoFocusComposer: flag(value?.autoFocusComposer, DEFAULT_CONFIG.autoFocusComposer),
+    serviceWorker: flag(value?.serviceWorker, DEFAULT_CONFIG.serviceWorker),
+    themeColor: flag(value?.themeColor, DEFAULT_CONFIG.themeColor),
+  }
+}
+
+/** The boolean fields of the settings. */
+export type BooleanField = {
+  [K in keyof MobileConfig]-?: MobileConfig[K] extends boolean ? K : never
+}[keyof MobileConfig]
+
+/**
+ * Follow one boolean setting. The value is read at decision time, so a change
+ * applies without restarting the browser half.
+ */
+export function booleanSetting(
+  form: ConfigForm<Partial<MobileConfig>>,
+  field: BooleanField,
+): BooleanSetting {
+  return {
+    get: () => normalizeConfig(form.getSnapshot().value)[field],
+    subscribe: (listener) => form.subscribe(listener),
   }
 }
