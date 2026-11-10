@@ -38,7 +38,8 @@
     "@1outres/dsh-plugin-edit-message": "workspace:*",
     "@1outres/dsh-plugin-scratchpad": "workspace:*",
     "@1outres/dsh-plugin-mobile": "workspace:*",
-    "@1outres/dsh-plugin-remote": "workspace:*"
+    "@1outres/dsh-plugin-remote": "workspace:*",
+    "@1outres/dsh-plugin-playwright": "workspace:*"
   },
   "dsh": {
     "bundle": {

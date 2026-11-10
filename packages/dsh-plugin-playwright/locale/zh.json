@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "title": "Playwright",
+    "description": "为每个顶层会话提供独立的 Playwright 浏览器上下文，并加入 Playwright MCP 的浏览器工具。会话之间不共享标签页、Cookie 或存储，并且可以同时运行。"
+  },
+  "title.browser_resize": "调整浏览器窗口大小",
+  "title.browser_console_messages": "获取控制台消息",
+  "title.browser_handle_dialog": "处理对话框",
+  "title.browser_emulate_media": "模拟媒体特性",
+  "title.browser_evaluate": "执行 JavaScript",
+  "title.browser_file_upload": "上传文件",
+  "title.browser_drop": "将文件或数据拖放到元素",
+  "title.browser_find": "在页面快照中查找",
+  "title.browser_fill_form": "填写表单",
+  "title.browser_press_key": "按键",
+  "title.browser_type": "输入文本",
+  "title.browser_navigate": "导航到 URL",
+  "title.browser_navigate_back": "返回上一页",
+  "title.browser_network_requests": "列出网络请求",
+  "title.browser_network_request": "显示网络请求详情",
+  "title.browser_take_screenshot": "截图",
+  "title.browser_snapshot": "页面快照",
+  "title.browser_click": "点击",
+  "title.browser_drag": "拖动鼠标",
+  "title.browser_hover": "悬停鼠标",
+  "title.browser_select_option": "选择选项",
+  "title.browser_tabs": "管理标签页",
+  "title.browser_wait_for": "等待"
+}

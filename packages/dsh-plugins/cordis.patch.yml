@@ -20,3 +20,5 @@
       name: "@1outres/dsh-plugin-mobile"
     - id: remote
       name: "@1outres/dsh-plugin-remote"
+    - id: playwright
+      name: "@1outres/dsh-plugin-playwright"

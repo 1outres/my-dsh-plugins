@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "title": "Playwright",
+    "description": "トップレベルの Session ごとに独立した Playwright のブラウザーコンテキストを用意し、Playwright MCP のブラウザーツールを使えるようにします。タブや Cookie、ストレージは Session 間で共有されず、同時に動かせます。"
+  },
+  "title.browser_resize": "ブラウザーウィンドウをリサイズ",
+  "title.browser_console_messages": "コンソールメッセージを取得",
+  "title.browser_handle_dialog": "ダイアログを操作",
+  "title.browser_emulate_media": "メディア機能をエミュレート",
+  "title.browser_evaluate": "JavaScript を評価",
+  "title.browser_file_upload": "ファイルをアップロード",
+  "title.browser_drop": "要素にファイルやデータをドロップ",
+  "title.browser_find": "ページスナップショット内を検索",
+  "title.browser_fill_form": "フォームを入力",
+  "title.browser_press_key": "キーを押す",
+  "title.browser_type": "テキストを入力",
+  "title.browser_navigate": "URL へ移動",
+  "title.browser_navigate_back": "前に戻る",
+  "title.browser_network_requests": "ネットワークリクエストを一覧",
+  "title.browser_network_request": "ネットワークリクエストの詳細を表示",
+  "title.browser_take_screenshot": "スクリーンショットを撮る",
+  "title.browser_snapshot": "ページスナップショット",
+  "title.browser_click": "クリック",
+  "title.browser_drag": "マウスでドラッグ",
+  "title.browser_hover": "マウスをホバー",
+  "title.browser_select_option": "オプションを選択",
+  "title.browser_tabs": "タブを管理",
+  "title.browser_wait_for": "待機"
+}

@@ -13,6 +13,9 @@ minimumReleaseAgeExclude:
   - "@biomejs/cli-linux-x64@2.6.5"
   - "@biomejs/cli-win32-arm64@2.6.5"
   - "@biomejs/cli-win32-x64@2.6.5"
+  - "@playwright/mcp@0.0.85"
+  - playwright-core@1.66.0-alpha-2026-11-09
+  - playwright@1.66.0-alpha-2026-11-09
 
 onlyBuiltDependencies:
   - esbuild

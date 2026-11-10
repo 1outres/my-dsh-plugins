@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "title": "Playwright",
+    "description": "Gives every top-level session its own isolated Playwright browser context, with browser tools from Playwright MCP. Sessions never share tabs, cookies, or storage, and run at the same time."
+  },
+  "title.browser_resize": "Resize browser window",
+  "title.browser_console_messages": "Get console messages",
+  "title.browser_handle_dialog": "Handle a dialog",
+  "title.browser_emulate_media": "Emulate media features",
+  "title.browser_evaluate": "Evaluate JavaScript",
+  "title.browser_file_upload": "Upload files",
+  "title.browser_drop": "Drop files or data onto an element",
+  "title.browser_find": "Find in page snapshot",
+  "title.browser_fill_form": "Fill form",
+  "title.browser_press_key": "Press a key",
+  "title.browser_type": "Type text",
+  "title.browser_navigate": "Navigate to a URL",
+  "title.browser_navigate_back": "Go back",
+  "title.browser_network_requests": "List network requests",
+  "title.browser_network_request": "Show network request details",
+  "title.browser_take_screenshot": "Take a screenshot",
+  "title.browser_snapshot": "Page snapshot",
+  "title.browser_click": "Click",
+  "title.browser_drag": "Drag mouse",
+  "title.browser_hover": "Hover mouse",
+  "title.browser_select_option": "Select option",
+  "title.browser_tabs": "Manage tabs",
+  "title.browser_wait_for": "Wait for"
+}

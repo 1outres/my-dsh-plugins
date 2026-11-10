@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Playwright</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#1F6F5C"/>
+  <rect x="9" y="13" width="46" height="38" rx="5" fill="#FFFFFF" fill-opacity="0.96"/>
+  <path d="M9 18C9 15.239 11.239 13 14 13H50C52.761 13 55 15.239 55 18V23H9V18Z" fill="#175447"/>
+  <circle cx="15" cy="18" r="1.8" fill="#7ED0B4"/>
+  <circle cx="20.5" cy="18" r="1.8" fill="#F2C14E"/>
+  <circle cx="26" cy="18" r="1.8" fill="#E86A5E"/>
+  <path d="M22 33C22 31.343 23.343 30 25 30H31C32.657 30 34 31.343 34 33V39C34 40.657 32.657 42 31 42H25C23.343 42 22 40.657 22 39V33Z" fill="#D8EFE7"/>
+  <path d="M27.2 33.4L31.4 36L27.2 38.6V33.4Z" fill="#1F6F5C"/>
+  <path d="M38 31H46M38 36H48M38 41H44" stroke="#87B8A8" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M41 50L50 44" stroke="#D8EFE7" stroke-width="3" stroke-linecap="round"/>
+  <path d="M52 42L54 46L49 47.5" stroke="#D8EFE7" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
