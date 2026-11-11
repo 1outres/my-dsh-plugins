@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -166,32 +167,68 @@ func TestWarnings(t *testing.T) {
 	}
 }
 
-func TestIdentityFileFor(t *testing.T) {
-	getenv := func(values map[string]string) func(string) (string, bool) {
-		return func(key string) (string, bool) {
-			value, ok := values[key]
-			return value, ok
-		}
+func getenv(values map[string]string) func(string) (string, bool) {
+	return func(key string) (string, bool) {
+		value, ok := values[key]
+		return value, ok
 	}
+}
 
-	path, err := identityFileFor("linux", getenv(map[string]string{"STATE_DIRECTORY": "/var/lib/dsh-serial-agent:/run/x"}), "/home/u")
+func homeDir(dir string) func() (string, error) {
+	return func() (string, error) { return dir, nil }
+}
+
+func noHome() (string, error) {
+	return "", errors.New("$HOME is not defined")
+}
+
+func TestIdentityFileFor(t *testing.T) {
+	path, err := identityFileFor("linux", getenv(map[string]string{"STATE_DIRECTORY": "/var/lib/dsh-serial-agent:/run/x"}), homeDir("/home/u"))
 	if err != nil || path != "/var/lib/dsh-serial-agent/identity" {
 		t.Fatalf("STATE_DIRECTORY path = %q, %v", path, err)
 	}
-	path, err = identityFileFor("linux", getenv(map[string]string{"XDG_STATE_HOME": "/state"}), "/home/u")
+	path, err = identityFileFor("linux", getenv(map[string]string{"XDG_STATE_HOME": "/state"}), homeDir("/home/u"))
 	if err != nil || path != "/state/dsh-serial-agent/identity" {
 		t.Fatalf("XDG_STATE_HOME path = %q, %v", path, err)
 	}
-	path, err = identityFileFor("linux", getenv(map[string]string{}), "/home/u")
+	path, err = identityFileFor("linux", getenv(map[string]string{}), homeDir("/home/u"))
 	if err != nil || path != "/home/u/.local/state/dsh-serial-agent/identity" {
 		t.Fatalf("home path = %q, %v", path, err)
 	}
-	path, err = identityFileFor("darwin", getenv(map[string]string{}), "/Users/u")
+	path, err = identityFileFor("darwin", getenv(map[string]string{}), homeDir("/Users/u"))
 	if err != nil || path != "/Users/u/Library/Application Support/dsh-serial-agent/identity" {
 		t.Fatalf("darwin path = %q, %v", path, err)
 	}
-	if _, err := identityFileFor("plan9", getenv(map[string]string{}), "/home/u"); err == nil {
+	if _, err := identityFileFor("plan9", getenv(map[string]string{}), homeDir("/home/u")); err == nil {
 		t.Fatal("expected an unsupported OS error")
+	}
+}
+
+func TestIdentityFileForStateDirectoryWithoutHome(t *testing.T) {
+	path, err := identityFileFor("linux", getenv(map[string]string{"STATE_DIRECTORY": "/var/lib/dsh-serial-agent:/run/x"}), noHome)
+	if err != nil || path != "/var/lib/dsh-serial-agent/identity" {
+		t.Fatalf("STATE_DIRECTORY path = %q, %v", path, err)
+	}
+}
+
+func TestIdentityFileForXDGStateHomeWithoutHome(t *testing.T) {
+	path, err := identityFileFor("linux", getenv(map[string]string{"XDG_STATE_HOME": "/state"}), noHome)
+	if err != nil || path != "/state/dsh-serial-agent/identity" {
+		t.Fatalf("XDG_STATE_HOME path = %q, %v", path, err)
+	}
+}
+
+func TestIdentityFileForLinuxWithoutHome(t *testing.T) {
+	_, err := identityFileFor("linux", getenv(map[string]string{}), noHome)
+	if err == nil || !strings.Contains(err.Error(), "identityFile") {
+		t.Fatalf("got %v, want an error that says to set identityFile", err)
+	}
+}
+
+func TestIdentityFileForDarwinWithoutHome(t *testing.T) {
+	_, err := identityFileFor("darwin", getenv(map[string]string{}), noHome)
+	if err == nil || !strings.Contains(err.Error(), "identityFile") {
+		t.Fatalf("got %v, want an error that says to set identityFile", err)
 	}
 }
 

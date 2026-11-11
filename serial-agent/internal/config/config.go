@@ -213,14 +213,10 @@ func (c *Config) Warnings() []string {
 
 // DefaultIdentityFile returns the identity path for this OS and environment.
 func DefaultIdentityFile() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("find home directory for the default identity: %w", err)
-	}
-	return identityFileFor(runtime.GOOS, os.LookupEnv, home)
+	return identityFileFor(runtime.GOOS, os.LookupEnv, os.UserHomeDir)
 }
 
-func identityFileFor(goos string, getenv func(string) (string, bool), home string) (string, error) {
+func identityFileFor(goos string, getenv func(string) (string, bool), home func() (string, error)) (string, error) {
 	switch goos {
 	case "linux":
 		if state, ok := getenv("STATE_DIRECTORY"); ok && state != "" {
@@ -230,12 +226,28 @@ func identityFileFor(goos string, getenv func(string) (string, bool), home strin
 		if state, ok := getenv("XDG_STATE_HOME"); ok && state != "" {
 			return filepath.Join(state, "dsh-serial-agent", "identity"), nil
 		}
-		return filepath.Join(home, ".local", "state", "dsh-serial-agent", "identity"), nil
+		dir, err := lookupHomeDirectory(home)
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(dir, ".local", "state", "dsh-serial-agent", "identity"), nil
 	case "darwin":
-		return filepath.Join(home, "Library", "Application Support", "dsh-serial-agent", "identity"), nil
+		dir, err := lookupHomeDirectory(home)
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(dir, "Library", "Application Support", "dsh-serial-agent", "identity"), nil
 	default:
 		return "", fmt.Errorf("no default identity path for OS %q; set identityFile", goos)
 	}
+}
+
+func lookupHomeDirectory(home func() (string, error)) (string, error) {
+	dir, err := home()
+	if err != nil {
+		return "", fmt.Errorf("find home directory for the default identity: %w; set identityFile", err)
+	}
+	return dir, nil
 }
 
 func defaultAllow(goos string) ([]string, error) {
