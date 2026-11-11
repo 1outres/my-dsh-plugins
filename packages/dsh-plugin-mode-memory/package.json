@@ -1,0 +1,58 @@
+{
+  "name": "@1outres/dsh-plugin-mode-memory",
+  "version": "0.7.0",
+  "description": "Remembers the agent preset each project last used and gives it to new blank sessions of that project instead of the global default.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1outres/my-dsh-plugins.git",
+    "directory": "packages/dsh-plugin-mode-memory"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "agent-preset",
+    "mode",
+    "deepseek-harness"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.3.0",
+    "node": ">=22"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": [
+        "./cordis.patch.yml"
+      ]
+    }
+  }
+}

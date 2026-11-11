@@ -22,3 +22,5 @@
       name: "@1outres/dsh-plugin-remote"
     - id: playwright
       name: "@1outres/dsh-plugin-playwright"
+    - id: mode-memory
+      name: "@1outres/dsh-plugin-mode-memory"

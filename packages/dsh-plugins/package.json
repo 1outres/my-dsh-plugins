@@ -39,7 +39,8 @@
     "@1outres/dsh-plugin-scratchpad": "workspace:*",
     "@1outres/dsh-plugin-mobile": "workspace:*",
     "@1outres/dsh-plugin-remote": "workspace:*",
-    "@1outres/dsh-plugin-playwright": "workspace:*"
+    "@1outres/dsh-plugin-playwright": "workspace:*",
+    "@1outres/dsh-plugin-mode-memory": "workspace:*"
   },
   "dsh": {
     "bundle": {

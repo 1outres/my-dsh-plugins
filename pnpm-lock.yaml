@@ -253,6 +253,16 @@ importers:
         specifier: ^18.2.0
         version: 18.3.1
 
+  packages/dsh-plugin-mode-memory:
+    dependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: ~4.1.0
+        version: 4.1.0
+
   packages/dsh-plugin-model-picker:
     dependencies:
       '@deepseek-ai/cordis':
@@ -399,6 +409,9 @@ importers:
       '@1outres/dsh-plugin-model-picker':
         specifier: workspace:*
         version: link:../dsh-plugin-model-picker
+      '@1outres/dsh-plugin-mode-memory':
+        specifier: workspace:*
+        version: link:../dsh-plugin-mode-memory
       '@1outres/dsh-plugin-notify':
         specifier: workspace:*
         version: link:../dsh-plugin-notify

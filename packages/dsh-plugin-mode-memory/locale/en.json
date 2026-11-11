@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Mode memory",
+    "description": "Remembers the agent preset each project last used and opens its new blank sessions with that preset instead of the global default."
+  }
+}

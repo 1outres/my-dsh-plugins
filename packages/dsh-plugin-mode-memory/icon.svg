@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Mode memory</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#5A3E9E"/>
+  <path d="M10 21C10 18.239 12.239 16 15 16H25.5L29.5 21H49C51.761 21 54 23.239 54 26V45C54 47.761 51.761 50 49 50H15C12.239 50 10 47.761 10 45V21Z" fill="#F1ECFB"/>
+  <path d="M10 27H54V45C54 47.761 51.761 50 49 50H15C12.239 50 10 47.761 10 45V27Z" fill="#DCD2F2"/>
+  <path d="M34 29H46V47L40 42.5L34 47V29Z" fill="#F2C14E"/>
+  <circle cx="18" cy="22" r="2" fill="#A28FD1"/>
+  <circle cx="24" cy="22" r="2" fill="#A28FD1"/>
+  <path d="M38 33H43M38 37H42" stroke="#B08A2E" stroke-width="2" stroke-linecap="round"/>
+</svg>

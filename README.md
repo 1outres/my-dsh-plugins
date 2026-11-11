@@ -28,6 +28,7 @@ bundle insert the same row id, so selecting both inserts that row twice.
 | [`@1outres/dsh-plugin-edit-message`](packages/dsh-plugin-edit-message)               | `edit-message`        | Adds Edit beside Copy on your sent messages: the conversation restarts from just before that message with the edited text, and the old version is archived.               |
 | [`@1outres/dsh-plugin-mobile`](packages/dsh-plugin-mobile)                           | `mobile`              | Adds phone refinements to the Web UI (keyboard fit, Enter adds a line, drawer swipes, notches) and makes it an installable app with a service worker and an offline page. |
 | [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.                           |
+| [`@1outres/dsh-plugin-mode-memory`](packages/dsh-plugin-mode-memory)                 | `mode-memory`         | Remembers the agent preset each project last used and gives it to new blank sessions of that project, so a project keeps its mode.                                        |
 | [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Notifies you when an approval, a question, or a finished turn needs you: in the browser while the page is in the background, and by Web Push to devices that turn it on.  |
 | [`@1outres/dsh-plugin-playwright`](packages/dsh-plugin-playwright)                   | `playwright`          | Gives each top-level session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.                                              |
 | [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | `remote`              | Works on remote SSH hosts and on serial consoles behind `dsh-serial-agent`: commands, files, and interactive shells, with passwords typed in a masked card.               |
@@ -159,6 +160,7 @@ packages/
   dsh-plugin-mobile/      @1outres/dsh-plugin-mobile — phone refinements, keyboard fit, PWA service worker
   dsh-plugin-model-picker/
                           @1outres/dsh-plugin-model-picker — searchable composer model picker
+  dsh-plugin-mode-memory/ @1outres/dsh-plugin-mode-memory — per-project agent preset memory
   dsh-plugin-notify/      @1outres/dsh-plugin-notify — browser notifications and Host-sent Web Push
   dsh-plugin-playwright/  @1outres/dsh-plugin-playwright — isolated Playwright browser per session
   dsh-plugin-remote/      @1outres/dsh-plugin-remote — remote SSH tools, password cards, interactive sessions
