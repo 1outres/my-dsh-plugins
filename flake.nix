@@ -72,10 +72,23 @@
                 ];
               };
               service = evaluated.config.systemd.services.dsh-serial-agent;
+              bootModules = evaluated.config.boot.kernelModules;
+              requiredModules = [
+                "usbserial"
+                "cdc_acm"
+              ];
+              missingModules = builtins.filter (m: !builtins.elem m bootModules) requiredModules;
+              modulesLoadUnit = "systemd-modules-load.service";
             in
+            assert lib.assertMsg (missingModules == [ ])
+              "services.dsh-serial-agent: boot.kernelModules is missing ${builtins.toString missingModules}";
+            assert lib.assertMsg (builtins.elem modulesLoadUnit service.after)
+              "services.dsh-serial-agent: the unit is not ordered after ${modulesLoadUnit}";
             pkgs.writeText "dsh-serial-agent-nixos-module-check.json" (builtins.toJSON {
               execStart = service.serviceConfig.ExecStart;
               deviceAllow = service.serviceConfig.DeviceAllow;
+              kernelModules = bootModules;
+              after = service.after;
             });
         }
       );

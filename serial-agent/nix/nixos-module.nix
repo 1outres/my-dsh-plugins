@@ -73,16 +73,39 @@ in
       ];
       description = "DeviceAllow entries for the systemd service.";
     };
+
+    kernelModules = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [
+        "usbserial"
+        "cdc_acm"
+      ];
+      description = ''
+        Kernel modules loaded at boot before the service starts.
+        The drivers register the ttyUSB and ttyACM device groups.
+        systemd looks up those groups in deviceAllow only when the service
+        starts. A driver loaded after that leaves the rule out of the unit,
+        and the service then gets "operation not permitted" on the port.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
     users.groups.dialout = { };
 
+    boot.kernelModules = cfg.kernelModules;
+
     systemd.services.dsh-serial-agent = {
       description = "dsh-serial-agent serial console gateway";
       wantedBy = [ "multi-user.target" ];
-      wants = [ "network-online.target" ];
-      after = [ "network-online.target" ];
+      wants = [
+        "network-online.target"
+        "systemd-modules-load.service"
+      ];
+      after = [
+        "network-online.target"
+        "systemd-modules-load.service"
+      ];
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/dsh-serial-agent run --config ${configFile}";
         DynamicUser = true;

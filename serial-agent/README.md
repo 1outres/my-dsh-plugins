@@ -51,6 +51,11 @@ agent finds it without an explicit `identityFile`.
 The default `deviceAllow` list permits `/dev/ttyUSB*` and `/dev/ttyACM*`.
 Extend it when your adapter has another name.
 
+The module loads the `usbserial` and `cdc_acm` kernel modules at boot through
+`kernelModules`, and starts the service after `systemd-modules-load.service`.
+systemd reads the device groups in `deviceAllow` only when the service starts,
+so the drivers that register those groups must be loaded before that.
+
 ## Install on macOS with nix-darwin
 
 ```nix
@@ -190,6 +195,11 @@ dsh-serial-agent pubkey --identity /var/lib/dsh-serial-agent/identity
 - **Permission denied when opening a port**: add the user to the `dialout`
   group on Linux and log in again. The NixOS module does this for its own
   service user.
+- **operation not permitted when opening a port**: the device group was not
+  known when the service started, so systemd dropped its `deviceAllow` rule.
+  The NixOS module loads `usbserial` and `cdc_acm` at boot. For another
+  driver, add its module to `kernelModules` and its group to `deviceAllow`, or
+  restart the service after plugging the adapter.
 - **busy**: another program holds the device. The agent opens with exclusive
   access (`TIOCEXCL`), so close the terminal program and retry.
 - **The gateway closes with 4403**: the public key is not in `serialAgents`.
