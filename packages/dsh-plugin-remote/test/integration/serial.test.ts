@@ -219,15 +219,13 @@ describe.skipIf(!enabled)("serial agent integration", () => {
   }, 60_000)
 
   it("closes the session and the agent closes the port", async () => {
-    expect(sessions?.close(sessionId)).toBe(true)
-    await waitForCondition(
-      async () => {
-        const ports = await listPorts()
-        return ports.find((port) => port.path === target.device)?.open === false
-      },
-      10_000,
-      "the agent to close the serial port",
-    )
+    if (sessions === undefined) throw new Error("the session manager is not ready")
+    expect(await sessions.close(sessionId)).toBe(true)
+    const ports = await listPorts()
+    expect(ports.find((port) => port.path === target.device)).toMatchObject({
+      path: target.device,
+      open: false,
+    })
   }, 30_000)
 
   async function send(input: {

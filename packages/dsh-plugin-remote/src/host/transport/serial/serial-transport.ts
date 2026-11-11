@@ -151,12 +151,7 @@ export class SerialTransport implements RemoteTransport {
   async disposeSession(): Promise<void> {
     const shells = [...this.#shells.values()].flatMap((set) => [...set])
     this.#shells.clear()
-    await Promise.all(
-      shells.map(async (shell) => {
-        shell.kill()
-        await shell.shutdown()
-      }),
-    )
+    for (const shell of shells) shell.kill()
   }
 
   #track(shell: SerialShell): void {
@@ -177,12 +172,19 @@ export class SerialTransport implements RemoteTransport {
     if (set === undefined) return
     const shells = [...set]
     this.#shells.delete(targetName)
-    await Promise.all(
-      shells.map(async (shell) => {
-        shell.kill()
-        await shell.shutdown()
-      }),
-    )
+    const failures = (
+      await Promise.all(
+        shells.map(async (shell) => {
+          try {
+            await shell.close()
+            return undefined
+          } catch (error) {
+            return errorMessage(error)
+          }
+        }),
+      )
+    ).filter((message): message is string => message !== undefined)
+    if (failures.length > 0) throw new Error(failures.join(" "))
   }
 }
 

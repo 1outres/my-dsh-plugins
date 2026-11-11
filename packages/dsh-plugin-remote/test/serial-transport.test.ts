@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import type { AgentConnection } from "../src/host/serial/agent-connection"
 import { SerialAgents } from "../src/host/serial/agents"
 import type { RequestFrame } from "../src/host/serial/protocol"
+import { InteractiveSessions } from "../src/host/sessions/session"
 import type { SerialShell } from "../src/host/transport/serial/serial-shell"
 import { SerialTransport } from "../src/host/transport/serial/serial-transport"
 import type { TransportCall, TransportPrompter } from "../src/host/transport/transport"
@@ -329,19 +330,43 @@ describe("serial transport", () => {
     expect(chunks.join("")).toContain("device-removed")
   })
 
-  it("unsubscribes and closes the port on kill while online", async () => {
+  it("closes the port and frees the lease before close resolves", async () => {
     const rig = await createRig()
     const shell = await open(rig)
     const exited = new Promise<number | null>((resolve) => shell.onExit(resolve))
-    await shell.shutdown()
+    await shell.close()
     expect(rig.fake.methods()).toContain("port.unsubscribe")
     expect(rig.fake.methods()).toContain("port.close")
     expect(await exited).toBeNull()
     expect(rig.agents.leaseOf(rig.agent.name, "/dev/ttyUSB0")).toBeUndefined()
     expect(rig.warnings).toEqual([])
+
+    const reopened = await open(rig)
+    expect(reopened.exitCode).toBeNull()
+    await reopened.close()
   })
 
-  it("logs failed unsubscribe and close requests during shutdown", async () => {
+  it("releases the port when the session manager closes the session", async () => {
+    const rig = await createRig()
+    const sessions = new InteractiveSessions(() => rig.transport, {
+      defaultPromptPattern: "[>#$%]\\s*$",
+      idleMs: 20,
+      sendTimeoutMs: 200,
+      maxOutputBytes: 30_000,
+      secretValues: () => [],
+    })
+    const opened = await sessions.open(rig.target, "console", rig.call)
+    expect(await sessions.close(opened.session.id)).toBe(true)
+    expect(rig.fake.methods()).toContain("port.unsubscribe")
+    expect(rig.fake.methods()).toContain("port.close")
+    expect(rig.agents.leaseOf(rig.agent.name, "/dev/ttyUSB0")).toBeUndefined()
+
+    const reopened = await open(rig)
+    expect(reopened.exitCode).toBeNull()
+    await reopened.close()
+  })
+
+  it("reports a failed port close and still frees the lease", async () => {
     const rig = await createRig()
     const shell = await open(rig)
     rig.fake.respond((request: RequestFrame): AgentAnswer | undefined => {
@@ -353,25 +378,41 @@ describe("serial transport", () => {
       }
       return openResponder()(request)
     })
-    await shell.shutdown()
-    expect(rig.warnings).toHaveLength(2)
-    expect(rig.warnings[0]).toContain("port.unsubscribe")
-    expect(rig.warnings[0]).toContain("core-sw")
-    expect(rig.warnings[0]).toContain("lab-mac")
-    expect(rig.warnings[0]).toContain("p1")
-    expect(rig.warnings[0]).toContain("unsubscribe failed")
-    expect(rig.warnings[1]).toContain("port.close")
-    expect(rig.warnings[1]).toContain("close failed")
+    await expect(shell.close()).rejects.toThrow(/port\.unsubscribe failed/)
+    await expect(shell.close()).rejects.toThrow(/port\.close failed/)
+    await expect(shell.close()).rejects.toThrow(/orphanTimeout/)
+    expect(rig.agents.leaseOf(rig.agent.name, "/dev/ttyUSB0")).toBeUndefined()
+    expect(rig.warnings).toEqual([])
   })
 
-  it("only releases the lease on kill while offline", async () => {
+  it("reports an offline agent and still frees the lease", async () => {
     const rig = await createRig()
     const shell = await open(rig)
     rig.connection.close(1000, "network drop")
     await waitFor(() => !rig.agents.online(rig.agent.name))
     const before = rig.fake.requests.length
-    await shell.shutdown()
+    await expect(shell.close()).rejects.toThrow(/offline/)
+    await expect(shell.close()).rejects.toThrow(/orphanTimeout/)
     expect(rig.fake.requests).toHaveLength(before)
+    expect(rig.agents.leaseOf(rig.agent.name, "/dev/ttyUSB0")).toBeUndefined()
+  })
+
+  it("logs a failed close when the caller cannot wait", async () => {
+    const rig = await createRig()
+    const shell = await open(rig)
+    rig.fake.respond((request: RequestFrame): AgentAnswer | undefined => {
+      if (request.method === "port.close") {
+        return { error: { code: "io", message: "close failed" } }
+      }
+      return openResponder()(request)
+    })
+    shell.kill()
+    await waitFor(() => rig.warnings.length === 1)
+    expect(rig.warnings[0]).toContain("port.close failed")
+    expect(rig.warnings[0]).toContain("core-sw")
+    expect(rig.warnings[0]).toContain("lab-mac")
+    expect(rig.warnings[0]).toContain("close failed")
+    expect(rig.warnings[0]).toContain("orphanTimeout")
     expect(rig.agents.leaseOf(rig.agent.name, "/dev/ttyUSB0")).toBeUndefined()
   })
 
@@ -410,6 +451,6 @@ describe("serial transport", () => {
     await expect(sharedRig.transport.openShell(sharedRig.target, sharedRig.call)).rejects.toThrow(
       /already used by another session/,
     )
-    await first.shutdown()
+    await first.close()
   })
 })

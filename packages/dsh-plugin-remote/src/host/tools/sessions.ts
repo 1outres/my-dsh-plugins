@@ -280,7 +280,7 @@ export function registerSessionTools(ctx: Context, host: HostRuntime): void {
       },
       async execute(args, exec) {
         const { runtime } = runtimeFor(ctx, host, exec)
-        return { closed: runtime.sessions.close(args.sessionId) }
+        return { closed: await runtime.sessions.close(args.sessionId) }
       },
     }),
   )

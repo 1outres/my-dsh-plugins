@@ -191,7 +191,7 @@ describe.skipIf(!enabled)("ssh transport integration", () => {
     )
     expect(answer.output).toContain("0")
     expect(answer.output.includes("testpass")).toBe(false)
-    expect(sessions.close(opened.session.id)).toBe(true)
+    expect(await sessions.close(opened.session.id)).toBe(true)
   }, 120_000)
 })
 

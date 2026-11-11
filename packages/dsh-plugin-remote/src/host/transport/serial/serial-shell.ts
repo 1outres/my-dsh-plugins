@@ -47,7 +47,7 @@ export class SerialShell implements ShellHandle {
   #resyncing = false
   #exitCode: number | null = null
   #exited = false
-  #shutdownTask: Promise<void> | undefined
+  #closeTask: Promise<void> | undefined
 
   constructor(options: SerialShellOptions) {
     this.#target = options.target
@@ -112,14 +112,19 @@ export class SerialShell implements ShellHandle {
   }
 
   kill(): void {
-    void this.shutdown()
+    void this.close().catch((error: unknown) => {
+      this.#logger.warn(`remote: ${errorMessage(error)}`)
+    })
   }
 
-  /** Finish the shell and, when the agent is online, close the port. */
-  async shutdown(): Promise<void> {
-    if (this.#shutdownTask !== undefined) return await this.#shutdownTask
-    this.#shutdownTask = this.#shutdown()
-    return await this.#shutdownTask
+  /**
+   * Release the serial port and end the shell. The lease is always released.
+   * Rejects when the port could not be released; the error says whether the
+   * agent may keep the port open until its orphanTimeout.
+   */
+  async close(): Promise<void> {
+    if (this.#closeTask === undefined) this.#closeTask = this.#close()
+    return await this.#closeTask
   }
 
   /** Hand the buffered bytes the agent sent before its subscribe answer to the shell. */
@@ -137,26 +142,37 @@ export class SerialShell implements ShellHandle {
     for (const event of queued) this.#consume(event)
   }
 
-  async #shutdown(): Promise<void> {
+  async #close(): Promise<void> {
     if (this.#exited) return
-    const connection = this.#registry.connection(this.#target.agent)
-    if (connection !== undefined && connection.fingerprint === this.#target.agentFingerprint) {
-      await this.#shutdownRequest(connection, "port.unsubscribe")
-      await this.#shutdownRequest(connection, "port.close")
+    const connection = this.#releasableConnection()
+    if (connection === undefined) {
+      this.#finish()
+      throw offlineCloseError(this.#target)
     }
+    const failures: string[] = []
+    await this.#releaseStep(connection, "port.unsubscribe", failures)
+    await this.#releaseStep(connection, "port.close", failures)
     this.#finish()
+    if (failures.length > 0) throw releaseCloseError(this.#target, failures)
   }
 
-  async #shutdownRequest(
+  #releasableConnection(): AgentConnection | undefined {
+    const connection = this.#registry.connection(this.#target.agent)
+    return connection !== undefined && connection.fingerprint === this.#target.agentFingerprint
+      ? connection
+      : undefined
+  }
+
+  async #releaseStep(
     connection: AgentConnection,
     method: "port.unsubscribe" | "port.close",
+    failures: string[],
   ): Promise<void> {
     try {
       await connection.request(method, { handle: this.#handle })
     } catch (error) {
-      this.#logger.warn(
-        `remote: serial ${method} for target ${JSON.stringify(this.#target.name)} on agent ${JSON.stringify(this.#target.agent)} (handle ${this.#handle}) failed during shutdown: ${errorMessage(error)}`,
-      )
+      const code = error instanceof SerialAgentError ? `${error.code}: ` : ""
+      failures.push(`${method} failed (${code}${errorMessage(error)})`)
     }
   }
 
@@ -310,6 +326,18 @@ export class SerialShell implements ShellHandle {
     for (const listener of [...this.#exitListeners]) listener(null)
     this.#exitListeners.clear()
   }
+}
+
+function offlineCloseError(target: SerialTarget): Error {
+  return new Error(
+    `Could not close the serial port ${JSON.stringify(target.device)} of target ${JSON.stringify(target.name)} on agent ${JSON.stringify(target.agent)}: the agent is offline. The session ended and the port lease is released; the port may stay open on the agent until its orphanTimeout.`,
+  )
+}
+
+function releaseCloseError(target: SerialTarget, failures: readonly string[]): Error {
+  return new Error(
+    `Could not close the serial port ${JSON.stringify(target.device)} of target ${JSON.stringify(target.name)} on agent ${JSON.stringify(target.agent)}: ${failures.join("; ")}. The session ended and the port lease is released; the port may stay open on the agent until its orphanTimeout.`,
+  )
 }
 
 function errorMessage(error: unknown): string {

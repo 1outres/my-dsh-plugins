@@ -123,6 +123,33 @@ describe("serial target projection", () => {
   })
 })
 
+describe("remote_target_remove", () => {
+  it("still removes the target and reports close problems as warnings", async () => {
+    const remove = targetTools(new SerialAgents([]), {
+      requireTarget: () => sshTarget,
+      targets: () => [sshTarget],
+      sessions: {
+        statusesFor: () => [{ id: "session-1" }],
+        close: async () => {
+          throw new Error("the port did not close")
+        },
+      } as unknown as RootRuntime["sessions"],
+      transportFor: () =>
+        ({
+          disconnect: async () => {
+            throw new Error("the agent is offline")
+          },
+        }) as never,
+      readHashes: new Map<string, string>(),
+    }).get("remote_target_remove")
+    if (remove === undefined) throw new Error("remote_target_remove was not registered")
+    await expect(remove.execute({ name: sshTarget.name }, runContext())).resolves.toEqual({
+      name: sshTarget.name,
+      warnings: ["the port did not close", "the agent is offline"],
+    })
+  })
+})
+
 describe("remote_target_add transport arguments", () => {
   it("rejects SSH-only arguments on a serial target", async () => {
     const add = targetTool()
@@ -208,6 +235,15 @@ function runContext(): ToolRunContext {
 }
 
 function targetTool(serial = new SerialAgents([])): ToolDefinition {
+  const add = targetTools(serial).get("remote_target_add")
+  if (add === undefined) throw new Error("remote_target_add was not registered")
+  return add
+}
+
+function targetTools(
+  serial = new SerialAgents([]),
+  overrides: Partial<RootRuntime> = {},
+): Map<string, ToolDefinition> {
   const registered = new Map<string, ToolDefinition>()
   const ctx = {
     tools: {
@@ -232,6 +268,7 @@ function targetTool(serial = new SerialAgents([])): ToolDefinition {
     transportFor: () => {
       throw new Error("The test did not expect a transport")
     },
+    ...overrides,
   } as unknown as RootRuntime
   const host = {
     config: {
@@ -254,7 +291,5 @@ function targetTool(serial = new SerialAgents([])): ToolDefinition {
     runtimeFor: () => runtime,
   } as unknown as HostRuntime
   registerTargetTools(ctx, host)
-  const add = registered.get("remote_target_add")
-  if (add === undefined) throw new Error("remote_target_add was not registered")
-  return add
+  return registered
 }

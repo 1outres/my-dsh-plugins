@@ -270,9 +270,20 @@ export function registerTargetTools(ctx: Context, host: HostRuntime): void {
         schema: {
           type: "object",
           additionalProperties: false,
-          properties: { name: { type: "string", required: true } },
+          properties: {
+            name: { type: "string", required: true },
+            warnings: { type: "array", required: true, items: { type: "string" } },
+          },
         },
-        render: (_args, value) => [{ type: "text", text: `Removed ${value.name}.` }],
+        render: (_args, value) => [
+          {
+            type: "text",
+            text:
+              value.warnings.length === 0
+                ? `Removed ${value.name}.`
+                : `Removed ${value.name}, but closing it reported problems:\n${value.warnings.join("\n")}`,
+          },
+        ],
         presentationMeta: (_args, value) => ({ kind: "remote/target-removed", name: value.name }),
       },
       async execute(args, exec) {
@@ -286,17 +297,31 @@ export function registerTargetTools(ctx: Context, host: HostRuntime): void {
             `${args.name} is the jump host of ${dependents.map((candidate) => candidate.name).join(", ")}; remove those targets first`,
           )
         }
-        for (const session of runtime.sessions.statusesFor(target.name))
-          runtime.sessions.close(session.id)
-        await runtime.transportFor(target).disconnect(target, runtime.sessionId)
+        const warnings: string[] = []
+        for (const session of runtime.sessions.statusesFor(target.name)) {
+          try {
+            await runtime.sessions.close(session.id)
+          } catch (error) {
+            warnings.push(errorMessage(error))
+          }
+        }
+        try {
+          await runtime.transportFor(target).disconnect(target, runtime.sessionId)
+        } catch (error) {
+          warnings.push(errorMessage(error))
+        }
         for (const key of [...runtime.readHashes.keys()]) {
           if (key.startsWith(`${target.name}\u0000`)) runtime.readHashes.delete(key)
         }
         host.secrets.deleteTarget(runtime.sessionId, target.name)
-        return { name: target.name }
+        return { name: target.name, warnings }
       },
     }),
   )
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
 
 function validateSecretFields(secrets: readonly string[] | undefined): void {

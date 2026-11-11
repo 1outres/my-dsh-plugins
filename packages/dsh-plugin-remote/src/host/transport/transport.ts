@@ -65,6 +65,17 @@ export interface ShellHandle {
   onData(listener: (chunk: string) => void): () => void
   onExit(listener: (code: number | null) => void): () => void
   readonly exitCode: number | null
+  /**
+   * Release the shell and wait until the transport has fully let it go.
+   * For ssh that means the child process has exited; for a serial console the
+   * port is unsubscribed and closed and its lease is free again.
+   * Rejects with an Error that says what could not be released.
+   */
+  close(): Promise<void>
+  /**
+   * Start the same release without waiting. Failures are logged. Use this
+   * when there is nowhere to report them, such as while the plugin unloads.
+   */
   kill(): void
 }
 

@@ -42,6 +42,9 @@ interface MasterState {
   failure?: string
 }
 
+const SHELL_CLOSE_WAIT_MS = 5000
+const SHELL_CLOSE_KILL_WAIT_MS = 1000
+
 interface CommandOutcome {
   code: number | null
   stdout: string
@@ -293,6 +296,9 @@ export class SshConnections {
       },
       get exitCode() {
         return child.exitCode
+      },
+      close: async () => {
+        await closeShellChild(child)
       },
       kill: () => {
         if (child.exitCode === null) child.kill("SIGTERM")
@@ -592,6 +598,37 @@ export class SshConnections {
   #fileTimeout(): number {
     return 600_000
   }
+}
+
+async function closeShellChild(child: ChildProcess): Promise<void> {
+  if (hasExited(child)) return
+  child.kill("SIGTERM")
+  if (await waitForExit(child, SHELL_CLOSE_WAIT_MS)) return
+  child.kill("SIGKILL")
+  if (await waitForExit(child, SHELL_CLOSE_KILL_WAIT_MS)) return
+  throw new Error(
+    `The ssh process of the interactive session did not exit (pid ${String(child.pid)}); the remote shell may still be open`,
+  )
+}
+
+function hasExited(child: ChildProcess): boolean {
+  return child.exitCode !== null || child.signalCode !== null
+}
+
+function waitForExit(child: ChildProcess, timeoutMs: number): Promise<boolean> {
+  if (hasExited(child)) return Promise.resolve(true)
+  return new Promise<boolean>((resolve) => {
+    const timer = setTimeout(() => {
+      child.removeListener("exit", onExit)
+      resolve(false)
+    }, timeoutMs)
+    timer.unref()
+    const onExit = (): void => {
+      clearTimeout(timer)
+      resolve(true)
+    }
+    child.once("exit", onExit)
+  })
 }
 
 async function socketReady(path: string): Promise<boolean> {

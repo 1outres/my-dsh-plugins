@@ -14,6 +14,8 @@ class FakeShell implements ShellHandle {
   exitCode: number | null = null
   written: string[] = []
   breaks: number[] = []
+  closes = 0
+  closeError: Error | undefined
   onWrite: (data: string) => void = () => {}
   readonly data = new Set<(chunk: string) => void>()
   readonly exits = new Set<(code: number | null) => void>()
@@ -44,6 +46,12 @@ class FakeShell implements ShellHandle {
   finish(code = 0): void {
     this.exitCode = code
     for (const listener of [...this.exits]) listener(code)
+  }
+
+  async close(): Promise<void> {
+    this.closes += 1
+    this.finish(0)
+    if (this.closeError !== undefined) throw this.closeError
   }
 
   kill(): void {
@@ -212,5 +220,30 @@ describe("interactive sessions", () => {
         prompter,
       ),
     ).rejects.toThrow(/exited.*7/)
+  })
+
+  it("closes a session only after its shell is released", async () => {
+    const shell = new FakeShell()
+    const manager = sessions(shell)
+    setTimeout(() => shell.emit("ops@web1$ "), 5)
+    const opened = await manager.open(target, "shell", call())
+    expect(await manager.close(opened.session.id)).toBe(true)
+    expect(shell.closes).toBe(1)
+    expect(manager.statuses()).toEqual([])
+  })
+
+  it("returns false for an unknown session id", async () => {
+    const manager = sessions(new FakeShell())
+    expect(await manager.close("session-404")).toBe(false)
+  })
+
+  it("reports a close error after forgetting the session", async () => {
+    const shell = new FakeShell()
+    const manager = sessions(shell)
+    setTimeout(() => shell.emit("ops@web1$ "), 5)
+    const opened = await manager.open(target, "shell", call())
+    shell.closeError = new Error("the port did not close")
+    await expect(manager.close(opened.session.id)).rejects.toThrow(/the port did not close/)
+    expect(manager.statuses()).toEqual([])
   })
 })

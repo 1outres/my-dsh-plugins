@@ -206,12 +206,12 @@ export class InteractiveSessions {
     }
   }
 
-  close(sessionId: string): boolean {
+  async close(sessionId: string): Promise<boolean> {
     const session = this.#sessions.get(sessionId)
     if (session === undefined) return false
     this.#sessions.delete(sessionId)
-    session.shell.kill()
     session.state = "exited"
+    await session.shell.close()
     return true
   }
 
