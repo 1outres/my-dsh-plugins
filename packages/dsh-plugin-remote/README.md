@@ -176,7 +176,9 @@ The settings namespace is `remote`.
 - The agent reconnects with exponential backoff. While it is offline, writes
   fail with a clear error, and the session resumes when the agent returns.
 - A reverse proxy in front of the Harness must pass WebSocket upgrades on the
-  gateway path.
+  gateway path. A proxy that adds its own login, such as nginx
+  `auth_request`, must leave the exact gateway path out of that login: the
+  agent sends no browser cookie, and the gateway checks the agent key itself.
 - Encrypted private keys work through their passphrase field; an ssh agent on
   the Host also works.
 - Passwords cannot contain a newline.
