@@ -248,6 +248,29 @@ describe("createPushController", () => {
     expect(harness.controller.state.getSnapshot()).toBe("needs-install")
   })
 
+  it("reports a missing install before unsupported on iOS", async () => {
+    const harness = createHarness()
+    harness.environment.supported = false
+    harness.environment.ios = true
+    harness.environment.standalone = false
+
+    await harness.controller.refresh()
+
+    expect(harness.controller.state.getSnapshot()).toBe("needs-install")
+  })
+
+  it("reports a missing install before unsupported when enabling on iOS", async () => {
+    const harness = createHarness()
+    harness.environment.supported = false
+    harness.environment.ios = true
+    harness.environment.standalone = false
+
+    await harness.controller.enable()
+
+    expect(harness.controller.state.getSnapshot()).toBe("needs-install")
+    expect(harness.environment.permissionRequests).toBe(0)
+  })
+
   it("reports a missing worker", async () => {
     const harness = createHarness()
     harness.environment.registrationValue = undefined

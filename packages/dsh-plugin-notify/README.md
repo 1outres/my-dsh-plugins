@@ -40,7 +40,9 @@ Open **Settings → Notifications**.
 | Include request details                   | on      | Adds the tool name, the approval reason, or the question text.            |
 
 The page also shows the browser permission state, an **Allow notifications**
-button, and **Send test notification** for the page path.
+button, and **Send test notification** for the page path. On an iPhone or iPad
+tab that is not on the Home Screen, the permission row shows the Home Screen
+step instead of an unsupported message.
 
 **Push notifications on this device** shows the push state and offers
 **Turn on push on this device**, **Turn off push on this device**, and

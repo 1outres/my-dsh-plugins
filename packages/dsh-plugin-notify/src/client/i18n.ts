@@ -44,6 +44,8 @@ export const en: Record<string, string> = {
   permissionDenied: "Blocked. Allow notifications for this site in the browser settings.",
   permissionDefault: "Not requested yet",
   permissionUnsupported: "This browser does not support notifications.",
+  permissionNeedsInstall:
+    "Add this app to the Home Screen first. Notifications on iPhone and iPad need the installed app.",
   allow: "Allow notifications",
   test: "Send test notification",
   testSent: "Test notification sent.",

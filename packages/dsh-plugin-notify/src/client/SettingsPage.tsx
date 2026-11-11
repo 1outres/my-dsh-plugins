@@ -201,8 +201,11 @@ export function SettingsPage({ form, t, notifier, push }: SettingsPageProps) {
   }
 
   const disabled = snapshot.writable === false || busy || pushBusy
+  const installNeeded = pushState === "needs-install"
   const unsupported = permission === "unsupported"
-  const permissionLabel = t(PERMISSION_KEYS[permission] ?? "permissionDefault")
+  const permissionLabel = installNeeded
+    ? t("permissionNeedsInstall")
+    : t(PERMISSION_KEYS[permission] ?? "permissionDefault")
   const pushLabel = t(PUSH_STATE_KEYS[pushState])
 
   return (
@@ -301,7 +304,7 @@ export function SettingsPage({ form, t, notifier, push }: SettingsPageProps) {
           <button
             type="button"
             style={buttonStyle}
-            disabled={disabled}
+            disabled={disabled || installNeeded}
             onClick={() => void allow()}
           >
             {t("allow")}
@@ -310,7 +313,7 @@ export function SettingsPage({ form, t, notifier, push }: SettingsPageProps) {
         <button
           type="button"
           style={buttonStyle}
-          disabled={disabled || unsupported}
+          disabled={disabled || unsupported || installNeeded}
           onClick={() => void test()}
         >
           {t("test")}

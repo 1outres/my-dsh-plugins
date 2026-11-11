@@ -135,6 +135,10 @@ class BrowserPushController implements PushController {
   }
 
   async refresh(): Promise<void> {
+    if (this.#needsInstall()) {
+      this.#set("needs-install")
+      return
+    }
     if (!this.#environment.pushSupported()) {
       this.#set("unsupported")
       return
@@ -142,10 +146,6 @@ class BrowserPushController implements PushController {
     const permission = this.#environment.permission()
     if (permission === "denied") {
       this.#set("denied")
-      return
-    }
-    if (this.#needsInstall()) {
-      this.#set("needs-install")
       return
     }
     try {
@@ -173,12 +173,12 @@ class BrowserPushController implements PushController {
   }
 
   async enable(): Promise<void> {
-    if (!this.#environment.pushSupported()) {
-      this.#set("unsupported")
-      return
-    }
     if (this.#needsInstall()) {
       this.#set("needs-install")
+      return
+    }
+    if (!this.#environment.pushSupported()) {
+      this.#set("unsupported")
       return
     }
     try {
