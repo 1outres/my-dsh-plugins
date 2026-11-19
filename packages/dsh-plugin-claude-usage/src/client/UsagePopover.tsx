@@ -145,55 +145,61 @@ export function UsagePopover({
       data-usage-popover=""
       style={position === undefined || position === null ? undefined : position}
     >
-      {snapshot === null ? (
-        <div className="dsh-cu-pending">{t("usage.pending")}</div>
-      ) : (
-        <>
-          <div className="dsh-cu-section-title">{t("popover.rateLimits")}</div>
-          {orderedWindows(snapshot).map((window) => (
-            <WindowRow key={window.kind} window={window} now={now} t={t} locale={locale} />
-          ))}
-          {snapshot.overage === undefined ? null : (
-            <div className={`dsh-cu-overage dsh-cu-tone-${toneOfStatus(snapshot.overage.status)}`}>
-              <div className="dsh-cu-section-title">{t("popover.overage")}</div>
-              <div className="dsh-cu-row-meta">
-                {t("popover.overageStatus", {
-                  status: overageStatusLabel(snapshot.overage.status, t),
-                })}
+      <span className="dsh-cu-material" aria-hidden="true" />
+      <div className="dsh-cu-title">{t("popover.title")}</div>
+      <div className="dsh-cu-popover-body">
+        {snapshot === null ? (
+          <div className="dsh-cu-pending">{t("usage.pending")}</div>
+        ) : (
+          <>
+            <div className="dsh-cu-section-title">{t("popover.rateLimits")}</div>
+            {orderedWindows(snapshot).map((window) => (
+              <WindowRow key={window.kind} window={window} now={now} t={t} locale={locale} />
+            ))}
+            {snapshot.overage === undefined ? null : (
+              <div
+                className={`dsh-cu-overage dsh-cu-tone-${toneOfStatus(snapshot.overage.status)}`}
+              >
+                <div className="dsh-cu-section-title">{t("popover.overage")}</div>
+                <div className="dsh-cu-row-meta">
+                  {t("popover.overageStatus", {
+                    status: overageStatusLabel(snapshot.overage.status, t),
+                  })}
+                </div>
+                {snapshot.overage.disabledReason === undefined ? null : (
+                  <div className="dsh-cu-row-meta">
+                    {t("popover.overageDisabled", { reason: snapshot.overage.disabledReason })}
+                  </div>
+                )}
+                {snapshot.overage.resetsAt === undefined ? null : (
+                  <div className="dsh-cu-row-meta">
+                    {formatAbsoluteReset(snapshot.overage.resetsAt, locale)}
+                    {snapshot.overage.resetsAt <= now
+                      ? ` · ${t("reset.passed")}`
+                      : ` · ${formatTimeLeft(snapshot.overage.resetsAt - now, t)}`}
+                  </div>
+                )}
               </div>
-              {snapshot.overage.disabledReason === undefined ? null : (
-                <div className="dsh-cu-row-meta">
-                  {t("popover.overageDisabled", { reason: snapshot.overage.disabledReason })}
-                </div>
-              )}
-              {snapshot.overage.resetsAt === undefined ? null : (
-                <div className="dsh-cu-row-meta">
-                  {formatAbsoluteReset(snapshot.overage.resetsAt, locale)}
-                  {snapshot.overage.resetsAt <= now
-                    ? ` · ${t("reset.passed")}`
-                    : ` · ${formatTimeLeft(snapshot.overage.resetsAt - now, t)}`}
-                </div>
-              )}
-            </div>
-          )}
-          <div className="dsh-cu-updated">{formatUpdated(snapshot.observedAt, now, t)}</div>
-        </>
-      )}
-      <div className="dsh-cu-section-title">{t("popover.byModel")}</div>
-      {report.status === "loading" ? (
-        <div className="dsh-cu-loading">{t("report.loading")}</div>
-      ) : null}
-      {report.status === "error" ? (
-        <div className="dsh-cu-error">
-          <div>{t("report.error")}</div>
-          {report.message === undefined || report.message === "" ? null : (
-            <div className="dsh-cu-error-detail">{report.message}</div>
-          )}
-        </div>
-      ) : null}
-      {report.status === "ready" ? (
-        <ReportBody report={report.report} now={now} t={t} locale={locale} />
-      ) : null}
+            )}
+            <div className="dsh-cu-updated">{formatUpdated(snapshot.observedAt, now, t)}</div>
+          </>
+        )}
+        <div className="dsh-cu-section-title">{t("popover.byModel")}</div>
+        {report.status === "loading" ? (
+          <div className="dsh-cu-loading">{t("report.loading")}</div>
+        ) : null}
+        {report.status === "error" ? (
+          <div className="dsh-cu-error">
+            <div>{t("report.error")}</div>
+            {report.message === undefined || report.message === "" ? null : (
+              <div className="dsh-cu-error-detail">{report.message}</div>
+            )}
+          </div>
+        ) : null}
+        {report.status === "ready" ? (
+          <ReportBody report={report.report} now={now} t={t} locale={locale} />
+        ) : null}
+      </div>
     </div>
   )
 }

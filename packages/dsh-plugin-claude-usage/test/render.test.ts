@@ -269,6 +269,13 @@ describe("the usage popover", () => {
     expect(html).not.toContain("just now ago")
   })
 
+  it("uses a material layer and a visible title row", () => {
+    const html = renderPopover({ status: "ready", report: REPORT })
+    expect(html).toContain('class="dsh-cu-material" aria-hidden="true"')
+    expect(html).toContain('class="dsh-cu-title">Claude usage<')
+    expect(html).toContain('class="dsh-cu-popover-body"')
+  })
+
   it("shows a loading state", () => {
     expect(renderPopover({ status: "loading" })).toContain("Loading…")
   })
