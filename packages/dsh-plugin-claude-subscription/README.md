@@ -22,7 +22,7 @@ insert the same `claude-subscription` row.
 
 ## Requirements
 
-- DSH 0.2.1-rc.5 or newer in the 0.2 line. Windows is not
+- DSH 0.2.2-rc.1 or newer in the 0.2 line. Windows is not
   supported.
 - The official Claude Code CLI, installed:
 
