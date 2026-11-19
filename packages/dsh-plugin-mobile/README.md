@@ -44,8 +44,9 @@ The phone refinements apply while the Harness uses its phone layout: below
   (`viewport-fit=cover`) and pads by the safe-area insets; the navigation
   drawer and the composer clear the home indicator.
 - **The bottom row owns its inset.** When a plugin fills the shell's bottom row,
-  that row pads itself for the home indicator and side notches, the composer
-  drops its bottom inset, and the row hides while the keyboard is open.
+  that row keeps only the home indicator's share of the bottom inset, adds side
+  padding for the corner curve, the composer drops its bottom inset, and the
+  row hides while the keyboard is open.
 - **Compact composer.** The conversation keeps 8px side clearance and the
   draft box caps its height against the visible area.
 - **No accidental reloads.** Pull-to-refresh and overscroll bounce are off, so

@@ -185,9 +185,16 @@ describe("stylesheet", () => {
     expect(MOBILE_CSS).toContain(
       'html[data-dsh-mobile] [data-shell-bottom]:has(> [data-slot="shell.bottom"] > *)',
     )
-    expect(MOBILE_CSS).toContain("padding-right: env(safe-area-inset-right);")
-    expect(MOBILE_CSS).toContain("padding-bottom: env(safe-area-inset-bottom);")
-    expect(MOBILE_CSS).toContain("padding-left: env(safe-area-inset-left);")
+    expect(MOBILE_CSS).toContain(
+      "padding-right: max(env(safe-area-inset-right), calc(env(safe-area-inset-bottom) * 0.7));",
+    )
+    expect(MOBILE_CSS).toContain(
+      "padding-bottom: max(0px, calc(env(safe-area-inset-bottom) - 20px));",
+    )
+    expect(MOBILE_CSS).toContain(
+      "padding-left: max(env(safe-area-inset-left), calc(env(safe-area-inset-bottom) * 0.7));",
+    )
+    expect(MOBILE_CSS).toContain("CSS has no corner-radius inset")
   })
 
   it("drops the composer's bottom inset while the shell bottom row has content", () => {
