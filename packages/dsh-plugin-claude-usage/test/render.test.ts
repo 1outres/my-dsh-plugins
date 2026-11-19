@@ -132,7 +132,11 @@ describe("the usage bar", () => {
   it("shows only the mark and a dash before the first snapshot", () => {
     const html = renderBar({ connected: true, snapshot: null })
     expect(html).toContain('aria-label="Claude usage"')
-    expect(html).toContain("✳")
+    expect(html).toContain('class="dsh-cu-mark"')
+    expect(html).toContain('width="12"')
+    expect(html).toContain('height="12"')
+    expect(html).toContain('aria-hidden="true"')
+    expect(html).not.toContain("✳")
     expect(html).toContain(">—<")
     expect(html).not.toContain("dsh-cu-name")
   })

@@ -175,9 +175,41 @@ export function UsageBar({
         ref={buttonRef}
         data-usage-bar=""
       >
-        <span className="dsh-cu-brand" aria-hidden="true">
-          ✳
-        </span>
+        <svg
+          className="dsh-cu-mark"
+          viewBox="0 0 24 24"
+          width={12}
+          height={12}
+          fill="currentColor"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <rect
+            x="2.5"
+            y="14.5"
+            width="19"
+            height="6"
+            rx="3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M5.5 17.5h6.5M16.5 17.5h2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 2.6v5.2M9.4 4l5.2 2.4M14.6 4 9.4 6.4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+          <circle cx="12" cy="7.8" r="2.1" />
+        </svg>
         {windows.length === 0 ? (
           <span className="dsh-cu-none">{t("value.none")}</span>
         ) : (
