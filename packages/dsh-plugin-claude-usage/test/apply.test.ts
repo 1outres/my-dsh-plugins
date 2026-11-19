@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { apply, inject, NAMESPACE, SLOT } from "../src/client/index"
+import { apply, FOOTER_ID, FOOTER_ORDER, FOOTER_SLOT, inject, NAMESPACE } from "../src/client/index"
 import type { ClientContext } from "../src/client/types"
 
 interface StyleTag {
@@ -136,14 +136,17 @@ describe("claude-usage client half", () => {
     test.dispose()
   })
 
-  it("registers one bar in shell.bottom with the bridge face", async () => {
+  it("registers one row in the sidebar footer with the bridge face", async () => {
     const test = harness()
     apply(test.ctx)
-    expect(test.injected).toEqual([SLOT])
+    expect(test.injected).toEqual([FOOTER_SLOT])
     expect(test.registrations).toHaveLength(1)
     const entry = test.registrations[0]
     if (entry === undefined) throw new Error("no slot registration")
-    expect(entry.options.name).toBe("shell.bottom")
+    expect(entry.options.name).toBe("sidebar.footer.action")
+    expect(entry.options.id).toBe(FOOTER_ID)
+    expect(entry.options.order).toBe(FOOTER_ORDER)
+    expect(FOOTER_ORDER).toBeGreaterThan(0)
     expect(entry.options.locale).toBe(NAMESPACE)
     const face = (entry.options.inject as () => Record<string, unknown>)()
     expect(face.store).toBeDefined()
@@ -157,7 +160,7 @@ describe("claude-usage client half", () => {
     apply(test.ctx)
     expect(styleTags).toHaveLength(1)
     expect(styleTags[0]?.dataset.plugin).toBe("@1outres/dsh-plugin-claude-usage")
-    expect(styleTags[0]?.textContent).toContain(".dsh-cu-bar")
+    expect(styleTags[0]?.textContent).toContain(".dsh-cu-footer")
     test.dispose()
     expect(styleTags[0]?.removed).toBe(true)
     expect(test.registrations).toEqual([])

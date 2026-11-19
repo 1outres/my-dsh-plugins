@@ -2,7 +2,7 @@ import { createUsageBridge } from "./bridge"
 import { en, ja } from "./i18n"
 import { USAGE_CSS } from "./styles"
 import type { ClientContext } from "./types"
-import { UsageBar } from "./UsageBar"
+import { UsageFooter } from "./UsageFooter"
 
 /** Cordis services required by the browser half. */
 export const inject = ["slots", "locale", "remote"]
@@ -10,11 +10,14 @@ export const inject = ["slots", "locale", "remote"]
 export const NAMESPACE = "claude-usage"
 
 const PLUGIN_ID = "@1outres/dsh-plugin-claude-usage"
-export const SLOT = "shell.bottom"
+export const FOOTER_SLOT = "sidebar.footer.action"
+export const FOOTER_ID = "claude-usage"
+/** The scratchpad row uses the default order, so this sits after it. */
+export const FOOTER_ORDER = 10
 
 /**
- * Browser half: the Host's rate limit snapshot stream becomes a status bar at
- * the bottom of the frame, with the `/usage` report in a popover.
+ * Browser half: the Host's rate limit snapshot stream becomes a sidebar footer
+ * row, with the `/usage` report in a popover.
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NAMESPACE, { en, ja }), "claude-usage: dictionaries")
@@ -35,16 +38,18 @@ export function apply(ctx: ClientContext): void {
 
   ctx.effect(
     () =>
-      ctx.slots.inject(SLOT, () =>
+      ctx.slots.inject(FOOTER_SLOT, () =>
         ctx.slots.register(
           {
-            name: SLOT,
+            name: FOOTER_SLOT,
+            id: FOOTER_ID,
+            order: FOOTER_ORDER,
             locale: NAMESPACE,
             inject: () => ({ store: bridge.store, loadReport: bridge.loadReport }),
           },
-          UsageBar,
+          UsageFooter,
         ),
       ),
-    "claude-usage: bottom bar",
+    "claude-usage: sidebar footer",
   )
 }

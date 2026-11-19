@@ -2,6 +2,9 @@
 export interface RectLike {
   left: number
   top: number
+  right: number
+  bottom: number
+  width: number
 }
 
 export interface ElementLike {
@@ -17,30 +20,48 @@ export interface ViewportLike {
 export interface PopoverPosition {
   left: number
   bottom: number
+  width?: number
 }
 
-/** Places the popover just above the bar, inside the viewport's horizontal padding. */
-export function popoverPosition(rect: RectLike, viewportHeight: number): PopoverPosition {
-  return { left: rect.left + 8, bottom: viewportHeight - rect.top + 4 }
+/** Places the popover above a wide row, or to the right of the rail row. */
+export function popoverPosition(
+  rect: RectLike,
+  viewportHeight: number,
+  wide: boolean,
+): PopoverPosition {
+  if (wide) {
+    return {
+      left: rect.left,
+      bottom: viewportHeight - rect.top + 4,
+      width: Math.min(260, rect.width),
+    }
+  }
+  return { left: rect.right + 8, bottom: viewportHeight - rect.bottom }
 }
 
-/** Keeps the popover placement in step with the bar while it is open. */
+/** Keeps the popover placement in step with the row while it is open. */
 export interface PositionTracker {
   getSnapshot(): PopoverPosition | null
   subscribe(listener: () => void): () => void
-  follow(element: ElementLike, viewport: ViewportLike): () => void
+  follow(element: ElementLike, viewport: ViewportLike, wide: boolean): () => void
 }
 
 export function createPositionTracker(): PositionTracker {
   let position: PopoverPosition | null = null
   let element: ElementLike | null = null
   let viewport: ViewportLike | null = null
+  let wide = true
   const listeners = new Set<() => void>()
 
   const measure = (): void => {
     if (element === null || viewport === null) return
-    const next = popoverPosition(element.getBoundingClientRect(), viewport.innerHeight)
-    if (position !== null && position.left === next.left && position.bottom === next.bottom) {
+    const next = popoverPosition(element.getBoundingClientRect(), viewport.innerHeight, wide)
+    if (
+      position !== null &&
+      position.left === next.left &&
+      position.bottom === next.bottom &&
+      position.width === next.width
+    ) {
       return
     }
     position = next
@@ -55,9 +76,10 @@ export function createPositionTracker(): PositionTracker {
         listeners.delete(listener)
       }
     },
-    follow(target, view) {
+    follow(target, view, nextWide) {
       element = target
       viewport = view
+      wide = nextWide
       const onResize = (): void => measure()
       view.addEventListener("resize", onResize)
       measure()

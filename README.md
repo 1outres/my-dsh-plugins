@@ -25,7 +25,7 @@ bundle insert the same row id, so selecting both inserts that row twice.
 | ------------------------------------------------------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background)                   | `background`          | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                                                                       |
 | [`@1outres/dsh-plugin-claude-subscription`](packages/dsh-plugin-claude-subscription) | `claude-subscription` | Unofficial. Adds your own Claude subscription as a model provider, through the official `claude` CLI.                                                                     |
-| [`@1outres/dsh-plugin-claude-usage`](packages/dsh-plugin-claude-usage)               | `claude-usage`        | Shows the remaining Claude subscription usage in a status bar at the bottom of the Web UI, when `claude-subscription` is enabled.                                         |
+| [`@1outres/dsh-plugin-claude-usage`](packages/dsh-plugin-claude-usage)               | `claude-usage`        | Shows the remaining Claude subscription usage in a sidebar footer row or rail ring, when `claude-subscription` is enabled.                                                |
 | [`@1outres/dsh-plugin-edit-message`](packages/dsh-plugin-edit-message)               | `edit-message`        | Adds Edit beside Copy on your sent messages: the conversation restarts from just before that message with the edited text, and the old version is archived.               |
 | [`@1outres/dsh-plugin-mobile`](packages/dsh-plugin-mobile)                           | `mobile`              | Adds phone refinements to the Web UI (keyboard fit, Enter adds a line, drawer swipes, notches) and makes it an installable app with a service worker and an offline page. |
 | [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.                           |
@@ -157,7 +157,7 @@ packages/
   dsh-plugin-claude-subscription/
                           @1outres/dsh-plugin-claude-subscription — LLM provider on the `claude` CLI
   dsh-plugin-claude-usage/
-                          @1outres/dsh-plugin-claude-usage — Claude usage bar under the three columns
+                          @1outres/dsh-plugin-claude-usage — Claude usage in the sidebar footer
   dsh-plugin-edit-message/
                           @1outres/dsh-plugin-edit-message — edit a sent message and restart from it
   dsh-plugin-mobile/      @1outres/dsh-plugin-mobile — phone refinements, keyboard fit, PWA service worker

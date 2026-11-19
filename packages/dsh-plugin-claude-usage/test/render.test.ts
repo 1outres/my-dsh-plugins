@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import { en } from "../src/client/i18n"
 import { createUsageStore } from "../src/client/store"
 import type { ReportView, UsageState } from "../src/client/types"
-import { UsageBar } from "../src/client/UsageBar"
+import { UsageFooter } from "../src/client/UsageFooter"
 import { UsagePopover } from "../src/client/UsagePopover"
 import type { RateLimitSnapshot, UsageReport, UsageReportResult } from "../src/shared/contract"
 
@@ -45,7 +45,7 @@ function snapshot(overrides: Partial<RateLimitSnapshot> = {}): RateLimitSnapshot
   }
 }
 
-function renderBar(state: UsageState, now = NOW, defaultOpen = false): string {
+function renderFooter(state: UsageState, wide = true, now = NOW, defaultOpen = false): string {
   const store = createUsageStore()
   if (state.connected) {
     store.receive(
@@ -53,7 +53,8 @@ function renderBar(state: UsageState, now = NOW, defaultOpen = false): string {
     )
   }
   return renderToStaticMarkup(
-    createElement(UsageBar, {
+    createElement(UsageFooter, {
+      wide,
       store,
       loadReport: async (): Promise<UsageReportResult> => ({ ok: false, message: "" }),
       t,
@@ -124,43 +125,38 @@ function renderPopover(reportState: ReportView): string {
   )
 }
 
-describe("the usage bar", () => {
+describe("the sidebar footer row", () => {
   it("renders nothing until the Host stream connects", () => {
-    expect(renderBar({ connected: false, snapshot: null })).toBe("")
+    expect(renderFooter({ connected: false, snapshot: null })).toBe("")
   })
 
-  it("shows only the mark and a dash before the first snapshot", () => {
-    const html = renderBar({ connected: true, snapshot: null })
+  it("shows the mark and a dash before the first snapshot", () => {
+    const html = renderFooter({ connected: true, snapshot: null })
     expect(html).toContain('aria-label="Claude usage"')
     expect(html).toContain('class="dsh-cu-mark"')
-    expect(html).toContain('width="12"')
-    expect(html).toContain('height="12"')
-    expect(html).toContain('aria-hidden="true"')
-    expect(html).not.toContain("✳")
+    expect(html).toContain('width="16"')
+    expect(html).toContain('height="16"')
     expect(html).toContain(">—<")
-    expect(html).not.toContain("dsh-cu-name")
   })
 
-  it("shows the five-hour window first with its time and the seven-day percent after it", () => {
-    const html = renderBar({ connected: true, snapshot: snapshot() })
-    expect(html).toContain('aria-haspopup="dialog"')
-    expect(html).toContain('aria-expanded="false"')
-    expect(html).toContain('data-window="five_hour"')
+  it("shows the five-hour window first and the seven-day percent after it", () => {
+    const html = renderFooter({ connected: true, snapshot: snapshot() })
+    expect(html).not.toContain('data-rail=""')
+    expect(html).toContain("dsh-cu-footer-primary")
     expect(html).toContain('class="dsh-cu-label">5h<')
     expect(html).toContain('class="dsh-cu-percent">42%<')
     expect(html).toContain('class="dsh-cu-when">2h 13m<')
-    expect(html).toContain('data-window="seven_day"')
-    expect(html).toContain('class="dsh-cu-label">7d<')
-    expect(html).toContain('class="dsh-cu-percent">18%<')
-    expect(html.match(/dsh-cu-when/g)).toHaveLength(1)
+    expect(html).toContain("dsh-cu-footer-secondary")
+    expect(html).toContain("· 7d 18%")
+    expect(html.indexOf(">5h<")).toBeLessThan(html.indexOf("· 7d"))
     expect(html).not.toContain("Week")
     expect(html).not.toContain("5-hour")
   })
 
   it("uses the seven-day window first when the account has no five-hour window", () => {
-    const html = renderBar({ connected: true, snapshot: snapshot({ windows: [SEVEN_DAY] }) })
-    expect(html).toContain('data-window="seven_day"')
-    expect(html).not.toContain("dsh-cu-secondary")
+    const html = renderFooter({ connected: true, snapshot: snapshot({ windows: [SEVEN_DAY] }) })
+    expect(html).toContain('class="dsh-cu-label">7d<')
+    expect(html).not.toContain("dsh-cu-footer-secondary")
   })
 
   it("keeps the error color and the time left for a rejected window", () => {
@@ -169,7 +165,7 @@ describe("the usage bar", () => {
       status: "rejected" as const,
       resetsAt: NOW + HOUR + 5 * MINUTE,
     }
-    const html = renderBar({
+    const html = renderFooter({
       connected: true,
       snapshot: snapshot({ status: "rejected", windows: [rejected] }),
     })
@@ -180,24 +176,15 @@ describe("the usage bar", () => {
   })
 
   it("uses days and hours for a long reset time", () => {
-    const distant = { ...FIVE_HOUR, resetsAt: NOW + 4 * 24 * HOUR + 6 * HOUR }
-    const html = renderBar({ connected: true, snapshot: snapshot({ windows: [distant] }) })
-    expect(html).toContain('class="dsh-cu-when">4d 6h<')
-    expect(html).not.toContain("in 4d 6h")
-  })
-
-  it("marks a warning window", () => {
-    const warning = { ...FIVE_HOUR, status: "allowed_warning" as const }
-    const html = renderBar({
-      connected: true,
-      snapshot: snapshot({ status: "allowed_warning", windows: [warning] }),
-    })
-    expect(html).toContain("dsh-cu-tone-warning")
+    const distant = { ...FIVE_HOUR, resetsAt: NOW + 4 * 24 * HOUR + 3 * HOUR }
+    const html = renderFooter({ connected: true, snapshot: snapshot({ windows: [distant] }) })
+    expect(html).toContain('class="dsh-cu-when">4d 3h<')
+    expect(html).not.toContain("in 4d 3h")
   })
 
   it("shows a dash for a passed reset instead of a percentage and time", () => {
     const passed = { ...FIVE_HOUR, resetsAt: NOW - 1_000, utilization: 0.5 }
-    const html = renderBar({ connected: true, snapshot: snapshot({ windows: [passed] }) })
+    const html = renderFooter({ connected: true, snapshot: snapshot({ windows: [passed] }) })
     expect(html).toContain(">—<")
     expect(html).not.toContain(">50%<")
     expect(html).not.toContain("dsh-cu-when")
@@ -205,17 +192,29 @@ describe("the usage bar", () => {
   })
 
   it("puts each window and the update age in the button tooltip", () => {
-    const html = renderBar({ connected: true, snapshot: snapshot() })
+    const html = renderFooter({ connected: true, snapshot: snapshot() })
     expect(html).toContain("5h 42% · 11/23 21:13")
     expect(html).toContain("7d 18% · 11/23 19:59")
     expect(html).toContain("updated 3m ago")
   })
 
-  it("renders the popover only inside the bar when open", () => {
-    expect(renderBar({ connected: true, snapshot: snapshot() })).not.toContain(
+  it("shows a ring and no text in the rail", () => {
+    const html = renderFooter({ connected: true, snapshot: snapshot() }, false)
+    expect(html).toContain('data-rail=""')
+    expect(html).toContain("dsh-cu-ring")
+    expect(html).toContain("dsh-cu-ring-cell")
+    expect(html).toContain('aria-label="Claude usage"')
+    expect(html).not.toContain("dsh-cu-footer-text")
+    expect(html).not.toContain("dsh-cu-label")
+    expect(html).not.toContain("dsh-cu-percent")
+    expect(html).toContain("5h 42% · 11/23 21:13")
+  })
+
+  it("renders the popover only while it is open", () => {
+    expect(renderFooter({ connected: true, snapshot: snapshot() })).not.toContain(
       'data-usage-popover=""',
     )
-    expect(renderBar({ connected: true, snapshot: null }, NOW, true)).toContain(
+    expect(renderFooter({ connected: true, snapshot: snapshot() }, true, NOW, true)).toContain(
       'data-usage-popover=""',
     )
   })
