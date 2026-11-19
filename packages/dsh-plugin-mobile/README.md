@@ -69,8 +69,8 @@ On any touch screen (also a tablet wider than 768px):
   A second finger, a movement of more than 10 CSS px from the start point, or
   lifting the finger before the timer fires cancels the press. The click that
   ends a handled touch is dropped, so the card under the finger is not also
-  opened, and the small text selection the long press starts is cleared. While
-  the setting is on, iOS shows no image or link preview callout on a long press.
+  opened, and text selection is blocked while the finger stays down. While the
+  setting is on, iOS shows no image or link preview callout on a long press.
 - No tap highlight flash and no double-tap zoom delay on buttons.
 
 The plugin also patches the viewport metadata and adds the home-screen tags
@@ -204,9 +204,12 @@ entry that still sets them is ignored.
    start point of a one-finger touch. After 500 ms a timer dispatches a native
    `contextmenu` event on that element; the Harness context-menu plugin binds
    `onContextMenu` to its triggers, and React 18 passes the delegated event
-   through. A trusted `contextmenu` from the browser (Android sends one on a
-   long press) is left alone, and the plugin only notes whether the menu took
-   it. A handled touch drops the click that ends it.
+   through. iOS starts its own text selection at about the same moment, so a
+   capturing `selectstart` fires the press early; when a menu takes it, that
+   event is cancelled and `data-dsh-long-press-active` turns text selection off
+   on the page until the finger lifts. A trusted `contextmenu` from the browser
+   (Android sends one on a long press) is left alone, and the plugin only notes
+   whether the menu took it. A handled touch drops the click that ends it.
 7. The Host half declares the settings, turns off the schema-generated form,
    and serves `lib/sw.js` at `/dsh-mobile-sw.js` through an exact route of
    `ctx.webServer`. It reads the script once at startup; the route answers
@@ -238,8 +241,9 @@ entry that still sets them is ignored.
 - A long press opens a menu only where the Harness binds one: the touched
   element, or one of its ancestors, has to be a context-menu trigger. A long
   press on other text keeps the browser's text selection.
-- While `longPressMenu` is on, iOS shows no image or link preview callout. A
-  text selection the same long press started is cleared when a menu opens.
+- While `longPressMenu` is on, iOS shows no image or link preview callout. On a
+  menu trigger the same long press cannot select text while the finger is down;
+  a selection it already started is cleared when the menu opens.
 - The Harness owns the drawer breakpoint; the plugin follows the frame's
   `data-sidebar-drawer` attribute rather than repeating the width.
 - An edge swipe in Safari can also trigger the browser's own back gesture; the

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import { en, ja, zh } from "../src/client/i18n"
 import { SettingsPage } from "../src/client/SettingsPage"
-import { LONG_PRESS_ATTRIBUTE, MOBILE_CSS } from "../src/client/styles"
+import { LONG_PRESS_ACTIVE_ATTRIBUTE, LONG_PRESS_ATTRIBUTE, MOBILE_CSS } from "../src/client/styles"
 import type {
   ConfigForm,
   InstallOutcome,
@@ -186,6 +186,14 @@ describe("stylesheet", () => {
   it("turns off the iOS image and link callout while the long press menu is on", () => {
     expect(MOBILE_CSS).toContain(`html[${LONG_PRESS_ATTRIBUTE}] :is(img, a)`)
     expect(MOBILE_CSS).toContain("-webkit-touch-callout: none;")
+  })
+
+  it("turns off selection while a long press owns the finger", () => {
+    expect(MOBILE_CSS).toContain(
+      `html[${LONG_PRESS_ACTIVE_ATTRIBUTE}], html[${LONG_PRESS_ACTIVE_ATTRIBUTE}] *`,
+    )
+    expect(MOBILE_CSS).toContain("-webkit-user-select: none !important;")
+    expect(MOBILE_CSS).toContain("user-select: none !important;")
   })
 
   it("scopes every host rule under the plugin's root attributes", () => {

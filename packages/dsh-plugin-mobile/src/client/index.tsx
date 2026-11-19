@@ -12,6 +12,7 @@ import { installTheme } from "./pwa/theme"
 import { installPwaWorker } from "./pwa/worker"
 import { SettingsPage } from "./SettingsPage"
 import {
+  LONG_PRESS_ACTIVE_ATTRIBUTE,
   LONG_PRESS_ATTRIBUTE,
   MOBILE_ATTRIBUTE,
   MOBILE_CSS,
@@ -152,16 +153,21 @@ export function apply(ctx: ClientContext): void {
     "mobile: drawer swipe",
   )
 
-  ctx.effect(
-    () =>
-      installLongPress(document, {
-        enabled: () => page.getSnapshot().touch && config.longPressMenu,
-        ignored: longPressIgnored,
-        open: dispatchContextMenu,
-        clearSelection: () => window.getSelection()?.removeAllRanges(),
-      }),
-    "mobile: long press opens the context menu",
-  )
+  ctx.effect(() => {
+    const dispose = installLongPress(document, {
+      enabled: () => page.getSnapshot().touch && config.longPressMenu,
+      ignored: longPressIgnored,
+      open: dispatchContextMenu,
+      clearSelection: () => window.getSelection()?.removeAllRanges(),
+      lockSelection: (locked) => {
+        document.documentElement.toggleAttribute(LONG_PRESS_ACTIVE_ATTRIBUTE, locked)
+      },
+    })
+    return () => {
+      dispose()
+      document.documentElement.removeAttribute(LONG_PRESS_ACTIVE_ATTRIBUTE)
+    }
+  }, "mobile: long press opens the context menu")
 
   // biome-ignore lint/correctness/noComponentHookFactories: the page closes over the shared form, page, PWA store and translator
   const Page = () => (

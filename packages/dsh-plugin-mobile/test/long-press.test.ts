@@ -114,11 +114,13 @@ function setup(
   const timers = createTimers()
   const open = vi.fn((_target: unknown, _x: number, _y: number) => state.handled)
   const clearSelection = vi.fn()
+  const lockSelection = vi.fn()
   const host: LongPressHost = {
     enabled: () => state.enabled,
     ignored: () => state.ignored,
     open,
     clearSelection,
+    lockSelection,
   }
   const dispose = installLongPress(
     target as unknown as Parameters<typeof installLongPress>[0],
@@ -162,7 +164,35 @@ function setup(
     fire("click", event)
     return event
   }
-  return { state, listeners, timers, open, clearSelection, dispose, touch, menu, click }
+  const selectStart = () => {
+    const event = {
+      isTrusted: true,
+      defaultPrevented: false,
+      preventDefault: () => {
+        event.defaultPrevented = true
+      },
+      stopImmediatePropagation: vi.fn(),
+    }
+    fire("selectstart", event)
+    return event
+  }
+  const selectionChange = () => {
+    fire("selectionchange", {})
+  }
+  return {
+    state,
+    listeners,
+    timers,
+    open,
+    clearSelection,
+    lockSelection,
+    dispose,
+    touch,
+    menu,
+    click,
+    selectStart,
+    selectionChange,
+  }
 }
 
 describe("long press listeners", () => {
@@ -187,6 +217,89 @@ describe("long press listeners", () => {
     expect(h.open).toHaveBeenCalledTimes(1)
     expect(h.clearSelection).not.toHaveBeenCalled()
     expect(h.click().defaultPrevented).toBe(false)
+  })
+
+  it("opens the menu at once when the browser starts selecting", () => {
+    const h = setup()
+    const card = { name: "card" }
+    h.touch("touchstart", 10, 20, 1, card)
+
+    const select = h.selectStart()
+    expect(h.open).toHaveBeenCalledTimes(1)
+    expect(h.open).toHaveBeenCalledWith(card, 10, 20)
+    expect(select.defaultPrevented).toBe(true)
+    expect(h.timers.size).toBe(0)
+    expect(h.lockSelection.mock.calls).toEqual([[true]])
+
+    h.timers.flush()
+    expect(h.open).toHaveBeenCalledTimes(1)
+
+    h.touch("touchend", 10, 20)
+    expect(h.lockSelection.mock.calls).toEqual([[true], [false]])
+    expect(h.click().defaultPrevented).toBe(true)
+  })
+
+  it("leaves the selection alone when the early press opens no menu", () => {
+    const h = setup({ enabled: true, ignored: false, handled: false })
+    h.touch("touchstart", 10, 20)
+
+    const select = h.selectStart()
+    expect(h.open).toHaveBeenCalledTimes(1)
+    expect(select.defaultPrevented).toBe(false)
+    expect(h.lockSelection).not.toHaveBeenCalled()
+
+    h.timers.flush()
+    expect(h.open).toHaveBeenCalledTimes(1)
+
+    h.touch("touchend", 10, 20)
+    expect(h.click().defaultPrevented).toBe(false)
+  })
+
+  it("stops selection only while the guarded finger is down", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    expect(h.lockSelection).toHaveBeenCalledWith(true)
+
+    expect(h.selectStart().defaultPrevented).toBe(true)
+
+    h.touch("touchend", 5, 6)
+    h.touch("touchend", 5, 6)
+    expect(h.lockSelection.mock.calls).toEqual([[true], [false]])
+    expect(h.selectStart().defaultPrevented).toBe(false)
+  })
+
+  it("clears a selection that starts while the menu owns the finger", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    expect(h.clearSelection).toHaveBeenCalledTimes(1)
+
+    h.selectionChange()
+    expect(h.clearSelection).toHaveBeenCalledTimes(2)
+
+    h.touch("touchend", 5, 6)
+    h.selectionChange()
+    expect(h.clearSelection).toHaveBeenCalledTimes(2)
+  })
+
+  it("leaves a selection alone when no press is pending", () => {
+    const h = setup()
+    const select = h.selectStart()
+    expect(select.defaultPrevented).toBe(false)
+    expect(h.open).not.toHaveBeenCalled()
+    expect(h.lockSelection).not.toHaveBeenCalled()
+  })
+
+  it("releases the selection lock and its listeners on dispose", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    expect(h.lockSelection).toHaveBeenCalledWith(true)
+
+    h.dispose()
+    expect(h.lockSelection).toHaveBeenLastCalledWith(false)
+    expect(h.listeners.size).toBe(0)
   })
 
   it("cancels when the finger travels past the slop on either axis", () => {
@@ -397,13 +510,24 @@ describe("long press listeners", () => {
   it("listens in capture, keeps touches passive, and removes every listener", () => {
     const h = setup()
     expect([...h.listeners.keys()].sort()).toEqual(
-      ["click", "contextmenu", "touchend", "touchmove", "touchstart", "touchcancel"].sort(),
+      [
+        "click",
+        "contextmenu",
+        "selectstart",
+        "selectionchange",
+        "touchend",
+        "touchmove",
+        "touchstart",
+        "touchcancel",
+      ].sort(),
     )
     for (const type of ["touchstart", "touchmove", "touchend", "touchcancel"]) {
       expect(h.listeners.get(type)?.options).toMatchObject({ passive: true, capture: true })
     }
     expect(h.listeners.get("contextmenu")?.options).toMatchObject({ capture: true })
     expect(h.listeners.get("click")?.options).toMatchObject({ capture: true })
+    expect(h.listeners.get("selectstart")?.options).toEqual({ capture: true })
+    expect(h.listeners.get("selectionchange")?.options).toEqual({ capture: true })
 
     h.dispose()
     expect(h.listeners.size).toBe(0)

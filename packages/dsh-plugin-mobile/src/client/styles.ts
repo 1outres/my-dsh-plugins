@@ -6,10 +6,13 @@ export const TOUCH_ATTRIBUTE = "data-dsh-touch"
 export const NO_PULL_ATTRIBUTE = "data-dsh-no-pull"
 /** Root attribute present while a long press opens the Harness context menu. */
 export const LONG_PRESS_ATTRIBUTE = "data-dsh-long-press"
+/** Root attribute present while a long press owns the touch, so no text is selected. */
+export const LONG_PRESS_ACTIVE_ATTRIBUTE = "data-dsh-long-press-active"
 
 const M = `html[${MOBILE_ATTRIBUTE}]`
 const T = `html[${TOUCH_ATTRIBUTE}]`
 const L = `html[${LONG_PRESS_ATTRIBUTE}]`
+const ACTIVE = `html[${LONG_PRESS_ACTIVE_ATTRIBUTE}]`
 const SETTINGS = `${M} [data-shortcut-modal="settings"][role="dialog"]`
 
 /**
@@ -196,6 +199,11 @@ ${T} [role="tooltip"] {
 ${L} :is(img, a) {
   /* iOS shows its own image or link preview on a long press; keep it under the Harness menu. */
   -webkit-touch-callout: none;
+}
+${ACTIVE}, ${ACTIVE} * {
+  /* WebKit starts its own selection under the menu; this keeps it off while the finger is down. */
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 ${T} [data-row-key^="session:"][aria-selected="true"] > [class*="_rowActions"] {
   display: inline-flex;

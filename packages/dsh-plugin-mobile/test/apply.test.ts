@@ -7,6 +7,7 @@ import { TOUCH_QUERY } from "../src/client/page"
 import { THEME_QUERY } from "../src/client/pwa/theme"
 import { STANDALONE_QUERY } from "../src/client/pwa/worker"
 import {
+  LONG_PRESS_ACTIVE_ATTRIBUTE,
   LONG_PRESS_ATTRIBUTE,
   MOBILE_ATTRIBUTE,
   NO_PULL_ATTRIBUTE,
@@ -287,6 +288,8 @@ describe("mobile client half", () => {
     expect(page.documentListeners.has("touchstart")).toBe(true)
     expect(page.documentListeners.has("contextmenu")).toBe(true)
     expect(page.documentListeners.has("click")).toBe(true)
+    expect(page.documentListeners.has("selectstart")).toBe(true)
+    expect(page.documentListeners.has("selectionchange")).toBe(true)
     expect(page.documentListeners.has("focusin")).toBe(true)
   })
 
@@ -307,6 +310,17 @@ describe("mobile client half", () => {
 
     expect([...page.attributes].sort()).toEqual([LONG_PRESS_ATTRIBUTE, TOUCH_ATTRIBUTE].sort())
     expect(page.documentListeners.has("contextmenu")).toBe(true)
+  })
+
+  it("removes the long press selection mark on teardown", () => {
+    const page = createPage({ phone: true, touch: true })
+    const h = createHarness()
+    apply(h.ctx)
+    expect(page.attributes.has(LONG_PRESS_ACTIVE_ATTRIBUTE)).toBe(false)
+
+    page.attributes.add(LONG_PRESS_ACTIVE_ATTRIBUTE)
+    h.dispose()
+    expect(page.attributes.has(LONG_PRESS_ACTIVE_ATTRIBUTE)).toBe(false)
   })
 
   it("leaves a wide desktop page alone", () => {

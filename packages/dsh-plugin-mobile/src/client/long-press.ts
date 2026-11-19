@@ -19,6 +19,8 @@ export interface LongPressHost {
   /** Open the Harness menu at this point; true when a menu took the event. */
   open(target: EventTarget | null, x: number, y: number): boolean
   clearSelection(): void
+  /** Mark the page so the browser stops starting a text selection. */
+  lockSelection(locked: boolean): void
 }
 
 export type TimerHandle = ReturnType<typeof setTimeout>
@@ -78,7 +80,7 @@ interface LongPressTarget {
     options: object,
   ): void
   addEventListener(
-    type: "contextmenu" | "click",
+    type: "contextmenu" | "click" | "selectstart" | "selectionchange",
     listener: (event: MenuEventLike) => void,
     options: object,
   ): void
@@ -88,7 +90,7 @@ interface LongPressTarget {
     options: object,
   ): void
   removeEventListener(
-    type: "contextmenu" | "click",
+    type: "contextmenu" | "click" | "selectstart" | "selectionchange",
     listener: (event: MenuEventLike) => void,
     options: object,
   ): void
@@ -119,6 +121,7 @@ export function installLongPress(
   let fingerDown = false
   let blockNative = false
   let suppressClick = false
+  let selectionLocked = false
   let clickWindowTimer: TimerHandle | undefined
   let generation = 0
 
@@ -142,17 +145,25 @@ export function installLongPress(
     }, options.clickWindow)
   }
 
+  const setSelectionLock = (locked: boolean) => {
+    if (selectionLocked === locked) return
+    selectionLocked = locked
+    host.lockSelection(locked)
+  }
+
   const guardPress = () => {
     blockNative = true
     suppressClick = true
+    setSelectionLock(true)
   }
 
-  const fire = (pressed: Press) => {
-    if (press !== pressed) return
+  const openPress = (pressed: Press): boolean => {
+    if (press !== pressed) return false
     cancel()
-    if (!host.open(pressed.target, pressed.x, pressed.y)) return
+    if (!host.open(pressed.target, pressed.x, pressed.y)) return false
     guardPress()
     host.clearSelection()
+    return true
   }
 
   const onStart = (event: TouchLike) => {
@@ -162,6 +173,7 @@ export function installLongPress(
     fingerDown = true
     blockNative = false
     suppressClick = false
+    setSelectionLock(false)
     const touch = event.touches[0]
     if (!host.enabled() || event.touches.length !== 1 || touch === undefined) return
     if (host.ignored(event.target)) return
@@ -172,7 +184,7 @@ export function installLongPress(
       generation,
     }
     press = pressed
-    pressed.handle = timers.setTimeout(() => fire(pressed), options.delay)
+    pressed.handle = timers.setTimeout(() => openPress(pressed), options.delay)
   }
 
   const onMove = (event: TouchLike) => {
@@ -195,6 +207,7 @@ export function installLongPress(
     fingerDown = false
     blockNative = false
     startClickWindow()
+    setSelectionLock(false)
   }
 
   const onContextMenu = (event: MenuEventLike) => {
@@ -214,6 +227,19 @@ export function installLongPress(
     event.stopImmediatePropagation()
   }
 
+  const onSelectStart = (event: MenuEventLike) => {
+    if (press !== undefined) {
+      if (openPress(press)) event.preventDefault()
+      return
+    }
+    if (blockNative) event.preventDefault()
+  }
+
+  const onSelectionChange = () => {
+    if (!blockNative) return
+    host.clearSelection()
+  }
+
   const onClick = (event: MenuEventLike) => {
     if (!suppressClick) return
     suppressClick = false
@@ -227,15 +253,20 @@ export function installLongPress(
   target.addEventListener("touchend", onEnd, passive)
   target.addEventListener("touchcancel", onEnd, passive)
   target.addEventListener("contextmenu", onContextMenu, capture)
+  target.addEventListener("selectstart", onSelectStart, capture)
+  target.addEventListener("selectionchange", onSelectionChange, capture)
   target.addEventListener("click", onClick, capture)
   return () => {
     cancel()
     clearClickWindow()
+    setSelectionLock(false)
     target.removeEventListener("touchstart", onStart, passive)
     target.removeEventListener("touchmove", onMove, passive)
     target.removeEventListener("touchend", onEnd, passive)
     target.removeEventListener("touchcancel", onEnd, passive)
     target.removeEventListener("contextmenu", onContextMenu, capture)
+    target.removeEventListener("selectstart", onSelectStart, capture)
+    target.removeEventListener("selectionchange", onSelectionChange, capture)
     target.removeEventListener("click", onClick, capture)
   }
 }
