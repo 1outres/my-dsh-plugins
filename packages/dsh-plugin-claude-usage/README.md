@@ -26,7 +26,9 @@ the seven-day window: short label, small bar, used percent, and time left.
 Other windows follow with their percent only. Warning and limit states use the
 host warning and error colors. A passed reset shows "—". Before the first
 Claude answer the bar shows only the mark and "—". Hover for each window's reset
-date and the snapshot age.
+date and the snapshot age. On a phone the bar adds the row's
+`--dsh-shell-bottom-inset-bottom`, `-left` and `-right` properties to its own
+padding, so its background reaches the screen edges.
 
 Select the bar to open the per-model report from `claude ... /usage`. The
 popover lists each meter with its percent and time left, plus extra usage when

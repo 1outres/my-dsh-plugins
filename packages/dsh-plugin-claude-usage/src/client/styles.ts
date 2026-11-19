@@ -3,9 +3,9 @@
  * classes use the `dsh-cu-` prefix.
  */
 export const USAGE_CSS = [
-  ".dsh-cu-root{position:relative;width:100%;flex:none;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:16px}",
-  ".dsh-cu-bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:24px;margin:0;padding:0 10px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer}",
-  ".dsh-cu-bar:hover{opacity:0.8}",
+  ".dsh-cu-root{position:relative;width:100%;flex:none;background:var(--dsw-alias-bg-base);border-top:1px solid var(--dsw-alias-border-l1);padding-bottom:var(--dsh-shell-bottom-inset-bottom, 0px);color:var(--dsw-alias-label-secondary);font-size:12px;line-height:16px}",
+  ".dsh-cu-bar{box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:24px;margin:0;padding:0 calc(10px + var(--dsh-shell-bottom-inset-right, 0px)) 0 calc(10px + var(--dsh-shell-bottom-inset-left, 0px));border:0;background:transparent;color:inherit;font:inherit;text-align:left;white-space:nowrap;overflow:hidden;cursor:pointer}",
+  ".dsh-cu-bar:hover{background:var(--dsw-alias-interactive-bg-hover)}",
   ".dsh-cu-bar:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:-2px}",
   ".dsh-cu-mark{display:block;flex:none;color:var(--dsw-alias-label-tertiary)}",
   ".dsh-cu-none{flex:none;color:var(--dsw-alias-label-tertiary);font-variant-numeric:tabular-nums}",
