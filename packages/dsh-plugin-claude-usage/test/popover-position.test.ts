@@ -32,6 +32,14 @@ describe("popoverPosition", () => {
   it("places the popover just above the bar and in from its left edge", () => {
     expect(popoverPosition({ left: 12, top: 500 }, 800)).toEqual({ left: 20, bottom: 304 })
   })
+
+  it("keeps the popover above a bar shifted by a safe-area inset", () => {
+    expect(popoverPosition({ left: 44, top: 700 }, 800)).toEqual({ left: 52, bottom: 104 })
+  })
+
+  it("keeps the popover at least 8px from the left edge", () => {
+    expect(popoverPosition({ left: 0, top: 700 }, 800).left).toBe(8)
+  })
 })
 
 describe("createPositionTracker", () => {
