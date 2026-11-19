@@ -34,6 +34,7 @@
     "@1outres/dsh-plugin-background": "workspace:*",
     "@1outres/dsh-plugin-notify": "workspace:*",
     "@1outres/dsh-plugin-claude-subscription": "workspace:*",
+    "@1outres/dsh-plugin-claude-usage": "workspace:*",
     "@1outres/dsh-plugin-model-picker": "workspace:*",
     "@1outres/dsh-plugin-edit-message": "workspace:*",
     "@1outres/dsh-plugin-scratchpad": "workspace:*",

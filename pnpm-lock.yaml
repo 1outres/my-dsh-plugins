@@ -232,6 +232,19 @@ importers:
         specifier: 0.2.1-rc.5
         version: 0.2.1-rc.5(@deepseek-ai/cordis@4.0.5)(@deepseek-ai/dsh-http-proxy@0.2.1-rc.5(@deepseek-ai/cordis@4.0.5))
 
+  packages/dsh-plugin-claude-usage:
+    dependencies:
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: ~4.1.0
+        version: 4.1.0
+      '@deepseek-ai/dsh-typert-protocol':
+        specifier: 0.2.2-rc.1
+        version: 0.2.2-rc.1(@deepseek-ai/cordis@4.1.0)
+
   packages/dsh-plugin-edit-message:
     dependencies:
       '@deepseek-ai/cordis':
@@ -400,18 +413,21 @@ importers:
       '@1outres/dsh-plugin-claude-subscription':
         specifier: workspace:*
         version: link:../dsh-plugin-claude-subscription
+      '@1outres/dsh-plugin-claude-usage':
+        specifier: workspace:*
+        version: link:../dsh-plugin-claude-usage
       '@1outres/dsh-plugin-edit-message':
         specifier: workspace:*
         version: link:../dsh-plugin-edit-message
       '@1outres/dsh-plugin-mobile':
         specifier: workspace:*
         version: link:../dsh-plugin-mobile
-      '@1outres/dsh-plugin-model-picker':
-        specifier: workspace:*
-        version: link:../dsh-plugin-model-picker
       '@1outres/dsh-plugin-mode-memory':
         specifier: workspace:*
         version: link:../dsh-plugin-mode-memory
+      '@1outres/dsh-plugin-model-picker':
+        specifier: workspace:*
+        version: link:../dsh-plugin-model-picker
       '@1outres/dsh-plugin-notify':
         specifier: workspace:*
         version: link:../dsh-plugin-notify
