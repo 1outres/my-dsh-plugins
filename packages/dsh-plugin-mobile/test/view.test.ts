@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import { en, ja, zh } from "../src/client/i18n"
 import { SettingsPage } from "../src/client/SettingsPage"
-import { MOBILE_CSS } from "../src/client/styles"
+import { LONG_PRESS_ATTRIBUTE, MOBILE_CSS } from "../src/client/styles"
 import type {
   ConfigForm,
   InstallOutcome,
@@ -73,6 +73,7 @@ describe("settings page", () => {
       "settings.statusMobile",
       "settings.enterKey",
       "settings.swipe",
+      "settings.longPressMenu",
       "settings.fitKeyboard",
       "settings.blockPullToRefresh",
       "settings.autoFocusComposer",
@@ -83,6 +84,7 @@ describe("settings page", () => {
     expect(html).toMatch(/aria-pressed="true"[^>]*>settings\.enterKey\.send</)
     expect(html).toMatch(/aria-pressed="false"[^>]*>settings\.enterKey\.newline</)
     expect(html).toMatch(/role="switch" aria-checked="false" aria-label="settings\.swipe"/)
+    expect(html).toMatch(/role="switch" aria-checked="true" aria-label="settings\.longPressMenu"/)
     expect(html).not.toContain("settings.breakpoint")
     expect(html).not.toContain("settings.mode")
   })
@@ -179,6 +181,11 @@ describe("stylesheet", () => {
     expect(MOBILE_CSS).toContain("safe-area-inset-bottom")
     expect(MOBILE_CSS).toContain("[data-dsh-keyboard] [data-composer-seat]")
     expect(MOBILE_CSS).toContain('[data-shortcut-modal="settings"]')
+  })
+
+  it("turns off the iOS image and link callout while the long press menu is on", () => {
+    expect(MOBILE_CSS).toContain(`html[${LONG_PRESS_ATTRIBUTE}] :is(img, a)`)
+    expect(MOBILE_CSS).toContain("-webkit-touch-callout: none;")
   })
 
   it("scopes every host rule under the plugin's root attributes", () => {

@@ -3,7 +3,7 @@ export const en: Record<string, string> = {
   nav: "Mobile",
   "settings.title": "Mobile",
   "settings.description":
-    "Adds phone refinements on top of the Harness layout: the page fits above the on-screen keyboard, Enter adds a line, the keyboard stays closed until you tap the composer, and an edge swipe opens the navigation drawer that the Harness uses below 768px. It also makes the Web UI installable, shows an offline page when the Host cannot be reached, and registers the service worker that push notifications use. Changes apply at once in every open page.",
+    "Adds phone refinements on top of the Harness layout: the page fits above the on-screen keyboard, Enter adds a line, the keyboard stays closed until you tap the composer, an edge swipe opens the navigation drawer that the Harness uses below 768px, and a long press opens the Harness context menu on any touch screen. It also makes the Web UI installable, shows an offline page when the Host cannot be reached, and registers the service worker that push notifications use. Changes apply at once in every open page.",
   "settings.statusMobile": "The Harness is using its phone layout here ({width}px wide).",
   "settings.statusDesktop":
     "The Harness is using its desktop layout here ({width}px wide); it switches to the phone layout below 768px.",
@@ -37,6 +37,9 @@ export const en: Record<string, string> = {
   "settings.swipe": "Swipe to open the sidebar",
   "settings.swipeHint":
     "Swipe right from the left edge to open the Harness navigation drawer, swipe left to close it.",
+  "settings.longPressMenu": "Long press opens the context menu",
+  "settings.longPressMenuHint":
+    "Hold a finger on a Harness menu target, such as a file card, image, link or session row, to open its context menu. On iPhone and iPad the browser has no long-press menu, so this is the only way there.",
   "settings.fitKeyboard": "Fit the page to the keyboard",
   "settings.fitKeyboardHint":
     "Keep the header and the composer on screen while the on-screen keyboard is up.",
@@ -53,7 +56,7 @@ export const zh: Record<string, string> = {
   nav: "移动端",
   "settings.title": "移动端",
   "settings.description":
-    "在 Harness 布局之上补充手机体验：页面适配屏幕键盘上方的可见区域，Enter 换行，点按输入框之前不弹出键盘，屏幕窄于 768px 时从边缘滑动可打开 Harness 的导航抽屉。同时让 Web UI 可安装，无法连接 Host 时显示离线页面，并注册推送通知使用的 Service Worker。修改会立即应用到所有打开的页面。",
+    "在 Harness 布局之上补充手机体验：页面适配屏幕键盘上方的可见区域，Enter 换行，点按输入框之前不弹出键盘，屏幕窄于 768px 时从边缘滑动可打开 Harness 的导航抽屉，在任意触屏设备上长按可打开 Harness 的上下文菜单。同时让 Web UI 可安装，无法连接 Host 时显示离线页面，并注册推送通知使用的 Service Worker。修改会立即应用到所有打开的页面。",
   "settings.statusMobile": "Harness 当前使用手机布局（宽 {width}px）。",
   "settings.statusDesktop":
     "Harness 当前使用桌面布局（宽 {width}px）；窄于 768px 时切换为手机布局。",
@@ -85,6 +88,9 @@ export const zh: Record<string, string> = {
     "按下输入框中的按钮或由 Harness 的其他操作把焦点移到输入框时，允许聚焦并弹出屏幕键盘。关闭时，点按输入框之前键盘不会弹出。",
   "settings.swipe": "滑动打开侧边栏",
   "settings.swipeHint": "从左边缘向右滑动打开 Harness 导航抽屉，向左滑动关闭。",
+  "settings.longPressMenu": "长按打开上下文菜单",
+  "settings.longPressMenuHint":
+    "长按文件卡片、图片、链接或会话行等有 Harness 菜单的目标，即可打开其上下文菜单。iPhone 和 iPad 的浏览器没有长按菜单，因此在那里这是唯一的打开方式。",
   "settings.fitKeyboard": "页面适配键盘",
   "settings.fitKeyboardHint": "屏幕键盘弹出时，标题栏和输入框保持在屏幕内。",
   "settings.blockPullToRefresh": "阻止下拉刷新",
@@ -100,7 +106,7 @@ export const ja: Record<string, string> = {
   nav: "モバイル",
   "settings.title": "モバイル",
   "settings.description":
-    "Harness のレイアウトにスマートフォン向けの調整を足します。オンスクリーンキーボードの上に収まるようページを縮め、Enter で改行し、入力欄をタップするまでキーボードを開かず、768px 未満で使われる Harness のナビゲーションドロワーを画面端のスワイプで開閉できるようにします。さらに Web UI をインストール可能にし、Host に接続できないときはオフラインページを表示し、プッシュ通知が使う Service Worker を登録します。変更は開いているすべてのページにすぐ反映されます。",
+    "Harness のレイアウトにスマートフォン向けの調整を足します。オンスクリーンキーボードの上に収まるようページを縮め、Enter で改行し、入力欄をタップするまでキーボードを開かず、768px 未満で使われる Harness のナビゲーションドロワーを画面端のスワイプで開閉できるようにし、タッチ画面では長押しで Harness のコンテキストメニューを開けるようにします。さらに Web UI をインストール可能にし、Host に接続できないときはオフラインページを表示し、プッシュ通知が使う Service Worker を登録します。変更は開いているすべてのページにすぐ反映されます。",
   "settings.statusMobile": "Harness はこのページでスマホ表示を使っています（幅 {width}px）。",
   "settings.statusDesktop":
     "Harness はこのページでデスクトップ表示を使っています（幅 {width}px）。768px 未満でスマホ表示に切り替わります。",
@@ -135,6 +141,9 @@ export const ja: Record<string, string> = {
   "settings.swipe": "スワイプでサイドバーを開く",
   "settings.swipeHint":
     "左端から右へスワイプで Harness のナビゲーションドロワーを開き、左へスワイプで閉じます。",
+  "settings.longPressMenu": "長押しでコンテキストメニューを開く",
+  "settings.longPressMenuHint":
+    "ファイルカード、画像、リンク、セッション行など、Harness のメニューがある要素を長押しすると、そのコンテキストメニューが開きます。iPhone と iPad のブラウザには長押しメニューがないため、そこではこの方法だけが使えます。",
   "settings.fitKeyboard": "キーボードに合わせてページを縮める",
   "settings.fitKeyboardHint":
     "オンスクリーンキーボードの表示中も、ヘッダーと入力欄を画面内に残します。",

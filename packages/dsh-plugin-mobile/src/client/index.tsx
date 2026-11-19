@@ -4,13 +4,20 @@ import { installEnterNewline } from "./enter"
 import { installFocusGuard } from "./focus"
 import { findFrame, isExpanded, swipeBlocked } from "./frame"
 import { en, ja, zh } from "./i18n"
+import { dispatchContextMenu, installLongPress, longPressIgnored } from "./long-press"
 import { createPageStore, mediaSource, TOUCH_QUERY } from "./page"
 import { createInstallPrompt } from "./pwa/install"
 import { createPwaStore } from "./pwa/state"
 import { installTheme } from "./pwa/theme"
 import { installPwaWorker } from "./pwa/worker"
 import { SettingsPage } from "./SettingsPage"
-import { MOBILE_ATTRIBUTE, MOBILE_CSS, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "./styles"
+import {
+  LONG_PRESS_ATTRIBUTE,
+  MOBILE_ATTRIBUTE,
+  MOBILE_CSS,
+  NO_PULL_ATTRIBUTE,
+  TOUCH_ATTRIBUTE,
+} from "./styles"
 import { installSwipe } from "./swipe"
 import type { ClientContext, MobileConfig } from "./types"
 import { installMeta, trackViewport } from "./viewport"
@@ -26,10 +33,11 @@ export const SETTINGS_SLOT = "settings.section"
 /**
  * Browser half. It follows the Harness phone layout, fits the page to the
  * on-screen keyboard, keeps the on-screen keyboard closed until the composer
- * is tapped, lets Enter add a line, and adds edge swipes to the Harness
- * navigation drawer. It also registers the app's service worker, offers the
- * install prompt, and paints the title bar. Everything is undone on teardown
- * except the service worker registration, which push subscriptions outlive.
+ * is tapped, lets Enter add a line, opens the Harness context menu with a
+ * long press on a touch screen, and adds edge swipes to the Harness navigation
+ * drawer. It also registers the app's service worker, offers the install
+ * prompt, and paints the title bar. Everything is undone on teardown except the
+ * service worker registration, which push subscriptions outlive.
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NAMESPACE, { en, zh, ja }), "mobile: dictionaries")
@@ -76,6 +84,7 @@ export function apply(ctx: ClientContext): void {
       root.toggleAttribute(MOBILE_ATTRIBUTE, state.mobile)
       root.toggleAttribute(TOUCH_ATTRIBUTE, state.touch)
       root.toggleAttribute(NO_PULL_ATTRIBUTE, state.mobile && config.blockPullToRefresh)
+      root.toggleAttribute(LONG_PRESS_ATTRIBUTE, state.touch && config.longPressMenu)
       const fit = state.mobile && config.fitKeyboard
       if (fit && stopViewport === undefined) {
         stopViewport = trackViewport(window, root)
@@ -97,6 +106,7 @@ export function apply(ctx: ClientContext): void {
       root.removeAttribute(MOBILE_ATTRIBUTE)
       root.removeAttribute(TOUCH_ATTRIBUTE)
       root.removeAttribute(NO_PULL_ATTRIBUTE)
+      root.removeAttribute(LONG_PRESS_ATTRIBUTE)
     }
   }, "mobile: page layout")
 
@@ -140,6 +150,17 @@ export function apply(ctx: ClientContext): void {
         toggle,
       }),
     "mobile: drawer swipe",
+  )
+
+  ctx.effect(
+    () =>
+      installLongPress(document, {
+        enabled: () => page.getSnapshot().touch && config.longPressMenu,
+        ignored: longPressIgnored,
+        open: dispatchContextMenu,
+        clearSelection: () => window.getSelection()?.removeAllRanges(),
+      }),
+    "mobile: long press opens the context menu",
   )
 
   // biome-ignore lint/correctness/noComponentHookFactories: the page closes over the shared form, page, PWA store and translator

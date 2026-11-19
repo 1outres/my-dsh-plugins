@@ -10,6 +10,7 @@ export const NAMESPACE = "mobile"
 export const DEFAULT_CONFIG: MobileConfig = {
   enterKey: "newline",
   swipe: true,
+  longPressMenu: true,
   fitKeyboard: true,
   blockPullToRefresh: true,
   autoFocusComposer: false,
@@ -36,6 +37,7 @@ export function normalizeConfig(
   return {
     enterKey: oneOf(value?.enterKey, ENTER_KEYS, DEFAULT_CONFIG.enterKey),
     swipe: flag(value?.swipe, DEFAULT_CONFIG.swipe),
+    longPressMenu: flag(value?.longPressMenu, DEFAULT_CONFIG.longPressMenu),
     fitKeyboard: flag(value?.fitKeyboard, DEFAULT_CONFIG.fitKeyboard),
     blockPullToRefresh: flag(value?.blockPullToRefresh, DEFAULT_CONFIG.blockPullToRefresh),
     autoFocusComposer: flag(value?.autoFocusComposer, DEFAULT_CONFIG.autoFocusComposer),

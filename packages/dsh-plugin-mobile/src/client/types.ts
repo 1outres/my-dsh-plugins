@@ -16,6 +16,7 @@ export type EnterKey = "newline" | "send"
 export interface MobileConfig {
   enterKey: EnterKey
   swipe: boolean
+  longPressMenu: boolean
   fitKeyboard: boolean
   blockPullToRefresh: boolean
   autoFocusComposer: boolean

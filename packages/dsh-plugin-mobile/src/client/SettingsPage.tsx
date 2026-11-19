@@ -131,8 +131,8 @@ function useViewportWidth(): number {
 
 /**
  * Settings page: the app status, install and title bar, then Enter, the drawer
- * swipe, the keyboard fit and the two touch guards. Every control writes one
- * field; the browser half picks it up at once.
+ * swipe, the long press menu, the keyboard fit and the two touch guards. Every
+ * control writes one field; the browser half picks it up at once.
  */
 export function SettingsPage({ form, page, pwa, install, t }: SettingsPageProps) {
   const subscribe = useCallback((listener: () => void) => form.subscribe(listener), [form])
@@ -235,6 +235,13 @@ export function SettingsPage({ form, page, pwa, install, t }: SettingsPageProps)
           checked={config.swipe}
           disabled={disabled}
           onChange={(next) => write("swipe", next)}
+        />
+        <Toggle
+          label={t("settings.longPressMenu")}
+          hint={t("settings.longPressMenuHint")}
+          checked={config.longPressMenu}
+          disabled={disabled}
+          onChange={(next) => write("longPressMenu", next)}
         />
         <Toggle
           label={t("settings.fitKeyboard")}

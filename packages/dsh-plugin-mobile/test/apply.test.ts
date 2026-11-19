@@ -6,7 +6,12 @@ import { apply, inject, SETTINGS_SLOT } from "../src/client/index"
 import { TOUCH_QUERY } from "../src/client/page"
 import { THEME_QUERY } from "../src/client/pwa/theme"
 import { STANDALONE_QUERY } from "../src/client/pwa/worker"
-import { MOBILE_ATTRIBUTE, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE } from "../src/client/styles"
+import {
+  LONG_PRESS_ATTRIBUTE,
+  MOBILE_ATTRIBUTE,
+  NO_PULL_ATTRIBUTE,
+  TOUCH_ATTRIBUTE,
+} from "../src/client/styles"
 import type { ClientContext, MobileConfig } from "../src/client/types"
 import { HEIGHT_VARIABLE } from "../src/client/viewport"
 
@@ -274,12 +279,14 @@ describe("mobile client half", () => {
     apply(h.ctx)
 
     expect([...page.attributes].sort()).toEqual(
-      [MOBILE_ATTRIBUTE, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE].sort(),
+      [LONG_PRESS_ATTRIBUTE, MOBILE_ATTRIBUTE, NO_PULL_ATTRIBUTE, TOUCH_ATTRIBUTE].sort(),
     )
     expect(page.props.get(HEIGHT_VARIABLE)).toBe("760px")
     expect(page.viewport.content).toContain("viewport-fit=cover")
     expect(page.windowListeners.has("keydown")).toBe(true)
     expect(page.documentListeners.has("touchstart")).toBe(true)
+    expect(page.documentListeners.has("contextmenu")).toBe(true)
+    expect(page.documentListeners.has("click")).toBe(true)
     expect(page.documentListeners.has("focusin")).toBe(true)
   })
 
@@ -289,8 +296,17 @@ describe("mobile client half", () => {
     apply(h.ctx)
 
     page.setDrawer(false)
-    expect([...page.attributes]).toEqual([TOUCH_ATTRIBUTE])
+    expect([...page.attributes]).toEqual([TOUCH_ATTRIBUTE, LONG_PRESS_ATTRIBUTE])
     expect(page.props.size).toBe(0)
+  })
+
+  it("keeps the long press menu on a tablet in the desktop layout", () => {
+    const page = createPage({ phone: false, touch: true })
+    const h = createHarness()
+    apply(h.ctx)
+
+    expect([...page.attributes].sort()).toEqual([LONG_PRESS_ATTRIBUTE, TOUCH_ATTRIBUTE].sort())
+    expect(page.documentListeners.has("contextmenu")).toBe(true)
   })
 
   it("leaves a wide desktop page alone", () => {
@@ -307,14 +323,16 @@ describe("mobile client half", () => {
     const h = createHarness()
     apply(h.ctx)
 
-    h.configure({ fitKeyboard: false, blockPullToRefresh: false })
+    h.configure({ fitKeyboard: false, blockPullToRefresh: false, longPressMenu: false })
     expect(page.props.has(HEIGHT_VARIABLE)).toBe(false)
     expect(page.attributes.has(NO_PULL_ATTRIBUTE)).toBe(false)
+    expect(page.attributes.has(LONG_PRESS_ATTRIBUTE)).toBe(false)
     expect(page.attributes.has(MOBILE_ATTRIBUTE)).toBe(true)
 
-    h.configure({ fitKeyboard: true, blockPullToRefresh: true })
+    h.configure({ fitKeyboard: true, blockPullToRefresh: true, longPressMenu: true })
     expect(page.props.get(HEIGHT_VARIABLE)).toBe("760px")
     expect(page.attributes.has(NO_PULL_ATTRIBUTE)).toBe(true)
+    expect(page.attributes.has(LONG_PRESS_ATTRIBUTE)).toBe(true)
   })
 
   it("registers the service worker and unregisters it when the setting turns off", async () => {

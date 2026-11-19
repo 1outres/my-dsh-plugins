@@ -13,6 +13,7 @@ describe("settings", () => {
       autoFocusComposer: false,
       serviceWorker: true,
       themeColor: true,
+      longPressMenu: true,
     })
   })
 
@@ -36,6 +37,14 @@ describe("settings", () => {
     expect(normalizeConfig({ serviceWorker: "no", themeColor: 0 } as never)).toMatchObject({
       serviceWorker: true,
       themeColor: true,
+    })
+  })
+
+  it("defaults the long press menu on and keeps a written value", () => {
+    expect(normalizeConfig(undefined)).toMatchObject({ longPressMenu: true })
+    expect(normalizeConfig({ longPressMenu: false })).toMatchObject({ longPressMenu: false })
+    expect(normalizeConfig({ longPressMenu: "yes" } as never)).toMatchObject({
+      longPressMenu: true,
     })
   })
 

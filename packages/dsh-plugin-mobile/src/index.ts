@@ -24,6 +24,13 @@ export const Config = z.object({
       "Open the Harness navigation drawer by swiping right from the left edge, close it by swiping left.",
     )
     .volatile(),
+  longPressMenu: z
+    .boolean()
+    .default(true)
+    .description(
+      "On a touch screen, a long press opens the Harness context menu (for example Download on a file card), also on iPhone and iPad where the browser has no long-press menu event.",
+    )
+    .volatile(),
   fitKeyboard: z
     .boolean()
     .default(true)
