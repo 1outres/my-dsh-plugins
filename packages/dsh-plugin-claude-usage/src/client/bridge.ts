@@ -3,7 +3,8 @@ import { createUsageStore } from "./store"
 import type { ClientContext, UsageBridge, UsageRemote, UsageStreamHandle } from "./types"
 
 const PACKAGE = "@1outres/dsh-plugin-claude-usage"
-const DELAY_MS = 1000
+const BASE_DELAY_MS = 1000
+const MAX_DELAY_MS = 30_000
 
 /** The Host method names and the wire names must stay in sync with the Host service. */
 const codec = {
@@ -51,10 +52,12 @@ function delay(ms: number): Promise<void> {
 
 export function createUsageBridge(
   ctx: ClientContext,
-  options: { retryDelayMs?: number } = {},
+  options: { baseDelayMs?: number; maxDelayMs?: number } = {},
 ): UsageBridge {
   const store = createUsageStore()
-  const retryDelayMs = options.retryDelayMs ?? DELAY_MS
+  const baseDelayMs = options.baseDelayMs ?? BASE_DELAY_MS
+  const maxDelayMs = options.maxDelayMs ?? MAX_DELAY_MS
+  let backoffMs = baseDelayMs
   let disposed = false
   let handle: UsageStreamHandle | undefined
 
@@ -67,10 +70,13 @@ export function createUsageBridge(
     }
     if (disposed) return
     while (!disposed) {
+      let delivered = false
       try {
         handle = usageRemote(ctx).snapshots()
         for await (const item of handle) {
           if (disposed) break
+          delivered = true
+          backoffMs = baseDelayMs
           store.receive(item)
         }
       } catch {
@@ -80,7 +86,8 @@ export function createUsageBridge(
       }
       if (disposed) return
       store.reset()
-      await delay(retryDelayMs)
+      await delay(backoffMs)
+      backoffMs = delivered ? baseDelayMs : Math.min(backoffMs * 2, maxDelayMs)
     }
   }
   void pump()

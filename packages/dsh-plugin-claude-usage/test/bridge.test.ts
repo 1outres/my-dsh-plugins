@@ -90,6 +90,8 @@ function harness(
   overrides: {
     mount?: () => Promise<() => Promise<void>>
     report?: () => Promise<RemoteUsageResult>
+    /** Items each stream delivers before it ends, by attempt number. */
+    streamItems?: (index: number) => readonly UsageStreamState[]
   } = {},
 ): Harness {
   const streams: ControlledStream[] = []
@@ -116,6 +118,10 @@ function harness(
     snapshots() {
       const stream = controlledStream()
       streams.push(stream)
+      if (overrides.streamItems !== undefined) {
+        for (const item of overrides.streamItems(streams.length - 1)) stream.push(item)
+        stream.end()
+      }
       return stream.handle
     },
     report,
@@ -159,7 +165,7 @@ describe("createUsageBridge", () => {
 
   it("reconnects after the stream ends", async () => {
     const test = harness()
-    const bridge = createUsageBridge(test.ctx, { retryDelayMs: 5 })
+    const bridge = createUsageBridge(test.ctx, { baseDelayMs: 5 })
     await vi.waitFor(() => expect(test.streams).toHaveLength(1))
     test.streams[0]?.push({ kind: "empty" })
     await vi.waitFor(() => expect(bridge.store.getSnapshot().connected).toBe(true))
@@ -194,9 +200,57 @@ describe("createUsageBridge", () => {
     bridge.dispose()
   })
 
+  it("backs off from the base delay to the cap", async () => {
+    vi.useFakeTimers()
+    try {
+      const test = harness({ streamItems: () => [] })
+      const bridge = createUsageBridge(test.ctx, { baseDelayMs: 100, maxDelayMs: 400 })
+      await vi.advanceTimersByTimeAsync(0)
+      expect(test.streams).toHaveLength(1)
+      await vi.advanceTimersByTimeAsync(99)
+      expect(test.streams).toHaveLength(1)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(test.streams).toHaveLength(2)
+      await vi.advanceTimersByTimeAsync(199)
+      expect(test.streams).toHaveLength(2)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(test.streams).toHaveLength(3)
+      await vi.advanceTimersByTimeAsync(399)
+      expect(test.streams).toHaveLength(3)
+      await vi.advanceTimersByTimeAsync(1)
+      expect(test.streams).toHaveLength(4)
+      await vi.advanceTimersByTimeAsync(400)
+      expect(test.streams).toHaveLength(5)
+      bridge.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("resets the backoff after the stream delivers an item", async () => {
+    vi.useFakeTimers()
+    try {
+      const test = harness({
+        streamItems: (index) => (index === 2 ? [{ kind: "empty" }] : []),
+      })
+      const bridge = createUsageBridge(test.ctx, { baseDelayMs: 100, maxDelayMs: 400 })
+      await vi.advanceTimersByTimeAsync(0)
+      expect(test.streams).toHaveLength(1)
+      await vi.advanceTimersByTimeAsync(100)
+      expect(test.streams).toHaveLength(2)
+      await vi.advanceTimersByTimeAsync(200)
+      expect(test.streams).toHaveLength(3)
+      await vi.advanceTimersByTimeAsync(100)
+      expect(test.streams).toHaveLength(4)
+      bridge.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it("stops reconnecting and clears the bar when disposed", async () => {
     const test = harness()
-    const bridge = createUsageBridge(test.ctx, { retryDelayMs: 5 })
+    const bridge = createUsageBridge(test.ctx, { baseDelayMs: 5 })
     await vi.waitFor(() => expect(test.streams).toHaveLength(1))
     test.streams[0]?.push({ kind: "snapshot", snapshot: SNAPSHOT })
     await vi.waitFor(() => expect(bridge.store.getSnapshot().snapshot).toBe(SNAPSHOT))
