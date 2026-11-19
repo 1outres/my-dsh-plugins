@@ -177,6 +177,18 @@ describe("the usage bar", () => {
     expect(html).not.toContain(">42%<")
   })
 
+  it("uses days and hours for a long reset time", () => {
+    const distant = {
+      ...FIVE_HOUR,
+      resetsAt: NOW + 4 * 24 * HOUR + 6 * HOUR,
+    }
+    const html = renderBar({
+      connected: true,
+      snapshot: snapshot({ windows: [distant] }),
+    })
+    expect(html).toContain("42% · in 4d 6h")
+  })
+
   it("marks a warning window", () => {
     const warning = { ...FIVE_HOUR, status: "allowed_warning" as const }
     const html = renderBar({
@@ -219,7 +231,7 @@ describe("the usage popover", () => {
     expect(html).toContain("42%")
     expect(html).toContain("18%")
     expect(html).toContain("Overage")
-    expect(html).toContain("Status: Limit reached")
+    expect(html).toContain("Status: Unavailable")
     expect(html).toContain("Disabled reason: org_level_disabled")
     expect(html).toContain("Updated 3 min ago (last Claude call)")
     expect(html).toContain("Usage by model (weekly)")
@@ -267,13 +279,19 @@ describe("the usage popover", () => {
     expect(html).toContain("usage probe failed")
   })
 
+  it("labels a warning overage as near the limit", () => {
+    const snap = snapshot({ overage: { status: "allowed_warning" } })
+    const html = renderPopover({ status: "ready", report: REPORT }, snap)
+    expect(html).toContain("Status: Near limit")
+  })
+
   it("keeps an overage without a reason compact", () => {
     const snap = snapshot({
       overage: { status: "allowed", resetsAt: NOW + HOUR },
     })
     const html = renderPopover({ status: "ready", report: REPORT }, snap)
     expect(html).toContain("Overage")
-    expect(html).toContain("Status: Allowed")
+    expect(html).toContain("Status: Available")
     expect(html).not.toContain("Disabled reason")
   })
 })

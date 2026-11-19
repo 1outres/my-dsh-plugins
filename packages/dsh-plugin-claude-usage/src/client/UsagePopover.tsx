@@ -8,6 +8,7 @@ import {
   groupLimits,
   limitLabel,
   orderedWindows,
+  overageStatusLabel,
   percentOf,
   statusLabel,
   toneOfSeverity,
@@ -156,7 +157,9 @@ export function UsagePopover({
             <div className={`dsh-cu-overage dsh-cu-tone-${toneOfStatus(snapshot.overage.status)}`}>
               <div className="dsh-cu-section-title">{t("popover.overage")}</div>
               <div className="dsh-cu-row-meta">
-                {t("popover.overageStatus", { status: statusLabel(snapshot.overage.status, t) })}
+                {t("popover.overageStatus", {
+                  status: overageStatusLabel(snapshot.overage.status, t),
+                })}
               </div>
               {snapshot.overage.disabledReason === undefined ? null : (
                 <div className="dsh-cu-row-meta">

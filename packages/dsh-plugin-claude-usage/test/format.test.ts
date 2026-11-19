@@ -10,6 +10,7 @@ import {
   groupLimits,
   limitLabel,
   orderedWindows,
+  overageStatusLabel,
   percentOf,
   primaryWindow,
   statusLabel,
@@ -114,6 +115,15 @@ describe("status and severity tones", () => {
     expect(toneOfSeverity("urgent")).toBe("normal")
   })
 
+  it("labels the overage states separately from the rate limits", () => {
+    expect(overageStatusLabel("allowed", t)).toBe("Available")
+    expect(overageStatusLabel("allowed_warning", t)).toBe("Near limit")
+    expect(overageStatusLabel("rejected", t)).toBe("Unavailable")
+    expect(overageStatusLabel("allowed", japanese)).toBe("利用可")
+    expect(overageStatusLabel("allowed_warning", japanese)).toBe("上限間近")
+    expect(overageStatusLabel("rejected", japanese)).toBe("利用不可")
+  })
+
   it("labels the statuses", () => {
     expect(statusLabel("allowed_warning", t)).toBe("Warning")
     expect(statusLabel("rejected", japanese)).toBe("上限到達")
@@ -129,6 +139,14 @@ describe("times", () => {
 
   it("rounds a partial minute up", () => {
     expect(formatTimeLeft(61_000, t)).toBe("in 2m")
+  })
+
+  it("uses days and hours for a time left of a day or more", () => {
+    const long = 4 * 24 * HOUR + 6 * HOUR
+    expect(formatTimeLeft(long, t)).toBe("in 4d 6h")
+    expect(formatTimeLeft(long, japanese)).toBe("あと4日6時間")
+    expect(formatLimitReached(long, t)).toBe("Limit reached · resets in 4d 6h")
+    expect(formatLimitReached(long, japanese)).toBe("上限到達 · あと4日6時間で解除")
   })
 
   it("writes the limit-reached text of a rejected primary window", () => {

@@ -53,9 +53,15 @@ function padded(minutes: number): string {
 /** A positive time left, such as `in 2h 13m`. */
 export function formatTimeLeft(ms: number, t: Translate): string {
   const totalMinutes = Math.max(1, Math.ceil(ms / 60_000))
-  const hours = Math.floor(totalMinutes / 60)
-  if (hours > 0) {
-    return t("time.left.hoursMinutes", { hours, minutes: padded(totalMinutes % 60) })
+  const totalHours = Math.floor(totalMinutes / 60)
+  if (totalHours >= 24) {
+    return t("time.left.daysHours", {
+      days: Math.floor(totalHours / 24),
+      hours: totalHours % 24,
+    })
+  }
+  if (totalHours > 0) {
+    return t("time.left.hoursMinutes", { hours: totalHours, minutes: padded(totalMinutes % 60) })
   }
   return t("time.left.minutes", { minutes: totalMinutes })
 }
@@ -63,9 +69,15 @@ export function formatTimeLeft(ms: number, t: Translate): string {
 /** Text for a rejected primary window, such as `Limit reached · resets in 1h 05m`. */
 export function formatLimitReached(ms: number, t: Translate): string {
   const totalMinutes = Math.max(1, Math.ceil(ms / 60_000))
-  const hours = Math.floor(totalMinutes / 60)
-  if (hours > 0) {
-    return t("limit.reached.hours", { hours, minutes: padded(totalMinutes % 60) })
+  const totalHours = Math.floor(totalMinutes / 60)
+  if (totalHours >= 24) {
+    return t("limit.reached.daysHours", {
+      days: Math.floor(totalHours / 24),
+      hours: totalHours % 24,
+    })
+  }
+  if (totalHours > 0) {
+    return t("limit.reached.hours", { hours: totalHours, minutes: padded(totalMinutes % 60) })
   }
   return t("limit.reached.minutes", { minutes: totalMinutes })
 }
@@ -108,6 +120,12 @@ export function statusLabel(status: RateLimitStatus, t: Translate): string {
   if (status === "allowed_warning") return t("status.allowed_warning")
   if (status === "rejected") return t("status.rejected")
   return t("status.allowed")
+}
+
+export function overageStatusLabel(status: RateLimitStatus, t: Translate): string {
+  if (status === "allowed_warning") return t("overage.allowed_warning")
+  if (status === "rejected") return t("overage.rejected")
+  return t("overage.allowed")
 }
 
 function scopeName(scope: UsageLimitScope | null): string | undefined {
