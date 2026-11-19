@@ -20,6 +20,8 @@ export interface UsageBarProps {
   locale?: string
   /** Pin the clock in tests; the bar refreshes it every 30 seconds otherwise. */
   now?: number
+  /** Open the details on the first render, before the user selects the bar. */
+  defaultOpen?: boolean
 }
 
 const REFRESH_MS = 30_000
@@ -99,9 +101,10 @@ export function UsageBar({
   t,
   locale,
   now,
+  defaultOpen = false,
 }: UsageBarProps): React.JSX.Element | null {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [clock, setClock] = useState(() => Date.now())
   const [report, setReport] = useState<ReportView>({ status: "idle" })
   const rootRef = useRef<HTMLDivElement>(null)
@@ -191,7 +194,7 @@ export function UsageBar({
           </>
         )}
       </button>
-      {open && snapshot !== null ? (
+      {open ? (
         <UsagePopover snapshot={snapshot} now={current} t={t} locale={locale} report={report} />
       ) : null}
     </div>

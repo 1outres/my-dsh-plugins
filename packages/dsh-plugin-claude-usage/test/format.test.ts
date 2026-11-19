@@ -5,6 +5,7 @@ import {
   formatAge,
   formatLimitReached,
   formatTimeLeft,
+  formatUpdated,
   groupLabel,
   groupLimits,
   limitLabel,
@@ -35,6 +36,7 @@ const japanese = translator(ja)
 
 const HOUR = 3_600_000
 const MINUTE = 60_000
+const NOW = new Date(2026, 10, 23, 19, 0).getTime()
 
 const FIVE_HOUR = {
   kind: "five_hour" as const,
@@ -138,6 +140,17 @@ describe("times", () => {
   it("writes the local reset date and time", () => {
     const local = new Date(2026, 10, 23, 19, 59).getTime()
     expect(formatAbsoluteReset(local, "en-US")).toBe("11/23 19:59")
+  })
+
+  it("writes the updated line, with a separate just-now template", () => {
+    expect(formatUpdated(NOW - 20_000, NOW, t)).toBe("Updated just now (last Claude call)")
+    expect(formatUpdated(NOW - 20_000, NOW, japanese)).toBe(
+      "たった今更新（最後の Claude 呼び出し）",
+    )
+    expect(formatUpdated(NOW - 3 * MINUTE, NOW, t)).toBe("Updated 3 min ago (last Claude call)")
+    expect(formatUpdated(NOW - 3 * MINUTE, NOW, japanese)).toBe(
+      "3分前に更新（最後の Claude 呼び出し）",
+    )
   })
 
   it("writes how long ago the snapshot arrived", () => {

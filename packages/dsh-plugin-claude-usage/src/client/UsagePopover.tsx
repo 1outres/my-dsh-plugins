@@ -2,8 +2,8 @@ import type { RateLimitSnapshot, RateLimitWindow, UsageReport } from "../shared/
 import {
   extraUsageText,
   formatAbsoluteReset,
-  formatAge,
   formatTimeLeft,
+  formatUpdated,
   groupLabel,
   groupLimits,
   limitLabel,
@@ -17,7 +17,7 @@ import {
 import type { ReportView, Translate } from "./types"
 
 export interface UsagePopoverProps {
-  snapshot: RateLimitSnapshot
+  snapshot: RateLimitSnapshot | null
   now: number
   t: Translate
   locale?: string
@@ -140,34 +140,38 @@ export function UsagePopover({
       aria-label={t("popover.title")}
       data-usage-popover=""
     >
-      <div className="dsh-cu-section-title">{t("popover.rateLimits")}</div>
-      {orderedWindows(snapshot).map((window) => (
-        <WindowRow key={window.kind} window={window} now={now} t={t} locale={locale} />
-      ))}
-      {snapshot.overage === undefined ? null : (
-        <div className={`dsh-cu-overage dsh-cu-tone-${toneOfStatus(snapshot.overage.status)}`}>
-          <div className="dsh-cu-section-title">{t("popover.overage")}</div>
-          <div className="dsh-cu-row-meta">
-            {t("popover.overageStatus", { status: statusLabel(snapshot.overage.status, t) })}
-          </div>
-          {snapshot.overage.disabledReason === undefined ? null : (
-            <div className="dsh-cu-row-meta">
-              {t("popover.overageDisabled", { reason: snapshot.overage.disabledReason })}
+      {snapshot === null ? (
+        <div className="dsh-cu-pending">{t("usage.pending")}</div>
+      ) : (
+        <>
+          <div className="dsh-cu-section-title">{t("popover.rateLimits")}</div>
+          {orderedWindows(snapshot).map((window) => (
+            <WindowRow key={window.kind} window={window} now={now} t={t} locale={locale} />
+          ))}
+          {snapshot.overage === undefined ? null : (
+            <div className={`dsh-cu-overage dsh-cu-tone-${toneOfStatus(snapshot.overage.status)}`}>
+              <div className="dsh-cu-section-title">{t("popover.overage")}</div>
+              <div className="dsh-cu-row-meta">
+                {t("popover.overageStatus", { status: statusLabel(snapshot.overage.status, t) })}
+              </div>
+              {snapshot.overage.disabledReason === undefined ? null : (
+                <div className="dsh-cu-row-meta">
+                  {t("popover.overageDisabled", { reason: snapshot.overage.disabledReason })}
+                </div>
+              )}
+              {snapshot.overage.resetsAt === undefined ? null : (
+                <div className="dsh-cu-row-meta">
+                  {formatAbsoluteReset(snapshot.overage.resetsAt, locale)}
+                  {snapshot.overage.resetsAt <= now
+                    ? ` · ${t("reset.passed")}`
+                    : ` · ${formatTimeLeft(snapshot.overage.resetsAt - now, t)}`}
+                </div>
+              )}
             </div>
           )}
-          {snapshot.overage.resetsAt === undefined ? null : (
-            <div className="dsh-cu-row-meta">
-              {formatAbsoluteReset(snapshot.overage.resetsAt, locale)}
-              {snapshot.overage.resetsAt <= now
-                ? ` · ${t("reset.passed")}`
-                : ` · ${formatTimeLeft(snapshot.overage.resetsAt - now, t)}`}
-            </div>
-          )}
-        </div>
+          <div className="dsh-cu-updated">{formatUpdated(snapshot.observedAt, now, t)}</div>
+        </>
       )}
-      <div className="dsh-cu-updated">
-        {t("popover.updated", { age: formatAge(now - snapshot.observedAt, t) })}
-      </div>
       <div className="dsh-cu-section-title">{t("popover.byModel")}</div>
       {report.status === "loading" ? (
         <div className="dsh-cu-loading">{t("report.loading")}</div>

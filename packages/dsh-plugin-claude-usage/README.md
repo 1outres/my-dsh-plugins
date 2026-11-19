@@ -28,8 +28,9 @@ time. The item turns yellow when the status is `allowed_warning` and red when it
 is `rejected`. On a narrow screen only the first item stays visible.
 
 Until the first Claude call answers, the bar says that usage is fetched on the
-next Claude call. A window whose reset time has already passed shows "Reset (not
-updated yet)" instead of a percentage, because the next answer has not arrived.
+next Claude call; selecting it still opens the details and the per-model report.
+A window whose reset time has already passed shows "Reset (not updated yet)"
+instead of a percentage, because the next answer has not arrived.
 
 Select the bar to open the details. The popover shows every window, the overage
 status, and when the snapshot arrived. It also runs `claude ... /usage` to list

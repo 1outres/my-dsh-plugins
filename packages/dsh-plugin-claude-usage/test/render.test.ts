@@ -46,7 +46,7 @@ function snapshot(overrides: Partial<RateLimitSnapshot> = {}): RateLimitSnapshot
   }
 }
 
-function renderBar(state: UsageState, now = NOW): string {
+function renderBar(state: UsageState, now = NOW, defaultOpen = false): string {
   const store = createUsageStore()
   if (state.connected) {
     store.receive(
@@ -60,6 +60,7 @@ function renderBar(state: UsageState, now = NOW): string {
       t,
       locale: "en-US",
       now,
+      defaultOpen,
     }),
   )
 }
@@ -113,7 +114,10 @@ const REPORT: UsageReport = {
   },
 }
 
-function renderPopover(reportState: ReportView, snap = snapshot()): string {
+function renderPopover(
+  reportState: ReportView,
+  snap: RateLimitSnapshot | null = snapshot(),
+): string {
   return renderToStaticMarkup(
     createElement(UsagePopover, {
       snapshot: snap,
@@ -196,6 +200,13 @@ describe("the usage bar", () => {
     const html = renderBar({ connected: true, snapshot: snapshot() })
     expect(html).not.toContain('data-usage-popover=""')
   })
+
+  it("opens the details before the first snapshot", () => {
+    const html = renderBar({ connected: true, snapshot: null }, NOW, true)
+    expect(html).toContain('data-usage-popover=""')
+    expect(html).toContain("Usage — fetched on the next Claude call")
+    expect(html).toContain("Usage by model (weekly)")
+  })
 })
 
 describe("the usage popover", () => {
@@ -226,6 +237,24 @@ describe("the usage popover", () => {
     const html = renderPopover({ status: "ready", report: REPORT }, snapshot({ windows: [passed] }))
     expect(html).toContain("Reset (not updated yet)")
     expect(html).not.toContain(">50%<")
+  })
+
+  it("shows the report before the first snapshot", () => {
+    const html = renderPopover({ status: "ready", report: REPORT }, null)
+    expect(html).toContain("Usage — fetched on the next Claude call")
+    expect(html).toContain("Usage by model (weekly)")
+    expect(html).toContain("Weekly (all models)")
+    expect(html).not.toContain("Rate limits")
+    expect(html).not.toContain("Updated")
+  })
+
+  it("writes the just-now updated line without a duplicate ago", () => {
+    const html = renderPopover(
+      { status: "ready", report: REPORT },
+      snapshot({ observedAt: NOW - 20_000 }),
+    )
+    expect(html).toContain("Updated just now (last Claude call)")
+    expect(html).not.toContain("just now ago")
   })
 
   it("shows a loading state", () => {

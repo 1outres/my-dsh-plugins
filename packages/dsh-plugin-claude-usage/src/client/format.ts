@@ -97,6 +97,13 @@ export function formatAge(ms: number, t: Translate): string {
   return t("age.days", { days: Math.floor(hours / 24) })
 }
 
+/** The popover's "Updated" line. `just now` has its own template, not an age suffix. */
+export function formatUpdated(observedAt: number, now: number, t: Translate): string {
+  const age = Math.max(0, now - observedAt)
+  if (age < 60_000) return t("popover.updatedJustNow")
+  return t("popover.updated", { age: formatAge(age, t) })
+}
+
 export function statusLabel(status: RateLimitStatus, t: Translate): string {
   if (status === "allowed_warning") return t("status.allowed_warning")
   if (status === "rejected") return t("status.rejected")
