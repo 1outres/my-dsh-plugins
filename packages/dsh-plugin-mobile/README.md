@@ -43,12 +43,6 @@ The phone refinements apply while the Harness uses its phone layout: below
 - **Notches and the home indicator.** The page asks for the full screen
   (`viewport-fit=cover`) and pads by the safe-area insets; the navigation
   drawer and the composer clear the home indicator.
-- **The bottom row owns its inset.** On a filled shell's bottom row the plugin
-  publishes `--dsh-shell-bottom-inset-bottom`, `--dsh-shell-bottom-inset-left`
-  and `--dsh-shell-bottom-inset-right` (the home indicator's share and the
-  corner curve), drops the composer's bottom inset, and hides the row while the
-  keyboard is open. A shell.bottom occupant adds those properties to its own
-  padding so its background reaches the screen edge.
 - **Compact composer.** The conversation keeps 8px side clearance and the
   draft box caps its height against the visible area.
 - **No accidental reloads.** Pull-to-refresh and overscroll bounce are off, so

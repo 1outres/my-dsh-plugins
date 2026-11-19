@@ -129,18 +129,6 @@ ${M} [data-composer-seat] {
 ${M}[data-dsh-keyboard] [data-composer-seat] {
   padding-bottom: 0;
 }
-${M} [data-shell-bottom]:has(> [data-slot="shell.bottom"] > *) {
-  /* CSS has no corner-radius inset: the home indicator needs only the lowest ~13px, and the side padding clears the corner curve. */
-  --dsh-shell-bottom-inset-bottom: max(0px, calc(env(safe-area-inset-bottom) - 20px));
-  --dsh-shell-bottom-inset-left: max(env(safe-area-inset-left), calc(env(safe-area-inset-bottom) * 0.7));
-  --dsh-shell-bottom-inset-right: max(env(safe-area-inset-right), calc(env(safe-area-inset-bottom) * 0.7));
-}
-${M}:has([data-shell-bottom] > [data-slot="shell.bottom"] > *) [data-composer-seat] {
-  padding-bottom: 0;
-}
-${M}[data-dsh-keyboard] [data-shell-bottom] {
-  display: none;
-}
 
 ${SETTINGS} {
   box-sizing: border-box;
