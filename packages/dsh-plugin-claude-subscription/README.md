@@ -85,6 +85,28 @@ model is listed, and the message appears on the provider's row under
 A pinned 1M model is sent with `[1m]`. An id the plugin does not know is sent as it
 is and reports a 200K window. An unknown id that ends in `[1m]` reports no window.
 
+## Usage service
+
+The Host half provides the Cordis service `claudeSubscriptionUsage`. Another
+plugin can inject it to show subscription usage without starting the CLI by
+itself.
+
+| Method                 | What it does                                                                |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `current()`            | The last rate limit snapshot, or `null` when no call has answered yet.      |
+| `subscribe(listener)`  | Calls the listener with each new snapshot. Returns an unsubscribe function. |
+| `fetchReport(signal?)` | Runs `claude ... /usage` and returns its report. It makes no model request. |
+
+A snapshot comes from the unified rate limit headers of each Claude answer,
+including a 429 answer. It holds the used fraction and reset time of the
+five-hour and seven-day windows, the overage status, and the fallback
+percentage. A field that does not parse is left out instead of guessed. The
+snapshot lives in memory only, so a restart starts with `null` again.
+
+The `/usage` report lists every usage meter the account returns. Unknown kinds
+and severities are kept as they are, so a newer CLI can add a meter without a
+plugin change.
+
 ## What the model sees
 
 The CLI adds its own text to every request. Besides the DSH system prompt and
