@@ -3,7 +3,6 @@ import { USAGE_CSS } from "../src/client/styles"
 
 describe("stylesheet", () => {
   it("copies the scratch footer row metrics", () => {
-    expect(USAGE_CSS).toContain(".dsh-cu-footer-root{display:contents}")
     expect(USAGE_CSS).toContain("width:calc(100% + 4px)")
     expect(USAGE_CSS).toContain("height:42px")
     expect(USAGE_CSS).toContain("margin:8px -2px 0")
@@ -11,6 +10,20 @@ describe("stylesheet", () => {
     expect(USAGE_CSS).toContain("border-radius:12px")
     expect(USAGE_CSS).toContain("font-size:14px")
     expect(USAGE_CSS).toContain("gap:8px")
+  })
+
+  it("takes its own full line in the host footer action row", () => {
+    expect(USAGE_CSS).toContain(
+      ':has(> [data-slot="sidebar.footer.action"] > .dsh-cu-footer-root){flex-wrap:wrap}',
+    )
+    expect(USAGE_CSS).toContain("does not wrap")
+    expect(USAGE_CSS).toContain(
+      ".dsh-cu-footer-root{display:flex;flex-direction:column;flex:1 0 100%;min-width:0}",
+    )
+  })
+
+  it("centers the rail ring on its own line", () => {
+    expect(USAGE_CSS).toContain("align-self:center")
   })
 
   it("keeps the hover and focus behavior", () => {

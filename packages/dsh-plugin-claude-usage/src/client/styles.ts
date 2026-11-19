@@ -3,11 +3,13 @@
  * host; classes use the `dsh-cu-` prefix.
  */
 export const USAGE_CSS = [
-  ".dsh-cu-footer-root{display:contents}",
+  "/* The host footer action row lays entries side by side and does not wrap. */",
+  ':has(> [data-slot="sidebar.footer.action"] > .dsh-cu-footer-root){flex-wrap:wrap}',
+  ".dsh-cu-footer-root{display:flex;flex-direction:column;flex:1 0 100%;min-width:0}",
   ".dsh-cu-footer{box-sizing:border-box;width:calc(100% + 4px);height:42px;margin:8px -2px 0;padding:0 10px 0 8px;border:none;border-radius:12px;background:transparent;color:var(--dsw-alias-label-primary);font-family:inherit;font-size:14px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;overflow:hidden}",
   ".dsh-cu-footer:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}",
   ".dsh-cu-footer:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}",
-  ".dsh-cu-footer[data-rail]{width:36px;height:36px;margin:0;padding:0;gap:0;justify-content:center;border-radius:50%}",
+  ".dsh-cu-footer[data-rail]{width:36px;height:36px;margin:0;padding:0;gap:0;justify-content:center;border-radius:50%;align-self:center}",
   ".dsh-cu-footer svg{flex:none}",
   ".dsh-cu-footer-text{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap}",
   ".dsh-cu-footer-primary{display:flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0}",

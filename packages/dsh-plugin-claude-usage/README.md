@@ -21,9 +21,9 @@ both rows.
 
 ## Sidebar footer
 
-The row sits directly after "New scratch" and before the "… More" launcher. On
-phones the sidebar is the left drawer, so the row appears there while the
-drawer is open.
+The row takes its own line below the other footer actions, after "New scratch"
+and before the "… More" launcher. On phones the sidebar is the left drawer, so
+the row appears there while the drawer is open.
 
 A wide sidebar shows the mark and the primary window: the five-hour window when
 the account has one, otherwise the seven-day window, with its meter, used
