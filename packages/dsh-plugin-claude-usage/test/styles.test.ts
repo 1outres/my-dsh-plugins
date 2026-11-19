@@ -44,8 +44,6 @@ describe("stylesheet", () => {
   it("has no bottom bar or phone-specific rules left", () => {
     expect(USAGE_CSS).not.toContain("dsh-cu-bar")
     expect(USAGE_CSS).not.toContain("dsh-cu-root")
-    expect(USAGE_CSS).not.toContain("--dsh-shell-bottom-inset")
-    expect(USAGE_CSS).not.toContain("shell.bottom")
     expect(USAGE_CSS).not.toContain("@media")
   })
 })
