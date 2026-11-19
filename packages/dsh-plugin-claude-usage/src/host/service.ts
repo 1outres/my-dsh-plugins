@@ -21,8 +21,8 @@ export class ClaudeUsageService extends TypertRemoteService {
   }
 
   @Remote({ mode: "stream" })
-  snapshots(signal?: AbortSignal): AsyncIterable<UsageStreamState> {
-    return snapshotStream(this[PROVIDER], signal)
+  async *snapshots(signal?: AbortSignal): AsyncIterable<UsageStreamState> {
+    yield* snapshotStream(this[PROVIDER], signal)
   }
 
   @Remote
