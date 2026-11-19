@@ -6,7 +6,8 @@ navigation drawer below 768px, with its own opener, mask, focus trap and
 close-on-navigation. This plugin supplies what is still missing on a phone: the
 page follows the on-screen keyboard, Enter adds a line, the keyboard stays
 closed until you tap the composer, edge swipes open and close the shipped
-drawer, and the layout respects notches and touch. It also serves and registers
+drawer, a long press opens the Harness context menu, and the layout respects
+notches and touch. It also serves and registers
 the app's service worker, which adds an offline page and the notification
 channel that the notify plugin pushes through.
 
@@ -60,6 +61,16 @@ On any touch screen (also a tablet wider than 768px):
   hover, so a row needed two taps. Rows no longer change on hover: the selected
   session and every workspace keep their "..." menu and buttons visible, with
   28px tap targets, and other sessions keep their time.
+- **Long press opens the context menu.** Hold a finger on a Harness
+  context-menu trigger — a presented file card with its Download entry, an
+  image attachment, a file mention, a link, a session row, a tab or a file tree
+  row — for about half a second (500 ms) and its menu opens. This also works on
+  iPhone and iPad, where the browser sends no `contextmenu` event for a touch.
+  A second finger, a movement of more than 10 CSS px from the start point, or
+  lifting the finger before the timer fires cancels the press. The click that
+  ends a handled touch is dropped, so the card under the finger is not also
+  opened, and the small text selection the long press starts is cleared. While
+  the setting is on, iOS shows no image or link preview callout on a long press.
 - No tap highlight flash and no double-tap zoom delay on buttons.
 
 The plugin also patches the viewport metadata and adds the home-screen tags
@@ -159,6 +170,7 @@ width, and the App group shows the app and service worker state.
 | -------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `enterKey`           | `newline` | Enter in the composer on a touch screen: `newline` adds a line, `send` keeps the Harness default.                                                                            |
 | `swipe`              | `true`    | Edge swipe opens the Harness navigation drawer, swipe left closes it.                                                                                                        |
+| `longPressMenu`      | `true`    | A long press on a touch screen opens the Harness context menu (Download on a file card, for example), also on iPhone and iPad.                                               |
 | `fitKeyboard`        | `true`    | Fit the page to the area the on-screen keyboard leaves visible.                                                                                                              |
 | `blockPullToRefresh` | `true`    | Stop pull-to-refresh and overscroll bounce.                                                                                                                                  |
 | `autoFocusComposer`  | `false`   | Let a composer button or another Harness action focus the input (and open the keyboard). Off keeps the keyboard closed until you tap the input.                              |
@@ -188,22 +200,29 @@ entry that still sets them is ignored.
 5. Focus: capturing `pointerdown` and `keydown` listeners remember what the
    user last did; a `focusin` on the composer that no recent tap on it or key
    press explains is blurred in the same event.
-6. The Host half declares the settings, turns off the schema-generated form,
+6. Long press: capturing touch listeners remember the touched element and the
+   start point of a one-finger touch. After 500 ms a timer dispatches a native
+   `contextmenu` event on that element; the Harness context-menu plugin binds
+   `onContextMenu` to its triggers, and React 18 passes the delegated event
+   through. A trusted `contextmenu` from the browser (Android sends one on a
+   long press) is left alone, and the plugin only notes whether the menu took
+   it. A handled touch drops the click that ends it.
+7. The Host half declares the settings, turns off the schema-generated form,
    and serves `lib/sw.js` at `/dsh-mobile-sw.js` through an exact route of
    `ctx.webServer`. It reads the script once at startup; the route answers
    `GET` and `HEAD` with `text/javascript`, `Cache-Control: no-cache` and
    `Service-Worker-Allowed: /`.
-7. The browser half registers the worker with scope `./` while the
+8. The browser half registers the worker with scope `./` while the
    `serviceWorker` setting is on. Turning the setting off finds the
    registration whose active script ends with `/dsh-mobile-sw.js` and
    unregisters it. Plugin teardown (an HMR reload, for example) keeps the
    registration, because unregistering would drop push subscriptions.
-8. The install module captures `beforeinstallprompt`, keeps it until the
+9. The install module captures `beforeinstallprompt`, keeps it until the
    button is pressed or the app is installed, and hands it to the browser.
-9. The theme color module keeps a `theme-color` meta tag in sync with the
-   computed background color of `<body>`. It watches attributes on `<html>`
-   and `<body>` and the `prefers-color-scheme` media query, and runs at most
-   one update per animation frame.
+10. The theme color module keeps a `theme-color` meta tag in sync with the
+    computed background color of `<body>`. It watches attributes on `<html>`
+    and `<body>` and the `prefers-color-scheme` media query, and runs at most
+    one update per animation frame.
 
 ## Limits
 
@@ -216,6 +235,11 @@ entry that still sets them is ignored.
   applying, and the page falls back to the shipped layout for that part.
 - Enter relies on the composer being a plain-text editor that turns the
   browser's paragraph insertion into a line break.
+- A long press opens a menu only where the Harness binds one: the touched
+  element, or one of its ancestors, has to be a context-menu trigger. A long
+  press on other text keeps the browser's text selection.
+- While `longPressMenu` is on, iOS shows no image or link preview callout. A
+  text selection the same long press started is cleared when a menu opens.
 - The Harness owns the drawer breakpoint; the plugin follows the frame's
   `data-sidebar-drawer` attribute rather than repeating the width.
 - An edge swipe in Safari can also trigger the browser's own back gesture; the
