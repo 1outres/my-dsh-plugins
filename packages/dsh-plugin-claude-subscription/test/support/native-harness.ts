@@ -13,6 +13,7 @@ import type {
   PluginSettings,
   PreparedRequest,
 } from "../../src/contract"
+import type { RateLimitSnapshot } from "../../src/usage/contract"
 import { type FakeRelayControl, type FakeRelayState, fakeRelayControl } from "./fake-relay"
 import { type LocalSubprocess, localSubprocess } from "./local-subprocess"
 
@@ -41,6 +42,9 @@ export interface FakeClaudeScenario {
   handshakeRaw?: string
   handshakeScript?: FakeClaudeStep[]
   afterHandshake?: FakeClaudeStep[]
+  usageScript?: FakeClaudeStep[]
+  usageRaw?: string
+  usageExit?: number
   neverRead?: boolean
   atStart?: FakeClaudeStep[]
   afterFirstFrame?: FakeClaudeStep[]
@@ -77,6 +81,8 @@ export interface NativeHarness {
   readonly deps: NativeDeps
   readonly subprocess: LocalSubprocess
   readonly relay: FakeRelayControl
+  /** Rate limit snapshots handed to the usage service, in order. */
+  readonly rateLimits: RateLimitSnapshot[]
   settings: PluginSettings
   invocations(): RecordedInvocation[]
   frames(): { type: string; shouldQuery?: boolean; bytes: number }[]
@@ -118,6 +124,7 @@ export function nativeHarness(options: HarnessOptions = {}): NativeHarness {
   }
   const subprocess = localSubprocess(ambient)
   const relay = fakeRelayControl(options.relay)
+  const rateLimits: RateLimitSnapshot[] = []
   const settings: PluginSettings = {
     command: options.command ?? writeWrapper(root),
     claudeConfigDir: "",
@@ -129,6 +136,7 @@ export function nativeHarness(options: HarnessOptions = {}): NativeHarness {
     root,
     subprocess,
     relay,
+    rateLimits,
     settings,
     deps: {
       subprocess,
@@ -137,6 +145,7 @@ export function nativeHarness(options: HarnessOptions = {}): NativeHarness {
       processEnv: () => ambient,
       inertMcpPath: "/fixture/inert-mcp.js",
       nodePath: process.execPath,
+      recordRateLimit: (snapshot) => rateLimits.push(snapshot),
     },
     invocations: () =>
       recordedRows(record)

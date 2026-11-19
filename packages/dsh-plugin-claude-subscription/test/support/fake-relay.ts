@@ -5,6 +5,7 @@ import type {
   RelayOptions,
   StreamCapture,
 } from "../../src/contract"
+import type { RateLimitSnapshot } from "../../src/usage/contract"
 
 export const FAKE_RELAY_URL = "http://127.0.0.1:1/fake-private-route"
 
@@ -15,6 +16,7 @@ export interface FakeRelayState {
   failure: string | null
   requestId: string | null
   retryAfterMs: number | null
+  rateLimit: RateLimitSnapshot | null
   unrestored: string | null
   message: CapturedMessage | null
   complete: boolean
@@ -53,6 +55,7 @@ const UNUSED: FakeRelayState = {
   failure: null,
   requestId: null,
   retryAfterMs: null,
+  rateLimit: null,
   unrestored: null,
   message: null,
   complete: false,
@@ -86,6 +89,7 @@ function fakeRelay(state: FakeRelayState): FakeRelay {
     failure: state.failure,
     requestId: state.requestId,
     retryAfterMs: state.retryAfterMs,
+    rateLimit: state.rateLimit,
     unrestored: state.unrestored,
     capture,
     get aborted() {

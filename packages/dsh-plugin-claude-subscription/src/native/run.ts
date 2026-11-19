@@ -267,14 +267,17 @@ export const runNative: RunNative = async function* (request, signal, deps) {
     files,
     queried,
   }
+  let relay: Relay | undefined
   try {
-    const relay = await openRelay(request, context)
+    relay = await openRelay(request, context)
     if (signal?.aborted === true) {
       await relay.close().catch(() => {})
       throw abortedFailure()
     }
     return yield* runProcess(context, relay)
   } finally {
+    const snapshot = relay?.rateLimit
+    if (snapshot !== null && snapshot !== undefined) deps.recordRateLimit(snapshot)
     await removeRequestFiles(files).catch(() => {})
   }
 }

@@ -47,6 +47,7 @@ describe("plugin entry", () => {
       subprocess,
       logger: { warn },
       get: getService,
+      reflect: { provide: () => () => {} },
       fiber,
     }
     apply(ctx as unknown as Context, Config(raw))

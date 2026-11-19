@@ -4,6 +4,8 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { AddressInfo, Socket } from "node:net"
 import type { CreateRelay, Relay, RelayOptions, StreamCapture } from "../contract"
 import { FailureCode, NativeFailure } from "../errors"
+import type { RateLimitSnapshot } from "../usage/contract"
+import { parseRateLimitSnapshot } from "../usage/headers"
 import { SseCapture } from "./capture"
 import { retryAfterMs } from "./retry-after"
 import {
@@ -46,6 +48,7 @@ class RelayRecord {
   status: number | null = null
   requestId: string | null = null
   retryAfterMs: number | null = null
+  rateLimit: RateLimitSnapshot | null = null
   failure: string | null = null
   unrestored: string | null = null
   errorBody: Buffer = Buffer.alloc(0)
@@ -236,6 +239,10 @@ class LoopbackRelay implements Relay {
     return this.#record.retryAfterMs
   }
 
+  get rateLimit(): RateLimitSnapshot | null {
+    return this.#record.rateLimit
+  }
+
   get unrestored(): string | null {
     return this.#record.unrestored
   }
@@ -357,6 +364,7 @@ class LoopbackRelay implements Relay {
     this.#record.status = status
     this.#record.requestId = typeof requestId === "string" ? requestId : null
     this.#record.retryAfterMs = retryAfterMs(upstream.headers["retry-after"], Date.now())
+    this.#record.rateLimit = parseRateLimitSnapshot(upstream.headers, Date.now())
     response.writeHead(status, upstream.statusMessage, clientResponseHeaders(upstream.rawHeaders))
     response.flushHeaders()
     for await (const chunk of upstream) {

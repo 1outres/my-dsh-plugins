@@ -107,6 +107,12 @@ function recordRequestFiles() {
   })
 }
 
+async function usage() {
+  await runScript(scenario.usageScript)
+  if (scenario.usageRaw !== undefined) process.stdout.write(`${scenario.usageRaw}\n`)
+  process.exit(scenario.usageExit ?? 0)
+}
+
 async function turn() {
   recordRequestFiles()
   await runScript(scenario.atStart)
@@ -124,5 +130,6 @@ async function turn() {
 
 record({ argv, env: process.env, cwd: process.cwd() })
 if (argv[0] === "auth" && argv[1] === "status") await authStatus()
+else if (argv.includes("/usage")) await usage()
 else if (argv.includes("--max-turns")) await turn()
 else await handshake()

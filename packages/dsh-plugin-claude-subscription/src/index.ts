@@ -12,6 +12,8 @@ import { type ImageAccess, imageRequestTarget } from "./request/images"
 import { modelInfo } from "./request/model-info"
 import { prepareRequest } from "./request/prepare"
 import { projectionOf } from "./request/replay"
+import { runUsageReport } from "./usage/report"
+import { ClaudeSubscriptionUsageService } from "./usage/service"
 
 export { Config }
 export const name = PROVIDER_ID
@@ -48,14 +50,6 @@ function imageAccessOf(ctx: Context, ref: ImageAttachmentRef): ImageAccess | und
 }
 
 export function apply(ctx: Context, config: ParsedConfig): void {
-  const native: NativeDeps = {
-    subprocess: ctx.subprocess,
-    createRelay,
-    settings: () => readSettings(config),
-    processEnv: () => process.env,
-    inertMcpPath: fileURLToPath(new URL("./inert-mcp.js", import.meta.url)),
-    nodePath: process.execPath,
-  }
   const entry: LlmConfigurableProvider = {
     provider: PROVIDER_ID,
     displayName: DISPLAY_NAME,
@@ -63,6 +57,16 @@ export function apply(ctx: Context, config: ParsedConfig): void {
     settingsPath: [],
   }
   const directory = ctx.llm.registerConfigurableProviders([entry])
+  const usage = new ClaudeSubscriptionUsageService(ctx, (signal) => runUsageReport(native, signal))
+  const native: NativeDeps = {
+    subprocess: ctx.subprocess,
+    createRelay,
+    settings: () => readSettings(config),
+    processEnv: () => process.env,
+    inertMcpPath: fileURLToPath(new URL("./inert-mcp.js", import.meta.url)),
+    nodePath: process.execPath,
+    recordRateLimit: (snapshot) => usage.record(snapshot),
+  }
   let reported: string | undefined
 
   ctx.llm.registerAdapter(

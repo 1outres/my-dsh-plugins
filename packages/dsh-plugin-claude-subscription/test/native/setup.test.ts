@@ -354,6 +354,21 @@ describe("setup probes", () => {
       expect(created.relay.last().closed).toBe(true)
     })
 
+    it("does not report the handshake relay's rate limit", async () => {
+      const created = harness(
+        { models: PINNED_PICKER },
+        {
+          env: { ANTHROPIC_BASE_URL: "http://127.0.0.1:9" },
+          relay: {
+            rateLimit: { observedAt: 1_800_000_000_000, status: "allowed", windows: [] },
+          },
+        },
+      )
+      await discoverModels(created.deps)
+      expect(created.relay.created).toHaveLength(1)
+      expect(created.rateLimits).toEqual([])
+    })
+
     it("treats a request behind the relay as a failed handshake", async () => {
       const created = harness(
         { models: PINNED_PICKER },

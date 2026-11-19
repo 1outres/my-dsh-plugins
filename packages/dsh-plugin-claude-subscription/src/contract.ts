@@ -3,6 +3,7 @@
  * logic and depends on the others only through these types.
  */
 import type { SubprocessRuntime } from "@deepseek-ai/dsh-subprocess"
+import type { RateLimitSnapshot } from "./usage/contract"
 
 export const PROVIDER_ID = "claude-subscription"
 export const MCP_SERVER_NAME = "dsh"
@@ -116,6 +117,8 @@ export interface Relay {
   readonly requestId: string | null
   /** Wait from the `retry-after` header of the admitted response, or null when none is usable. */
   readonly retryAfterMs: number | null
+  /** Unified rate limit headers of the admitted response, or null when it had none. */
+  readonly rateLimit: RateLimitSnapshot | null
   /** Why the queried turn stayed as the CLI built it. Null when it was restored. */
   readonly unrestored: string | null
   readonly capture: StreamCapture
@@ -151,6 +154,8 @@ export interface NativeDeps {
   inertMcpPath: string
   /** Absolute path of the Node binary that runs that script. */
   nodePath: string
+  /** Hands one response's rate limit snapshot to the usage service. */
+  recordRateLimit(snapshot: RateLimitSnapshot): void
 }
 
 /** One raw Anthropic stream event, as the CLI reports it in a `stream_event` line. */
