@@ -14,6 +14,7 @@ import {
   toneOfStatus,
   windowLabel,
 } from "./format"
+import type { PopoverPosition } from "./popover-position"
 import type { ReportView, Translate } from "./types"
 
 export interface UsagePopoverProps {
@@ -22,6 +23,7 @@ export interface UsagePopoverProps {
   t: Translate
   locale?: string
   report: ReportView
+  position?: PopoverPosition | null
 }
 
 function toneWidth(percent: number): string {
@@ -132,6 +134,7 @@ export function UsagePopover({
   t,
   locale,
   report,
+  position,
 }: UsagePopoverProps): React.JSX.Element {
   return (
     <div
@@ -139,6 +142,7 @@ export function UsagePopover({
       role="dialog"
       aria-label={t("popover.title")}
       data-usage-popover=""
+      style={position === undefined || position === null ? undefined : position}
     >
       {snapshot === null ? (
         <div className="dsh-cu-pending">{t("usage.pending")}</div>

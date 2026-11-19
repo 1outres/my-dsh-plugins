@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react"
 import type { RateLimitWindow, UsageReportResult } from "../shared/contract"
 import {
   formatAbsoluteReset,
@@ -10,6 +10,7 @@ import {
   toneOfStatus,
   windowLabel,
 } from "./format"
+import { createPositionTracker } from "./popover-position"
 import type { ReportView, Translate, UsageStore } from "./types"
 import { UsagePopover } from "./UsagePopover"
 
@@ -25,6 +26,8 @@ export interface UsageBarProps {
 }
 
 const REFRESH_MS = 30_000
+
+const useMeasureLayout = typeof window === "undefined" ? useEffect : useLayoutEffect
 
 function toneWidth(percent: number): string {
   return `${Math.max(0, Math.min(100, percent))}%`
@@ -109,6 +112,12 @@ export function UsageBar({
   const [report, setReport] = useState<ReportView>({ status: "idle" })
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  const [positionTracker] = useState(createPositionTracker)
+  const position = useSyncExternalStore(
+    positionTracker.subscribe,
+    positionTracker.getSnapshot,
+    positionTracker.getSnapshot,
+  )
   const current = now ?? clock
 
   useEffect(() => {
@@ -116,6 +125,13 @@ export function UsageBar({
     const timer = setInterval(() => setClock(Date.now()), REFRESH_MS)
     return () => clearInterval(timer)
   }, [now])
+
+  useMeasureLayout(() => {
+    if (!open) return
+    const root = rootRef.current
+    if (root === null) return
+    return positionTracker.follow(root, window)
+  }, [open, positionTracker])
 
   useEffect(() => {
     if (!open) return
@@ -195,7 +211,14 @@ export function UsageBar({
         )}
       </button>
       {open ? (
-        <UsagePopover snapshot={snapshot} now={current} t={t} locale={locale} report={report} />
+        <UsagePopover
+          snapshot={snapshot}
+          now={current}
+          t={t}
+          locale={locale}
+          report={report}
+          position={position}
+        />
       ) : null}
     </div>
   )
