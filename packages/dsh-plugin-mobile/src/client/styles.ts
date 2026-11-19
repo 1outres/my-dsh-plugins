@@ -129,6 +129,17 @@ ${M} [data-composer-seat] {
 ${M}[data-dsh-keyboard] [data-composer-seat] {
   padding-bottom: 0;
 }
+${M} [data-shell-bottom]:has(> [data-slot="shell.bottom"] > *) {
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+${M}:has([data-shell-bottom] > [data-slot="shell.bottom"] > *) [data-composer-seat] {
+  padding-bottom: 0;
+}
+${M}[data-dsh-keyboard] [data-shell-bottom] {
+  display: none;
+}
 
 ${SETTINGS} {
   box-sizing: border-box;

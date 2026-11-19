@@ -181,6 +181,30 @@ describe("stylesheet", () => {
     expect(MOBILE_CSS).toContain('[data-shortcut-modal="settings"]')
   })
 
+  it("gives the bottom safe-area inset to a filled shell bottom row", () => {
+    expect(MOBILE_CSS).toContain(
+      'html[data-dsh-mobile] [data-shell-bottom]:has(> [data-slot="shell.bottom"] > *)',
+    )
+    expect(MOBILE_CSS).toContain("padding-right: env(safe-area-inset-right);")
+    expect(MOBILE_CSS).toContain("padding-bottom: env(safe-area-inset-bottom);")
+    expect(MOBILE_CSS).toContain("padding-left: env(safe-area-inset-left);")
+  })
+
+  it("drops the composer's bottom inset while the shell bottom row has content", () => {
+    expect(MOBILE_CSS).toContain(
+      'html[data-dsh-mobile]:has([data-shell-bottom] > [data-slot="shell.bottom"] > *) [data-composer-seat]',
+    )
+    expect(MOBILE_CSS).toMatch(
+      /:has\(\[data-shell-bottom\] > \[data-slot="shell\.bottom"\] > \*\) \[data-composer-seat\] \{\s*padding-bottom: 0;/,
+    )
+  })
+
+  it("hides the shell bottom row while the keyboard is open", () => {
+    expect(MOBILE_CSS).toMatch(
+      /html\[data-dsh-mobile\]\[data-dsh-keyboard\] \[data-shell-bottom\] \{\s*display: none;/,
+    )
+  })
+
   it("scopes every host rule under the plugin's root attributes", () => {
     const rules = MOBILE_CSS.split("}")
       .map((rule) => rule.split("{")[0]?.trim() ?? "")
