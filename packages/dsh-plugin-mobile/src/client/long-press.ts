@@ -5,9 +5,11 @@ export interface LongPressOptions {
   readonly delay: number
   /** How far the finger may travel before the press is cancelled, in CSS pixels. */
   readonly slop: number
+  /** How long after the finger lifts a leftover click stays suppressed, in milliseconds. */
+  readonly clickWindow: number
 }
 
-export const DEFAULT_LONG_PRESS: LongPressOptions = { delay: 500, slop: 10 }
+export const DEFAULT_LONG_PRESS: LongPressOptions = { delay: 500, slop: 10, clickWindow: 700 }
 
 export interface LongPressHost {
   /** Whether long presses are on (a touch screen and the setting). */
@@ -114,7 +116,10 @@ export function installLongPress(
   const passive = { passive: true, capture: true }
   const capture = { capture: true }
   let press: Press | undefined
-  let handled = false
+  let fingerDown = false
+  let blockNative = false
+  let suppressClick = false
+  let clickWindowTimer: TimerHandle | undefined
   let generation = 0
 
   const cancel = () => {
@@ -123,18 +128,40 @@ export function installLongPress(
     press = undefined
   }
 
+  const clearClickWindow = () => {
+    if (clickWindowTimer === undefined) return
+    timers.clearTimeout(clickWindowTimer)
+    clickWindowTimer = undefined
+  }
+
+  const startClickWindow = () => {
+    if (!suppressClick || clickWindowTimer !== undefined) return
+    clickWindowTimer = timers.setTimeout(() => {
+      clickWindowTimer = undefined
+      suppressClick = false
+    }, options.clickWindow)
+  }
+
+  const guardPress = () => {
+    blockNative = true
+    suppressClick = true
+  }
+
   const fire = (pressed: Press) => {
     if (press !== pressed) return
     cancel()
     if (!host.open(pressed.target, pressed.x, pressed.y)) return
-    handled = true
+    guardPress()
     host.clearSelection()
   }
 
   const onStart = (event: TouchLike) => {
     cancel()
+    clearClickWindow()
     generation += 1
-    handled = false
+    fingerDown = true
+    blockNative = false
+    suppressClick = false
     const touch = event.touches[0]
     if (!host.enabled() || event.touches.length !== 1 || touch === undefined) return
     if (host.ignored(event.target)) return
@@ -165,6 +192,9 @@ export function installLongPress(
 
   const onEnd = () => {
     cancel()
+    fingerDown = false
+    blockNative = false
+    startClickWindow()
   }
 
   const onContextMenu = (event: MenuEventLike) => {
@@ -173,20 +203,21 @@ export function installLongPress(
       const current = generation
       cancel()
       timers.setTimeout(() => {
-        if (!event.defaultPrevented || generation !== current) return
-        handled = true
+        if (!event.defaultPrevented || generation !== current || !fingerDown) return
+        guardPress()
         host.clearSelection()
       }, 0)
       return
     }
-    if (!handled) return
+    if (!blockNative) return
     event.preventDefault()
     event.stopImmediatePropagation()
   }
 
   const onClick = (event: MenuEventLike) => {
-    if (!handled) return
-    handled = false
+    if (!suppressClick) return
+    suppressClick = false
+    clearClickWindow()
     event.preventDefault()
     event.stopImmediatePropagation()
   }
@@ -199,6 +230,7 @@ export function installLongPress(
   target.addEventListener("click", onClick, capture)
   return () => {
     cancel()
+    clearClickWindow()
     target.removeEventListener("touchstart", onStart, passive)
     target.removeEventListener("touchmove", onMove, passive)
     target.removeEventListener("touchend", onEnd, passive)

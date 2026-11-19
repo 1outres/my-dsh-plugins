@@ -166,8 +166,8 @@ function setup(
 }
 
 describe("long press listeners", () => {
-  it("uses a 500ms press and a 10px slop by default", () => {
-    expect(DEFAULT_LONG_PRESS).toEqual({ delay: 500, slop: 10 })
+  it("uses a 500ms press, a 10px slop and a 700ms click window by default", () => {
+    expect(DEFAULT_LONG_PRESS).toEqual({ delay: 500, slop: 10, clickWindow: 700 })
   })
 
   it("opens the menu after the delay and clears the selection it made", () => {
@@ -242,12 +242,17 @@ describe("long press listeners", () => {
     expect(h.timers.size).toBe(1)
   })
 
-  it("uses the injected delay and slop", () => {
-    const h = setup(undefined, { delay: 300, slop: 5 })
+  it("uses the injected delay, slop and click window", () => {
+    const h = setup(undefined, { delay: 300, slop: 5, clickWindow: 400 })
     h.touch("touchstart", 0, 0)
     expect(h.timers.delays).toEqual([300])
     h.touch("touchmove", 6, 0)
     expect(h.timers.size).toBe(0)
+
+    h.touch("touchstart", 0, 0)
+    h.timers.flush()
+    h.touch("touchend", 0, 0)
+    expect(h.timers.delays).toEqual([300, 300, 400])
   })
 
   it("lets a trusted event through and treats its prevented dispatch as handled", () => {
@@ -301,13 +306,82 @@ describe("long press listeners", () => {
     expect(trusted.stopImmediatePropagation).toHaveBeenCalledTimes(1)
   })
 
-  it("stops the click that lifts a handled press only once", () => {
+  it("stops the next click after a handled press only once", () => {
     const h = setup()
     h.touch("touchstart", 5, 6)
     h.timers.flush()
 
     expect(h.click().defaultPrevented).toBe(true)
     expect(h.click().defaultPrevented).toBe(false)
+  })
+
+  it("does not block a trusted event after the finger lifts", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    h.touch("touchend", 5, 6)
+
+    const trusted = h.menu(true)
+    expect(trusted.defaultPrevented).toBe(false)
+    expect(trusted.stopImmediatePropagation).not.toHaveBeenCalled()
+  })
+
+  it("stops the click that lifts a handled press once", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    h.touch("touchend", 5, 6)
+
+    expect(h.click().defaultPrevented).toBe(true)
+    expect(h.click().defaultPrevented).toBe(false)
+  })
+
+  it("lets a click through after the click window", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    h.touch("touchend", 5, 6)
+    expect(h.timers.size).toBe(1)
+
+    h.timers.flush()
+    expect(h.click().defaultPrevented).toBe(false)
+  })
+
+  it("starts the click window when the finger lifts after the Android check", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    const trusted = h.menu(true)
+    trusted.preventDefault()
+    h.timers.flush()
+    expect(h.clearSelection).toHaveBeenCalledTimes(1)
+    expect(h.timers.size).toBe(0)
+
+    h.touch("touchend", 5, 6)
+    expect(h.timers.size).toBe(1)
+    expect(h.click().defaultPrevented).toBe(true)
+  })
+
+  it("cancels the click window on the next touchstart", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    h.touch("touchend", 5, 6)
+    expect(h.timers.size).toBe(1)
+
+    h.touch("touchstart", 5, 6)
+    h.touch("touchend", 5, 6)
+    expect(h.timers.size).toBe(0)
+  })
+
+  it("clears the click window timer on dispose", () => {
+    const h = setup()
+    h.touch("touchstart", 5, 6)
+    h.timers.flush()
+    h.touch("touchend", 5, 6)
+    expect(h.timers.size).toBe(1)
+
+    h.dispose()
+    expect(h.timers.size).toBe(0)
   })
 
   it("forgets the handled press on the next touchstart", () => {
