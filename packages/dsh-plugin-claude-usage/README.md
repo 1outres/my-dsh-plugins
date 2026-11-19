@@ -21,21 +21,17 @@ both rows.
 
 ## The bar
 
-The first item is the five-hour window when the account has one, otherwise the
-seven-day window. It shows the used percentage, a small bar, and the time left
-until the window resets. Other windows follow with the local reset date and
-time. The item turns yellow when the status is `allowed_warning` and red when it
-is `rejected`. On a narrow screen only the first item stays visible.
+The bar shows the five-hour window first when the account has one, otherwise
+the seven-day window: short label, small bar, used percent, and time left.
+Other windows follow with their percent only. Warning and limit states use the
+host warning and error colors. A passed reset shows "—". Before the first
+Claude answer the bar shows only the mark and "—". Hover for each window's reset
+date and the snapshot age.
 
-Until the first Claude call answers, the bar says that usage is fetched on the
-next Claude call; selecting it still opens the details and the per-model report.
-A window whose reset time has already passed shows "Reset (not updated yet)"
-instead of a percentage, because the next answer has not arrived.
-
-Select the bar to open the details. The popover shows every window, the overage
-status, and when the snapshot arrived. It also runs `claude ... /usage` to list
-usage by model, with a loading state and an error state. This local command
-makes no model request. Escape or a click outside closes the popover, and focus
+Select the bar to open the per-model report from `claude ... /usage`. The
+popover lists each meter with its percent and time left, plus extra usage when
+it is enabled. Loading and errors are one muted mark. This local command makes
+no model request. Escape or a click outside closes the popover, and focus
 returns to the bar.
 
 ## Requirements

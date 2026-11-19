@@ -1,25 +1,15 @@
-import type { RateLimitSnapshot, RateLimitWindow, UsageReport } from "../shared/contract"
+import type { UsageExtraUsage, UsageLimit, UsageReport } from "../shared/contract"
 import {
-  extraUsageText,
+  extraUsageValue,
   formatAbsoluteReset,
-  formatTimeLeft,
-  formatUpdated,
-  groupLabel,
-  groupLimits,
+  formatTimeShort,
   limitLabel,
-  orderedWindows,
-  overageStatusLabel,
-  percentOf,
-  statusLabel,
   toneOfSeverity,
-  toneOfStatus,
-  windowLabel,
 } from "./format"
 import type { PopoverPosition } from "./popover-position"
 import type { ReportView, Translate } from "./types"
 
 export interface UsagePopoverProps {
-  snapshot: RateLimitSnapshot | null
   now: number
   t: Translate
   locale?: string
@@ -31,39 +21,59 @@ function toneWidth(percent: number): string {
   return `${Math.max(0, Math.min(100, percent))}%`
 }
 
-function WindowRow({
-  window,
+function rowKey(limit: UsageLimit): string {
+  return [
+    limit.kind,
+    limit.group,
+    limit.scope?.model?.displayName ?? "",
+    limit.scope?.surface?.displayName ?? "",
+    limit.resetsAt ?? "",
+  ].join(":")
+}
+
+function LimitRow({
+  limit,
   now,
   t,
   locale,
 }: {
-  window: RateLimitWindow
+  limit: UsageLimit
   now: number
   t: Translate
   locale?: string
 }): React.JSX.Element {
-  const percent = percentOf(window.utilization)
-  const passed = window.resetsAt <= now
-  const status = window.status === undefined ? "" : ` · ${statusLabel(window.status, t)}`
+  const percent = Math.round(limit.percent)
+  const passed = limit.resetsAt !== null && limit.resetsAt <= now
+  const none = t("value.none")
+  const when = limit.resetsAt === null || passed ? none : formatTimeShort(limit.resetsAt - now, t)
+  const title = limit.resetsAt === null ? undefined : formatAbsoluteReset(limit.resetsAt, locale)
   return (
     <div
-      className={`dsh-cu-row dsh-cu-tone-${toneOfStatus(window.status)}`}
-      data-window={window.kind}
+      className={`dsh-cu-row dsh-cu-tone-${toneOfSeverity(limit.severity)}`}
+      data-limit={limit.kind}
+      title={title}
     >
-      <div className="dsh-cu-row-head">
-        <span className="dsh-cu-row-name">{windowLabel(window.kind, t)}</span>
-        <span className="dsh-cu-row-value">{passed ? t("reset.passed") : `${percent}%`}</span>
-      </div>
-      {passed ? null : (
-        <div className="dsh-cu-row-bar">
+      <span className="dsh-cu-row-name">{limitLabel(limit, t)}</span>
+      <span className="dsh-cu-meter">
+        <span className="dsh-cu-fill" style={{ width: toneWidth(percent) }} />
+      </span>
+      <span className="dsh-cu-row-value">{passed ? none : `${percent}%`}</span>
+      <span className="dsh-cu-row-when">{when}</span>
+    </div>
+  )
+}
+
+function ExtraRow({ extra, t }: { extra: UsageExtraUsage; t: Translate }): React.JSX.Element {
+  const percent = extra.utilization === null ? null : Math.round(extra.utilization * 100)
+  return (
+    <div className="dsh-cu-row dsh-cu-extra" data-extra="">
+      <span className="dsh-cu-row-name">{t("extra.label")}</span>
+      <span className="dsh-cu-meter">
+        {percent === null ? null : (
           <span className="dsh-cu-fill" style={{ width: toneWidth(percent) }} />
-        </div>
-      )}
-      <div className="dsh-cu-row-meta">
-        {formatAbsoluteReset(window.resetsAt, locale)}
-        {passed ? "" : ` · ${formatTimeLeft(window.resetsAt - now, t)}`}
-        {status}
-      </div>
+        )}
+      </span>
+      <span className="dsh-cu-row-value">{extraUsageValue(extra, t)}</span>
     </div>
   )
 }
@@ -80,57 +90,16 @@ function ReportBody({
   locale?: string
 }): React.JSX.Element {
   return (
-    <div className="dsh-cu-report">
-      {groupLimits(report.limits).map((group) => (
-        <div className="dsh-cu-group" key={group.group} data-group={group.group}>
-          <div className="dsh-cu-group-title">{groupLabel(group.group, t)}</div>
-          {group.limits.map((limit) => {
-            const percent = Math.round(limit.percent)
-            const passed = limit.resetsAt !== null && limit.resetsAt <= now
-            const key = [
-              limit.kind,
-              limit.group,
-              limit.scope?.model?.displayName ?? "",
-              limit.scope?.surface?.displayName ?? "",
-              limit.resetsAt ?? "",
-            ].join(":")
-            return (
-              <div
-                className={`dsh-cu-row dsh-cu-tone-${toneOfSeverity(limit.severity)}`}
-                key={key}
-                data-limit={limit.kind}
-              >
-                <div className="dsh-cu-row-head">
-                  <span className="dsh-cu-row-name">{limitLabel(limit, t)}</span>
-                  <span className="dsh-cu-row-value">
-                    {passed ? t("reset.passed") : `${percent}%`}
-                  </span>
-                </div>
-                {passed ? null : (
-                  <div className="dsh-cu-row-bar">
-                    <span className="dsh-cu-fill" style={{ width: toneWidth(percent) }} />
-                  </div>
-                )}
-                {limit.resetsAt === null ? null : (
-                  <div className="dsh-cu-row-meta">
-                    {formatAbsoluteReset(limit.resetsAt, locale)}
-                    {passed ? "" : ` · ${formatTimeLeft(limit.resetsAt - now, t)}`}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+    <>
+      {report.limits.map((limit) => (
+        <LimitRow key={rowKey(limit)} limit={limit} now={now} t={t} locale={locale} />
       ))}
-      {report.extraUsage.isEnabled ? (
-        <div className="dsh-cu-extra">{extraUsageText(report, t)}</div>
-      ) : null}
-    </div>
+      {report.extraUsage.isEnabled ? <ExtraRow extra={report.extraUsage} t={t} /> : null}
+    </>
   )
 }
 
 export function UsagePopover({
-  snapshot,
   now,
   t,
   locale,
@@ -146,54 +115,21 @@ export function UsagePopover({
       style={position === undefined || position === null ? undefined : position}
     >
       <span className="dsh-cu-material" aria-hidden="true" />
-      <div className="dsh-cu-title">{t("popover.title")}</div>
       <div className="dsh-cu-popover-body">
-        {snapshot === null ? (
-          <div className="dsh-cu-pending">{t("usage.pending")}</div>
-        ) : (
-          <>
-            <div className="dsh-cu-section-title">{t("popover.rateLimits")}</div>
-            {orderedWindows(snapshot).map((window) => (
-              <WindowRow key={window.kind} window={window} now={now} t={t} locale={locale} />
-            ))}
-            {snapshot.overage === undefined ? null : (
-              <div
-                className={`dsh-cu-overage dsh-cu-tone-${toneOfStatus(snapshot.overage.status)}`}
-              >
-                <div className="dsh-cu-section-title">{t("popover.overage")}</div>
-                <div className="dsh-cu-row-meta">
-                  {t("popover.overageStatus", {
-                    status: overageStatusLabel(snapshot.overage.status, t),
-                  })}
-                </div>
-                {snapshot.overage.disabledReason === undefined ? null : (
-                  <div className="dsh-cu-row-meta">
-                    {t("popover.overageDisabled", { reason: snapshot.overage.disabledReason })}
-                  </div>
-                )}
-                {snapshot.overage.resetsAt === undefined ? null : (
-                  <div className="dsh-cu-row-meta">
-                    {formatAbsoluteReset(snapshot.overage.resetsAt, locale)}
-                    {snapshot.overage.resetsAt <= now
-                      ? ` · ${t("reset.passed")}`
-                      : ` · ${formatTimeLeft(snapshot.overage.resetsAt - now, t)}`}
-                  </div>
-                )}
-              </div>
-            )}
-            <div className="dsh-cu-updated">{formatUpdated(snapshot.observedAt, now, t)}</div>
-          </>
-        )}
-        <div className="dsh-cu-section-title">{t("popover.byModel")}</div>
         {report.status === "loading" ? (
-          <div className="dsh-cu-loading">{t("report.loading")}</div>
+          <div className="dsh-cu-muted" data-report="loading">
+            …
+          </div>
         ) : null}
         {report.status === "error" ? (
-          <div className="dsh-cu-error">
-            <div>{t("report.error")}</div>
-            {report.message === undefined || report.message === "" ? null : (
-              <div className="dsh-cu-error-detail">{report.message}</div>
-            )}
+          <div
+            className="dsh-cu-muted"
+            data-report="error"
+            title={
+              report.message === undefined || report.message === "" ? undefined : report.message
+            }
+          >
+            !
           </div>
         ) : null}
         {report.status === "ready" ? (

@@ -1,30 +1,24 @@
 import { describe, expect, it } from "vitest"
 import {
-  extraUsageText,
+  extraUsageValue,
   formatAbsoluteReset,
   formatAge,
-  formatLimitReached,
-  formatTimeLeft,
-  formatUpdated,
-  groupLabel,
-  groupLimits,
+  formatTimeShort,
+  formatTooltipUpdated,
   limitLabel,
   orderedWindows,
-  overageStatusLabel,
   percentOf,
   primaryWindow,
-  statusLabel,
   toneOfSeverity,
   toneOfStatus,
   windowLabel,
 } from "../src/client/format"
 import { en, ja } from "../src/client/i18n"
-import type { RateLimitSnapshot, UsageLimit, UsageReport } from "../src/shared/contract"
+import type { RateLimitSnapshot, UsageExtraUsage, UsageLimit } from "../src/shared/contract"
 
 function translator(dict: Record<string, string>) {
   return (key: string, params?: Record<string, unknown>): string => {
-    const template = dict[key] ?? key
-    let text = template
+    let text = dict[key] ?? key
     for (const [name, value] of Object.entries(params ?? {})) {
       text = text.replaceAll(`{${name}}`, String(value))
     }
@@ -69,6 +63,14 @@ function limit(overrides: Partial<UsageLimit> = {}): UsageLimit {
   }
 }
 
+const EXTRA: UsageExtraUsage = {
+  isEnabled: true,
+  monthlyLimit: 50,
+  usedCredits: 12.5,
+  utilization: 0.25,
+  currency: "USD",
+}
+
 describe("window selection", () => {
   it("puts the five-hour window first when it exists", () => {
     expect(orderedWindows(SNAPSHOT).map((window) => window.kind)).toEqual([
@@ -79,8 +81,7 @@ describe("window selection", () => {
   })
 
   it("uses the seven-day window when the account has no five-hour window", () => {
-    const snapshot = { ...SNAPSHOT, windows: [SEVEN_DAY] }
-    expect(primaryWindow(snapshot)?.kind).toBe("seven_day")
+    expect(primaryWindow({ ...SNAPSHOT, windows: [SEVEN_DAY] })?.kind).toBe("seven_day")
   })
 
   it("has no primary window when the snapshot holds none", () => {
@@ -92,15 +93,15 @@ describe("window selection", () => {
     expect(percentOf(0.184)).toBe(18)
   })
 
-  it("labels the windows in both languages", () => {
-    expect(windowLabel("five_hour", t)).toBe("5-hour")
-    expect(windowLabel("seven_day", t)).toBe("Week")
-    expect(windowLabel("five_hour", japanese)).toBe("5時間")
-    expect(windowLabel("seven_day", japanese)).toBe("週")
+  it("labels the windows with the short names in both languages", () => {
+    expect(windowLabel("five_hour", t)).toBe("5h")
+    expect(windowLabel("seven_day", t)).toBe("7d")
+    expect(windowLabel("five_hour", japanese)).toBe("5h")
+    expect(windowLabel("seven_day", japanese)).toBe("7d")
   })
 })
 
-describe("status and severity tones", () => {
+describe("tones", () => {
   it("maps the rate limit status to a tone", () => {
     expect(toneOfStatus(undefined)).toBe("normal")
     expect(toneOfStatus("allowed")).toBe("normal")
@@ -108,84 +109,69 @@ describe("status and severity tones", () => {
     expect(toneOfStatus("rejected")).toBe("error")
   })
 
-  it("keeps an unknown severity neutral", () => {
+  it("maps the report severity to a tone", () => {
     expect(toneOfSeverity("normal")).toBe("normal")
     expect(toneOfSeverity("warning")).toBe("warning")
     expect(toneOfSeverity("critical")).toBe("error")
     expect(toneOfSeverity("urgent")).toBe("normal")
   })
-
-  it("labels the overage states separately from the rate limits", () => {
-    expect(overageStatusLabel("allowed", t)).toBe("Available")
-    expect(overageStatusLabel("allowed_warning", t)).toBe("Near limit")
-    expect(overageStatusLabel("rejected", t)).toBe("Unavailable")
-    expect(overageStatusLabel("allowed", japanese)).toBe("利用可")
-    expect(overageStatusLabel("allowed_warning", japanese)).toBe("上限間近")
-    expect(overageStatusLabel("rejected", japanese)).toBe("利用不可")
-  })
-
-  it("labels the statuses", () => {
-    expect(statusLabel("allowed_warning", t)).toBe("Warning")
-    expect(statusLabel("rejected", japanese)).toBe("上限到達")
-  })
 })
 
-describe("times", () => {
-  it("shows a relative time left in hours and padded minutes", () => {
-    expect(formatTimeLeft(2 * HOUR + 13 * MINUTE, t)).toBe("in 2h 13m")
-    expect(formatTimeLeft(2 * HOUR + 13 * MINUTE, japanese)).toBe("あと2時間13分")
-    expect(formatTimeLeft(5 * MINUTE, t)).toBe("in 5m")
+describe("short times", () => {
+  it("writes days and hours for a time of a day or more", () => {
+    const long = 4 * 24 * HOUR + 6 * HOUR
+    expect(formatTimeShort(long, t)).toBe("4d 6h")
+    expect(formatTimeShort(long, japanese)).toBe("4日6時間")
+  })
+
+  it("writes hours and minutes under a day", () => {
+    const medium = 2 * HOUR + 13 * MINUTE
+    expect(formatTimeShort(medium, t)).toBe("2h 13m")
+    expect(formatTimeShort(medium, japanese)).toBe("2時間13分")
+  })
+
+  it("writes minutes under an hour", () => {
+    expect(formatTimeShort(13 * MINUTE, t)).toBe("13m")
+    expect(formatTimeShort(13 * MINUTE, japanese)).toBe("13分")
   })
 
   it("rounds a partial minute up", () => {
-    expect(formatTimeLeft(61_000, t)).toBe("in 2m")
+    expect(formatTimeShort(61_000, t)).toBe("2m")
   })
+})
 
-  it("uses days and hours for a time left of a day or more", () => {
-    const long = 4 * 24 * HOUR + 6 * HOUR
-    expect(formatTimeLeft(long, t)).toBe("in 4d 6h")
-    expect(formatTimeLeft(long, japanese)).toBe("あと4日6時間")
-    expect(formatLimitReached(long, t)).toBe("Limit reached · resets in 4d 6h")
-    expect(formatLimitReached(long, japanese)).toBe("上限到達 · あと4日6時間で解除")
-  })
-
-  it("writes the limit-reached text of a rejected primary window", () => {
-    expect(formatLimitReached(HOUR + 5 * MINUTE, t)).toBe("Limit reached · resets in 1h 05m")
-    expect(formatLimitReached(HOUR + 5 * MINUTE, japanese)).toBe("上限到達 · あと1時間05分で解除")
-    expect(formatLimitReached(5 * MINUTE, t)).toBe("Limit reached · resets in 5m")
-  })
-
+describe("reset dates", () => {
   it("writes the local reset date and time", () => {
     const local = new Date(2026, 10, 23, 19, 59).getTime()
     expect(formatAbsoluteReset(local, "en-US")).toBe("11/23 19:59")
   })
+})
 
-  it("writes the updated line, with a separate just-now template", () => {
-    expect(formatUpdated(NOW - 20_000, NOW, t)).toBe("Updated just now (last Claude call)")
-    expect(formatUpdated(NOW - 20_000, NOW, japanese)).toBe(
-      "たった今更新（最後の Claude 呼び出し）",
-    )
-    expect(formatUpdated(NOW - 3 * MINUTE, NOW, t)).toBe("Updated 3 min ago (last Claude call)")
-    expect(formatUpdated(NOW - 3 * MINUTE, NOW, japanese)).toBe(
-      "3分前に更新（最後の Claude 呼び出し）",
-    )
+describe("ages", () => {
+  it("writes a compact age in both languages", () => {
+    expect(formatAge(3 * MINUTE, t)).toBe("3m")
+    expect(formatAge(3 * MINUTE, japanese)).toBe("3分")
+    expect(formatAge(2 * HOUR, t)).toBe("2h")
+    expect(formatAge(5 * HOUR, japanese)).toBe("5時間")
+    expect(formatAge(2 * 24 * HOUR, t)).toBe("2d")
   })
 
-  it("writes how long ago the snapshot arrived", () => {
-    expect(formatAge(3 * MINUTE, t)).toBe("3 min")
-    expect(formatAge(3 * MINUTE, japanese)).toBe("3分")
-    expect(formatAge(2 * HOUR, t)).toBe("2 h")
-    expect(formatAge(5 * HOUR, japanese)).toBe("5時間")
-    expect(formatAge(2 * 24 * HOUR, t)).toBe("2 d")
-    expect(formatAge(20_000, t)).toBe("just now")
-    expect(formatAge(-5_000, t)).toBe("just now")
+  it("writes the tooltip's updated line, with a separate just-now template", () => {
+    expect(formatTooltipUpdated(NOW - 20_000, NOW, t)).toBe("updated just now")
+    expect(formatTooltipUpdated(NOW - 20_000, NOW, japanese)).toBe("たった今更新")
+    expect(formatTooltipUpdated(NOW - 3 * MINUTE, NOW, t)).toBe("updated 3m ago")
+    expect(formatTooltipUpdated(NOW - 3 * MINUTE, NOW, japanese)).toBe("3分前に更新")
   })
 })
 
-describe("report limits", () => {
-  it("labels known kinds and keeps unknown kinds as they are", () => {
-    expect(limitLabel(limit({ kind: "session" }), t)).toBe("5-hour")
-    expect(limitLabel(limit({ kind: "weekly_all" }), t)).toBe("Weekly (all models)")
+describe("report labels", () => {
+  it("labels the known kinds with short names", () => {
+    expect(limitLabel(limit({ kind: "session" }), t)).toBe("5h")
+    expect(limitLabel(limit({ kind: "weekly_all" }), t)).toBe("7d")
+    expect(limitLabel(limit({ kind: "monthly_custom" }), t)).toBe("monthly_custom")
+  })
+
+  it("uses the scope name only for a scoped limit", () => {
     expect(
       limitLabel(
         limit({
@@ -194,53 +180,23 @@ describe("report limits", () => {
         }),
         t,
       ),
-    ).toBe("Weekly (Fable)")
+    ).toBe("Fable")
     expect(
       limitLabel(
         limit({
           kind: "weekly_scoped",
           scope: { model: null, surface: { displayName: "Web" } },
         }),
-        japanese,
+        t,
       ),
-    ).toBe("週間（Web）")
+    ).toBe("Web")
     expect(limitLabel(limit({ kind: "weekly_scoped" }), t)).toBe("weekly_scoped")
-    expect(limitLabel(limit({ kind: "monthly_scoped" }), t)).toBe("monthly_scoped")
   })
 
-  it("labels known groups and keeps unknown groups as they are", () => {
-    expect(groupLabel("session", t)).toBe("5-hour")
-    expect(groupLabel("weekly", japanese)).toBe("週間")
-    expect(groupLabel("monthly", t)).toBe("monthly")
-  })
-
-  it("groups limits in server order", () => {
-    const groups = groupLimits([
-      limit({ kind: "weekly_all", group: "weekly" }),
-      limit({ kind: "session", group: "session" }),
-      limit({ kind: "weekly_scoped", group: "weekly" }),
-    ])
-    expect(groups.map((group) => group.group)).toEqual(["weekly", "session"])
-    expect(groups[0]?.limits.map((entry) => entry.kind)).toEqual(["weekly_all", "weekly_scoped"])
-  })
-
-  it("writes extra usage, with an explicit unknown for a missing value", () => {
-    const report: UsageReport = {
-      fetchedAt: 0,
-      limits: [],
-      extraUsage: {
-        isEnabled: true,
-        monthlyLimit: 50,
-        usedCredits: 12.5,
-        utilization: 0.25,
-        currency: "USD",
-      },
-    }
-    expect(extraUsageText(report, t)).toBe("Extra usage 12.5 / 50 USD")
-    const missing: UsageReport = {
-      ...report,
-      extraUsage: { ...report.extraUsage, monthlyLimit: null, usedCredits: null, currency: null },
-    }
-    expect(extraUsageText(missing, t)).toBe("Extra usage unknown / unknown unknown")
+  it("writes extra usage compactly", () => {
+    expect(extraUsageValue(EXTRA, t)).toBe("12.5/50 USD")
+    expect(
+      extraUsageValue({ ...EXTRA, usedCredits: null, monthlyLimit: null, currency: null }, t),
+    ).toBe("unknown/unknown unknown")
   })
 })

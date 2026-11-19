@@ -2,8 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
 import type { RateLimitWindow, UsageReportResult } from "../shared/contract"
 import {
   formatAbsoluteReset,
-  formatLimitReached,
-  formatTimeLeft,
+  formatTimeShort,
+  formatTooltipUpdated,
   orderedWindows,
   percentOf,
   primaryWindow,
@@ -33,67 +33,38 @@ function toneWidth(percent: number): string {
   return `${Math.max(0, Math.min(100, percent))}%`
 }
 
-function PrimaryItem({
+function WindowItem({
   window,
+  primary,
   now,
   t,
 }: {
   window: RateLimitWindow
+  primary: boolean
   now: number
   t: Translate
 }): React.JSX.Element {
   const percent = percentOf(window.utilization)
   const passed = window.resetsAt <= now
-  const text = passed
-    ? t("reset.passed")
-    : window.status === "rejected"
-      ? formatLimitReached(window.resetsAt - now, t)
-      : `${percent}% · ${formatTimeLeft(window.resetsAt - now, t)}`
   return (
     <span
-      className={`dsh-cu-item dsh-cu-primary dsh-cu-tone-${toneOfStatus(window.status)}`}
+      className={`dsh-cu-item ${primary ? "dsh-cu-primary" : "dsh-cu-secondary"} dsh-cu-tone-${toneOfStatus(window.status)}`}
       data-window={window.kind}
     >
       <span className="dsh-cu-label">{windowLabel(window.kind, t)}</span>
-      {passed ? null : (
-        <span className="dsh-cu-meter">
-          <span className="dsh-cu-fill" style={{ width: toneWidth(percent) }} />
-        </span>
-      )}
-      <span className="dsh-cu-when">{text}</span>
-    </span>
-  )
-}
-
-function SecondaryItem({
-  window,
-  now,
-  t,
-  locale,
-}: {
-  window: RateLimitWindow
-  now: number
-  t: Translate
-  locale?: string
-}): React.JSX.Element {
-  const percent = percentOf(window.utilization)
-  const passed = window.resetsAt <= now
-  return (
-    <span
-      className={`dsh-cu-item dsh-cu-secondary dsh-cu-tone-${toneOfStatus(window.status)}`}
-      data-window={window.kind}
-    >
-      <span className="dsh-cu-label">{windowLabel(window.kind, t)}</span>
-      {passed ? null : (
-        <span className="dsh-cu-meter">
-          <span className="dsh-cu-fill" style={{ width: toneWidth(percent) }} />
-        </span>
-      )}
-      <span className="dsh-cu-when">
-        {passed
-          ? t("reset.passed")
-          : `${percent}% · ${formatAbsoluteReset(window.resetsAt, locale)}`}
+      <span className="dsh-cu-meter">
+        <span className="dsh-cu-fill" style={{ width: toneWidth(percent) }} />
       </span>
+      {passed ? (
+        <span className="dsh-cu-none">{t("value.none")}</span>
+      ) : (
+        <>
+          <span className="dsh-cu-percent">{percent}%</span>
+          {primary ? (
+            <span className="dsh-cu-when">{formatTimeShort(window.resetsAt - now, t)}</span>
+          ) : null}
+        </>
+      )}
     </span>
   )
 }
@@ -177,12 +148,27 @@ export function UsageBar({
   const windows = snapshot === null ? [] : orderedWindows(snapshot)
   const primary = snapshot === null ? null : primaryWindow(snapshot)
   const secondary = primary === null ? [] : windows.filter((window) => window.kind !== primary.kind)
+  const tooltip =
+    snapshot === null
+      ? undefined
+      : [
+          ...windows.map((window) =>
+            t("bar.tooltip.window", {
+              label: windowLabel(window.kind, t),
+              percent: percentOf(window.utilization),
+              reset: formatAbsoluteReset(window.resetsAt, locale),
+            }),
+          ),
+          formatTooltipUpdated(snapshot.observedAt, current, t),
+        ].join("\n")
 
   return (
     <div className="dsh-cu-root" ref={rootRef}>
       <button
         type="button"
         className="dsh-cu-bar"
+        aria-label={t("popover.title")}
+        title={tooltip}
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
@@ -192,33 +178,19 @@ export function UsageBar({
         <span className="dsh-cu-brand" aria-hidden="true">
           ✳
         </span>
-        <span className="dsh-cu-name">{t("brand")}</span>
-        {snapshot === null ? (
-          <span className="dsh-cu-pending">{t("usage.pending")}</span>
+        {windows.length === 0 ? (
+          <span className="dsh-cu-none">{t("value.none")}</span>
         ) : (
           <>
-            {primary === null ? null : <PrimaryItem window={primary} now={current} t={t} />}
+            {primary === null ? null : <WindowItem window={primary} primary now={current} t={t} />}
             {secondary.map((window) => (
-              <SecondaryItem
-                key={window.kind}
-                window={window}
-                now={current}
-                t={t}
-                locale={locale}
-              />
+              <WindowItem key={window.kind} window={window} primary={false} now={current} t={t} />
             ))}
           </>
         )}
       </button>
       {open ? (
-        <UsagePopover
-          snapshot={snapshot}
-          now={current}
-          t={t}
-          locale={locale}
-          report={report}
-          position={position}
-        />
+        <UsagePopover now={current} t={t} locale={locale} report={report} position={position} />
       ) : null}
     </div>
   )

@@ -2,9 +2,9 @@ import type {
   RateLimitSnapshot,
   RateLimitStatus,
   RateLimitWindow,
+  UsageExtraUsage,
   UsageLimit,
   UsageLimitScope,
-  UsageReport,
 } from "../shared/contract"
 import type { Translate } from "./types"
 
@@ -50,36 +50,20 @@ function padded(minutes: number): string {
   return String(minutes).padStart(2, "0")
 }
 
-/** A positive time left, such as `in 2h 13m`. */
-export function formatTimeLeft(ms: number, t: Translate): string {
+/** A compact time left: `4d 6h`, `2h 13m` or `13m`. */
+export function formatTimeShort(ms: number, t: Translate): string {
   const totalMinutes = Math.max(1, Math.ceil(ms / 60_000))
   const totalHours = Math.floor(totalMinutes / 60)
   if (totalHours >= 24) {
-    return t("time.left.daysHours", {
+    return t("time.short.daysHours", {
       days: Math.floor(totalHours / 24),
       hours: totalHours % 24,
     })
   }
   if (totalHours > 0) {
-    return t("time.left.hoursMinutes", { hours: totalHours, minutes: padded(totalMinutes % 60) })
+    return t("time.short.hoursMinutes", { hours: totalHours, minutes: padded(totalMinutes % 60) })
   }
-  return t("time.left.minutes", { minutes: totalMinutes })
-}
-
-/** Text for a rejected primary window, such as `Limit reached · resets in 1h 05m`. */
-export function formatLimitReached(ms: number, t: Translate): string {
-  const totalMinutes = Math.max(1, Math.ceil(ms / 60_000))
-  const totalHours = Math.floor(totalMinutes / 60)
-  if (totalHours >= 24) {
-    return t("limit.reached.daysHours", {
-      days: Math.floor(totalHours / 24),
-      hours: totalHours % 24,
-    })
-  }
-  if (totalHours > 0) {
-    return t("limit.reached.hours", { hours: totalHours, minutes: padded(totalMinutes % 60) })
-  }
-  return t("limit.reached.minutes", { minutes: totalMinutes })
+  return t("time.short.minutes", { minutes: totalMinutes })
 }
 
 export function formatAbsoluteReset(epoch: number, locale?: string): string {
@@ -98,77 +82,41 @@ export function formatAbsoluteReset(epoch: number, locale?: string): string {
   return `${pick("month")}/${pick("day")} ${pick("hour")}:${pick("minute")}`
 }
 
-/** How long ago a snapshot arrived, such as `3 min`. */
+/** A compact age for an age of at least a minute: `3m`, `2h` or `2d`. */
 export function formatAge(ms: number, t: Translate): string {
-  const seconds = Math.max(0, Math.floor(ms / 1000))
-  if (seconds < 60) return t("age.justNow")
-  const minutes = Math.floor(seconds / 60)
+  const minutes = Math.max(1, Math.floor(ms / 60_000))
   if (minutes < 60) return t("age.minutes", { minutes })
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return t("age.hours", { hours })
   return t("age.days", { days: Math.floor(hours / 24) })
 }
 
-/** The popover's "Updated" line. `just now` has its own template, not an age suffix. */
-export function formatUpdated(observedAt: number, now: number, t: Translate): string {
+/** The bar tooltip's updated line, with its own template for `just now`. */
+export function formatTooltipUpdated(observedAt: number, now: number, t: Translate): string {
   const age = Math.max(0, now - observedAt)
-  if (age < 60_000) return t("popover.updatedJustNow")
-  return t("popover.updated", { age: formatAge(age, t) })
-}
-
-export function statusLabel(status: RateLimitStatus, t: Translate): string {
-  if (status === "allowed_warning") return t("status.allowed_warning")
-  if (status === "rejected") return t("status.rejected")
-  return t("status.allowed")
-}
-
-export function overageStatusLabel(status: RateLimitStatus, t: Translate): string {
-  if (status === "allowed_warning") return t("overage.allowed_warning")
-  if (status === "rejected") return t("overage.rejected")
-  return t("overage.allowed")
+  if (age < 60_000) return t("bar.tooltip.updatedJustNow")
+  return t("bar.tooltip.updated", { age: formatAge(age, t) })
 }
 
 function scopeName(scope: UsageLimitScope | null): string | undefined {
   return scope?.model?.displayName ?? scope?.surface?.displayName
 }
 
+/** A short label for one `/usage` meter. Unknown kinds stay as they are. */
 export function limitLabel(limit: UsageLimit, t: Translate): string {
-  if (limit.kind === "session") return t("limit.session")
-  if (limit.kind === "weekly_all") return t("limit.weeklyAll")
+  if (limit.kind === "session") return t("window.fiveHour")
+  if (limit.kind === "weekly_all") return t("window.week")
   if (limit.kind === "weekly_scoped") {
-    const name = scopeName(limit.scope)
-    return name === undefined ? limit.kind : t("limit.weeklyScoped", { name })
+    return scopeName(limit.scope) ?? limit.kind
   }
   return limit.kind
 }
 
-export function groupLabel(group: string, t: Translate): string {
-  if (group === "session") return t("group.session")
-  if (group === "weekly") return t("group.weekly")
-  return group
-}
-
-export interface LimitGroup {
-  group: string
-  limits: readonly UsageLimit[]
-}
-
-/** The server's order of groups and of the limits inside each group. */
-export function groupLimits(limits: readonly UsageLimit[]): readonly LimitGroup[] {
-  const groups = new Map<string, UsageLimit[]>()
-  for (const limit of limits) {
-    const existing = groups.get(limit.group)
-    if (existing === undefined) groups.set(limit.group, [limit])
-    else existing.push(limit)
-  }
-  return [...groups].map(([group, grouped]) => ({ group, limits: grouped }))
-}
-
-export function extraUsageText(report: UsageReport, t: Translate): string {
-  const { usedCredits, monthlyLimit, currency } = report.extraUsage
-  return t("extra.usage", {
-    used: usedCredits === null ? t("value.unknown") : String(usedCredits),
-    limit: monthlyLimit === null ? t("value.unknown") : String(monthlyLimit),
-    currency: currency ?? t("value.unknown"),
+/** The compact extra-usage value: `12.5/50 USD`. */
+export function extraUsageValue(extra: UsageExtraUsage, t: Translate): string {
+  return t("extra.value", {
+    used: extra.usedCredits === null ? t("value.unknown") : String(extra.usedCredits),
+    limit: extra.monthlyLimit === null ? t("value.unknown") : String(extra.monthlyLimit),
+    currency: extra.currency ?? t("value.unknown"),
   })
 }

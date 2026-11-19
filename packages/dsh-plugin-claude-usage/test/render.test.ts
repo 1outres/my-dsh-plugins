@@ -41,7 +41,6 @@ function snapshot(overrides: Partial<RateLimitSnapshot> = {}): RateLimitSnapshot
     observedAt: NOW - 3 * MINUTE,
     status: "allowed",
     windows: [FIVE_HOUR, SEVEN_DAY],
-    overage: { status: "rejected", disabledReason: "org_level_disabled" },
     ...overrides,
   }
 }
@@ -114,13 +113,9 @@ const REPORT: UsageReport = {
   },
 }
 
-function renderPopover(
-  reportState: ReportView,
-  snap: RateLimitSnapshot | null = snapshot(),
-): string {
+function renderPopover(reportState: ReportView): string {
   return renderToStaticMarkup(
     createElement(UsagePopover, {
-      snapshot: snap,
       now: NOW,
       t,
       locale: "en-US",
@@ -134,35 +129,37 @@ describe("the usage bar", () => {
     expect(renderBar({ connected: false, snapshot: null })).toBe("")
   })
 
-  it("asks for a snapshot when connected with none", () => {
+  it("shows only the mark and a dash before the first snapshot", () => {
     const html = renderBar({ connected: true, snapshot: null })
-    expect(html).toContain("Claude")
-    expect(html).toContain("Usage — fetched on the next Claude call")
+    expect(html).toContain('aria-label="Claude usage"')
+    expect(html).toContain("✳")
+    expect(html).toContain(">—<")
+    expect(html).not.toContain("dsh-cu-name")
   })
 
-  it("shows the five-hour window first and the other window after it", () => {
+  it("shows the five-hour window first with its time and the seven-day percent after it", () => {
     const html = renderBar({ connected: true, snapshot: snapshot() })
     expect(html).toContain('aria-haspopup="dialog"')
     expect(html).toContain('aria-expanded="false"')
     expect(html).toContain('data-window="five_hour"')
-    expect(html).toContain("5-hour")
-    expect(html).toContain("42% · in 2h 13m")
+    expect(html).toContain('class="dsh-cu-label">5h<')
+    expect(html).toContain('class="dsh-cu-percent">42%<')
+    expect(html).toContain('class="dsh-cu-when">2h 13m<')
     expect(html).toContain('data-window="seven_day"')
-    expect(html).toContain("Week")
-    expect(html).toContain("18% · 11/23 19:59")
-    expect(html).toContain("dsh-cu-secondary")
+    expect(html).toContain('class="dsh-cu-label">7d<')
+    expect(html).toContain('class="dsh-cu-percent">18%<')
+    expect(html.match(/dsh-cu-when/g)).toHaveLength(1)
+    expect(html).not.toContain("Week")
+    expect(html).not.toContain("5-hour")
   })
 
   it("uses the seven-day window first when the account has no five-hour window", () => {
-    const html = renderBar({
-      connected: true,
-      snapshot: snapshot({ windows: [SEVEN_DAY] }),
-    })
+    const html = renderBar({ connected: true, snapshot: snapshot({ windows: [SEVEN_DAY] }) })
     expect(html).toContain('data-window="seven_day"')
     expect(html).not.toContain("dsh-cu-secondary")
   })
 
-  it("shows the limit-reached text for a rejected primary window", () => {
+  it("keeps the error color and the time left for a rejected window", () => {
     const rejected = {
       ...FIVE_HOUR,
       status: "rejected" as const,
@@ -172,21 +169,17 @@ describe("the usage bar", () => {
       connected: true,
       snapshot: snapshot({ status: "rejected", windows: [rejected] }),
     })
-    expect(html).toContain("Limit reached · resets in 1h 05m")
     expect(html).toContain("dsh-cu-tone-error")
-    expect(html).not.toContain(">42%<")
+    expect(html).toContain('class="dsh-cu-percent">42%<')
+    expect(html).toContain('class="dsh-cu-when">1h 05m<')
+    expect(html).not.toContain("Limit reached")
   })
 
   it("uses days and hours for a long reset time", () => {
-    const distant = {
-      ...FIVE_HOUR,
-      resetsAt: NOW + 4 * 24 * HOUR + 6 * HOUR,
-    }
-    const html = renderBar({
-      connected: true,
-      snapshot: snapshot({ windows: [distant] }),
-    })
-    expect(html).toContain("42% · in 4d 6h")
+    const distant = { ...FIVE_HOUR, resetsAt: NOW + 4 * 24 * HOUR + 6 * HOUR }
+    const html = renderBar({ connected: true, snapshot: snapshot({ windows: [distant] }) })
+    expect(html).toContain('class="dsh-cu-when">4d 6h<')
+    expect(html).not.toContain("in 4d 6h")
   })
 
   it("marks a warning window", () => {
@@ -198,107 +191,102 @@ describe("the usage bar", () => {
     expect(html).toContain("dsh-cu-tone-warning")
   })
 
-  it("never assumes a passed reset is zero percent", () => {
+  it("shows a dash for a passed reset instead of a percentage and time", () => {
     const passed = { ...FIVE_HOUR, resetsAt: NOW - 1_000, utilization: 0.5 }
-    const html = renderBar({
-      connected: true,
-      snapshot: snapshot({ windows: [passed] }),
-    })
-    expect(html).toContain("Reset (not updated yet)")
-    expect(html).not.toContain("50%")
+    const html = renderBar({ connected: true, snapshot: snapshot({ windows: [passed] }) })
+    expect(html).toContain(">—<")
+    expect(html).not.toContain(">50%<")
+    expect(html).not.toContain("dsh-cu-when")
+    expect(html).not.toContain("dsh-cu-percent")
+  })
+
+  it("puts each window and the update age in the button tooltip", () => {
+    const html = renderBar({ connected: true, snapshot: snapshot() })
+    expect(html).toContain("5h 42% · 11/23 21:13")
+    expect(html).toContain("7d 18% · 11/23 19:59")
+    expect(html).toContain("updated 3m ago")
   })
 
   it("renders the popover only inside the bar when open", () => {
-    const html = renderBar({ connected: true, snapshot: snapshot() })
-    expect(html).not.toContain('data-usage-popover=""')
-  })
-
-  it("opens the details before the first snapshot", () => {
-    const html = renderBar({ connected: true, snapshot: null }, NOW, true)
-    expect(html).toContain('data-usage-popover=""')
-    expect(html).toContain("Usage — fetched on the next Claude call")
-    expect(html).toContain("Usage by model (weekly)")
+    expect(renderBar({ connected: true, snapshot: snapshot() })).not.toContain(
+      'data-usage-popover=""',
+    )
+    expect(renderBar({ connected: true, snapshot: null }, NOW, true)).toContain(
+      'data-usage-popover=""',
+    )
   })
 })
 
 describe("the usage popover", () => {
-  it("shows the windows, overage, age and the model report", () => {
+  it("lists the report rows in server order without headings or prose", () => {
     const html = renderPopover({ status: "ready", report: REPORT })
     expect(html).toContain('role="dialog"')
     expect(html).toContain('aria-label="Claude usage"')
-    expect(html).toContain("Rate limits")
-    expect(html).toContain("5-hour")
-    expect(html).toContain("42%")
-    expect(html).toContain("18%")
-    expect(html).toContain("Overage")
-    expect(html).toContain("Status: Unavailable")
-    expect(html).toContain("Disabled reason: org_level_disabled")
-    expect(html).toContain("Updated 3 min ago (last Claude call)")
-    expect(html).toContain("Usage by model (weekly)")
-    expect(html).toContain("Weekly (all models)")
-    expect(html).toContain("Weekly (Fable)")
-    expect(html).toContain("monthly_custom")
-    expect(html).toContain("5-hour")
+    expect(html).toContain('class="dsh-cu-material" aria-hidden="true"')
+    expect(html).not.toContain("dsh-cu-title")
+    expect(html).not.toContain("Rate limits")
+    expect(html).not.toContain("Usage by model")
+    expect(html).not.toContain("Weekly")
+    expect(html).not.toContain("Allowed")
+    expect(html).not.toContain("Updated")
+
+    expect(html).toContain('class="dsh-cu-row-name">7d<')
+    expect(html).toContain('class="dsh-cu-row-name">Fable<')
+    expect(html).toContain('class="dsh-cu-row-name">monthly_custom<')
+    expect(html).toContain('class="dsh-cu-row-name">5h<')
+    expect(html.indexOf(">7d<")).toBeLessThan(html.indexOf(">Fable<"))
+
+    expect(html).toContain('class="dsh-cu-row-value">19%<')
+    expect(html).toContain('class="dsh-cu-row-when">3h 00m<')
+    expect(html).toContain('class="dsh-cu-row-value">2%<')
+    expect(html).toContain('class="dsh-cu-row-value">5%<')
+    expect(html).toContain('class="dsh-cu-row-when">—<')
+    expect(html).toContain('class="dsh-cu-row-value">40%<')
+    expect(html).toContain('class="dsh-cu-row-when">30m<')
     expect(html).toContain("dsh-cu-tone-error")
     expect(html).toContain("dsh-cu-tone-warning")
-    expect(html).toContain("Extra usage 12.5 / 50 USD")
   })
 
-  it("shows a passed reset instead of a percentage", () => {
-    const passed = { ...FIVE_HOUR, resetsAt: NOW - 1_000, utilization: 0.5 }
-    const html = renderPopover({ status: "ready", report: REPORT }, snapshot({ windows: [passed] }))
-    expect(html).toContain("Reset (not updated yet)")
-    expect(html).not.toContain(">50%<")
-  })
-
-  it("shows the report before the first snapshot", () => {
-    const html = renderPopover({ status: "ready", report: REPORT }, null)
-    expect(html).toContain("Usage — fetched on the next Claude call")
-    expect(html).toContain("Usage by model (weekly)")
-    expect(html).toContain("Weekly (all models)")
-    expect(html).not.toContain("Rate limits")
-    expect(html).not.toContain("Updated")
-  })
-
-  it("writes the just-now updated line without a duplicate ago", () => {
-    const html = renderPopover(
-      { status: "ready", report: REPORT },
-      snapshot({ observedAt: NOW - 20_000 }),
-    )
-    expect(html).toContain("Updated just now (last Claude call)")
-    expect(html).not.toContain("just now ago")
-  })
-
-  it("uses a material layer and a visible title row", () => {
+  it("keeps each absolute reset in the row tooltip", () => {
     const html = renderPopover({ status: "ready", report: REPORT })
-    expect(html).toContain('class="dsh-cu-material" aria-hidden="true"')
-    expect(html).toContain('class="dsh-cu-title">Claude usage<')
-    expect(html).toContain('class="dsh-cu-popover-body"')
+    expect(html).toContain('title="11/23 22:00"')
+    expect(html).toContain('title="11/23 19:30"')
   })
 
-  it("shows a loading state", () => {
-    expect(renderPopover({ status: "loading" })).toContain("Loading…")
+  it("shows the extra usage as one compact row when it is enabled", () => {
+    const html = renderPopover({ status: "ready", report: REPORT })
+    expect(html).toContain('class="dsh-cu-row dsh-cu-extra"')
+    expect(html).toContain('class="dsh-cu-row-name">Extra<')
+    expect(html).toContain('class="dsh-cu-row-value">12.5/50 USD<')
   })
 
-  it("shows an error state with the Host's message", () => {
+  it("shows no extra row when extra usage is disabled", () => {
+    const report = {
+      ...REPORT,
+      extraUsage: { ...REPORT.extraUsage, isEnabled: false },
+    }
+    expect(renderPopover({ status: "ready", report })).not.toContain("Extra")
+  })
+
+  it("shows a single muted ellipsis while loading", () => {
+    const html = renderPopover({ status: "loading" })
+    expect(html).toContain('class="dsh-cu-muted"')
+    expect(html).toContain("…")
+    expect(html).not.toContain("dsh-cu-row")
+  })
+
+  it("shows a single muted mark with the message in its tooltip on error", () => {
     const html = renderPopover({ status: "error", message: "usage probe failed" })
-    expect(html).toContain("Could not load the usage report")
-    expect(html).toContain("usage probe failed")
+    expect(html).toContain('class="dsh-cu-muted"')
+    expect(html).toContain(">!<")
+    expect(html).toContain('title="usage probe failed"')
+    expect(html).not.toContain("Could not load")
   })
 
-  it("labels a warning overage as near the limit", () => {
-    const snap = snapshot({ overage: { status: "allowed_warning" } })
-    const html = renderPopover({ status: "ready", report: REPORT }, snap)
-    expect(html).toContain("Status: Near limit")
-  })
-
-  it("keeps an overage without a reason compact", () => {
-    const snap = snapshot({
-      overage: { status: "allowed", resetsAt: NOW + HOUR },
-    })
-    const html = renderPopover({ status: "ready", report: REPORT }, snap)
-    expect(html).toContain("Overage")
-    expect(html).toContain("Status: Available")
-    expect(html).not.toContain("Disabled reason")
+  it("shows the report even before the first snapshot", () => {
+    const html = renderPopover({ status: "ready", report: REPORT })
+    expect(html).toContain('class="dsh-cu-row-name">7d<')
+    expect(html).not.toContain("42%")
+    expect(html).not.toContain("18%")
   })
 })
