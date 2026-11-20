@@ -36,7 +36,7 @@ function systemText(message: RequestMessage): string {
     .join("")
 }
 
-function splitSystemPrompt(options: GenerateOptions): {
+function splitSystemPrompt(options: GenerateOptions<string>): {
   system: string
   history: RequestMessage[]
 } {
@@ -62,7 +62,7 @@ function assertEndsWithUserTurn(frames: readonly NativeFrame[]): void {
 
 /** Translates one DSH model call into what the CLI needs. It does no I/O except reading images. */
 export async function prepareRequest(
-  options: GenerateOptions,
+  options: GenerateOptions<string>,
   deps: PrepareDeps,
 ): Promise<PreparedRequest> {
   if (options.model === "") throw invalid("A model is required")

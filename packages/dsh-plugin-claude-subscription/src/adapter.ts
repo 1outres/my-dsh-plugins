@@ -23,7 +23,7 @@ import { NativeFailure } from "./errors"
 import { ChunkTranslator, failureChunk } from "./response/chunks"
 
 export interface AdapterDeps {
-  prepare(options: GenerateOptions): Promise<PreparedRequest>
+  prepare(options: GenerateOptions<string>): Promise<PreparedRequest>
   run: RunNative
   discover(deps: NativeDeps): Promise<readonly DiscoveredModel[]>
   modelInfo(provider: string, model: string): LlmResolvedModelInfo
@@ -95,7 +95,7 @@ export class ClaudeSubscriptionAdapter implements LlmAdapter {
     }
   }
 
-  async *stream(options: GenerateOptions): AsyncGenerator<StreamChunk, void, void> {
+  async *stream(options: GenerateOptions<string>): AsyncGenerator<StreamChunk, void, void> {
     try {
       const prepared = await this.deps.prepare(options)
       yield* this.runPrepared(prepared, options.signal)

@@ -47,7 +47,7 @@ function tool(name: string, extra: Partial<ToolSchema> = {}): ToolSchema {
 
 function prepare(
   messages: Messages,
-  extra: Partial<GenerateOptions> = {},
+  extra: Partial<GenerateOptions<string>> = {},
   deps: PrepareDeps = NO_ATTACHMENTS,
 ) {
   return prepareRequest({ provider: PROVIDER_ID, model: "sonnet", messages, ...extra }, deps)
