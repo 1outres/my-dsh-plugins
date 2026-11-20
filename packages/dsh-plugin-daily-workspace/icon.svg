@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Daily workspace</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#A63D5C"/>
+  <path d="M11 20C11 17.239 13.239 15 16 15H25.5L29.5 20H48C50.761 20 53 22.239 53 25V46C53 48.761 50.761 51 48 51H16C13.239 51 11 48.761 11 46V20Z" fill="#F6DCE4"/>
+  <rect x="19" y="23" width="26" height="24" rx="4" fill="#FFFFFF"/>
+  <path d="M19 27C19 24.791 20.791 23 23 23H41C43.209 23 45 24.791 45 27V30H19V27Z" fill="#E39AAF"/>
+  <rect x="24" y="20" width="3" height="6" rx="1.5" fill="#F6DCE4"/>
+  <rect x="37" y="20" width="3" height="6" rx="1.5" fill="#F6DCE4"/>
+  <circle cx="27" cy="38" r="3" fill="#A63D5C"/>
+  <rect x="33" y="36" width="7" height="2" rx="1" fill="#E0AEBE"/>
+  <rect x="33" y="41" width="5" height="2" rx="1" fill="#E0AEBE"/>
+</svg>

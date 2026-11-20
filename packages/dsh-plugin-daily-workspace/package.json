@@ -1,0 +1,58 @@
+{
+  "name": "@1outres/dsh-plugin-daily-workspace",
+  "version": "0.9.1",
+  "description": "Creates today's folder under ~/Documents and registers its year, month, and day folders as workspaces, again at every local midnight.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1outres/my-dsh-plugins.git",
+    "directory": "packages/dsh-plugin-daily-workspace"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "workspace",
+    "daily-notes",
+    "deepseek-harness"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.3.0",
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "~3.18.5"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "~4.1.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": [
+        "./cordis.patch.yml"
+      ]
+    }
+  }
+}

@@ -245,6 +245,16 @@ importers:
         specifier: 0.2.2-rc.1
         version: 0.2.2-rc.1(@deepseek-ai/cordis@4.1.0)
 
+  packages/dsh-plugin-daily-workspace:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: ~3.18.5
+        version: 3.18.5
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: ~4.1.0
+        version: 4.1.0
+
   packages/dsh-plugin-edit-message:
     dependencies:
       '@deepseek-ai/cordis':
@@ -416,6 +426,9 @@ importers:
       '@1outres/dsh-plugin-claude-usage':
         specifier: workspace:*
         version: link:../dsh-plugin-claude-usage
+      '@1outres/dsh-plugin-daily-workspace':
+        specifier: workspace:*
+        version: link:../dsh-plugin-daily-workspace
       '@1outres/dsh-plugin-edit-message':
         specifier: workspace:*
         version: link:../dsh-plugin-edit-message
