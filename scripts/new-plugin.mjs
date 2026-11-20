@@ -47,11 +47,11 @@ const pluginManifest = {
   keywords: ["dsh", "dsh-plugin", "deepseek-harness"],
   license: "MIT",
   engines: {
-    dsh: ">=0.2.1-rc.5 <0.3.0",
+    dsh: ">=0.2.2-rc.1 <0.3.0",
     node: ">=22",
   },
   peerDependencies: {
-    "@deepseek-ai/cordis": "~4.0.5",
+    "@deepseek-ai/cordis": "~4.1.0",
     react: "^18.2.0",
   },
   dsh: {
