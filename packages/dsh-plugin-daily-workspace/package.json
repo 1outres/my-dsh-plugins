@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-daily-workspace",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Creates today's folder under ~/Documents and registers its year, month, and day folders as workspaces, again at every local midnight.",
   "repository": {
     "type": "git",
