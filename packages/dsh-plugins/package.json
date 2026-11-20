@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugins",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Personal DeepSeek Harness plugin bundle. Installs every plugin in this repository.",
   "repository": {
     "type": "git",

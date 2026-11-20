@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-mobile",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Adds phone refinements to the DeepSeek Harness Web UI and makes it an installable app: fits the page to the on-screen keyboard, makes Enter add a line, keeps the keyboard closed until the composer is tapped, adds edge swipes to the Harness navigation drawer, opens the Harness context menu with a long press on a touch screen, respects notches and touch, and registers a service worker for the offline page and push notifications.",
   "repository": {
     "type": "git",
