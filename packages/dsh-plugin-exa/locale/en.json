@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Exa web search",
+    "description": "Adds Exa as the web search and fetch provider. The API key lives in the DSH credential store; open Settings > Exa to set it."
+  }
+}

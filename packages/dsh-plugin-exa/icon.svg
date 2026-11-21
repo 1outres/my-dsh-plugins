@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="title">
+  <title id="title">Exa web search</title>
+  <circle cx="26" cy="26" r="16"/>
+  <path d="M26 10v32M10 26h32"/>
+  <ellipse cx="26" cy="26" rx="8" ry="16"/>
+  <path d="M12 18h28M12 34h28"/>
+  <circle cx="43" cy="43" r="9"/>
+  <path d="m49.5 49.5 7 7"/>
+</svg>

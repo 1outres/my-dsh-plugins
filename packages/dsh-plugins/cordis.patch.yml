@@ -28,3 +28,12 @@
       name: "@1outres/dsh-plugin-mode-memory"
     - id: daily-workspace
       name: "@1outres/dsh-plugin-daily-workspace"
+    - id: exa
+      name: "@1outres/dsh-plugin-exa"
+
+# An override replaces the row's whole config, so both fields are listed.
+- id: web
+  name: "@deepseek-ai/dsh-web"
+  config:
+    searchProvider: exa
+    fetchProvider: exa
