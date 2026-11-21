@@ -1,14 +1,11 @@
 {
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
-    "includes": [
-      "**",
-      "!**/node_modules",
-      "!**/lib",
-      "!pnpm-lock.yaml",
-      "!**/coverage",
-      "!**/.claude",
-      "!**/.worktrees"
-    ]
+    "includes": ["**", "!pnpm-lock.yaml"]
   },
   "formatter": {
     "enabled": true,
