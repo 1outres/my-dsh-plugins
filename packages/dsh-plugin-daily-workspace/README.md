@@ -33,6 +33,37 @@ A folder that is already registered is skipped. The plugin compares canonical
 paths (`fs.realpath`) with the registered ones, so a folder reached through a
 symlink is recognized.
 
+## Open today
+
+The plugin also adds **Open today** at the foot of the sidebar. It opens the
+newest day folder registered under the configured root, so the button follows
+the Host half: the browser never computes a date and never creates a folder.
+Because the Host registers today's folder at start and within five minutes of
+local midnight, the newest day folder is today once that pass has run.
+
+Wide, the button reads **Open today**; in the 56px rail it is the calendar icon
+only. A failure stays on the button for six seconds:
+
+| Failure                                                | Shown text                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------------ |
+| The root is relative, or the Host is not connected yet | The root is not an absolute path, or the Host is not connected yet |
+| No day folder is registered under the root             | Today's folder is not registered yet                               |
+| The Workspace could not be opened                      | Could not open today's folder: <detail>                            |
+
+### The quick start row
+
+The sidebar footer row is shared with other plugins. When the
+[scratchpad](../dsh-plugin-scratchpad) plugin is installed too, the row reads
+`[+] scratch | [+] today`: each button keeps its icon, shows only its short
+label, and a thin vertical divider sits between them. With one plugin
+installed, its button keeps its full label (`New scratch` or `Open today`).
+In the rail the two icons stack, because two 36px buttons do not fit across
+56px.
+
+Each package styles only its own button and finds the other through the
+`data-dsh-quick-start` attribute. Neither package imports or depends on the
+other, and the claude-usage footer still takes its own line below the row.
+
 ## The Workspace Tree tip
 
 Choose **View options → Group by → Workspace Tree** in the Workspaces header.
@@ -71,6 +102,10 @@ managed.
 5. Passes never overlap: a trigger that arrives during a pass waits for it.
 6. The check timer is cleared on dispose, when the plugin is disabled or the
    Host stops.
+7. The browser half reads the same root from the settings form, picks the
+   newest registered day folder under that root, and opens that Workspace
+   through the Workspace UI. Reading the list is all it does: it computes no
+   date and creates nothing.
 
 Every failure is logged as a warning; nothing is thrown out of `apply` or the
 timer, and a failure leaves the next check scheduled.
@@ -82,8 +117,15 @@ timer, and a failure leaves the next check scheduled.
   deletes, moves, or renames a folder.
 - A year, month, or day registration removed by hand comes back at the next
   start or after the next midnight, while its folder still exists.
-- The plugin adds no browser half and no session commands: it only creates
-  folders and registers workspaces.
+- The browser compares the configured root spelling with the registered
+  canonical paths. A root reached through a symlink may therefore leave the
+  button saying today's folder is not registered yet; set `root` to the
+  canonical path in that case.
+- The button opens the newest registered day folder. Once the Host half has
+  registered today it is today's folder; a newer day folder registered by hand
+  is opened instead.
+- The plugin adds no session commands. The browser half is only the footer
+  button.
 
 ## Development
 

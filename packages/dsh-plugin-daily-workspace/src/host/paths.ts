@@ -1,63 +1,10 @@
 /**
- * Path and date rules of the daily folders. Pure functions: no Node or
- * Harness APIs in the calculations, so the same answers hold in tests.
+ * Date rules of the daily folders. Pure functions: no Node or Harness APIs in
+ * the calculations, so the same answers hold in tests.
  */
 
 import type { DailyPaths } from "../contract"
-
-/** Default root. `~` is the Host user's home directory. */
-export const DEFAULT_ROOT = "~/Documents"
-
-function trimTrailingSlashes(path: string): string {
-  let end = path.length
-  while (end > 1 && (path[end - 1] === "/" || path[end - 1] === "\\")) end--
-  return path.slice(0, end)
-}
-
-/**
- * Expand a leading `~` against `home` and drop trailing separators. Other
- * paths are returned trimmed but otherwise unchanged.
- * @returns the expanded path, or undefined when `~` is used and `home` is unknown.
- */
-export function expandHome(path: string, home: string | undefined): string | undefined {
-  const value = path.trim()
-  if (value === "~" || value.startsWith("~/") || value.startsWith("~\\")) {
-    if (home === undefined || home === "") return undefined
-    return trimTrailingSlashes(`${trimTrailingSlashes(home)}${value.slice(1)}`)
-  }
-  return trimTrailingSlashes(value)
-}
-
-/** Whether `path` is absolute on POSIX or Windows. */
-export function isAbsolutePath(path: string): boolean {
-  return path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path) || path.startsWith("\\\\")
-}
-
-/**
- * Resolve the configured root to an absolute path.
- * @returns the absolute root, or undefined when it cannot be resolved.
- */
-export function resolveRoot(
-  configured: string | undefined,
-  home: string | undefined,
-): string | undefined {
-  const raw = configured === undefined || configured.trim() === "" ? DEFAULT_ROOT : configured
-  const expanded = expandHome(raw, home)
-  if (expanded === undefined || !isAbsolutePath(expanded)) return undefined
-  return expanded
-}
-
-/** Separator to use under `root`: a Windows root keeps backslashes. */
-function separatorOf(root: string): string {
-  return /^[A-Za-z]:\\/.test(root) || root.startsWith("\\\\") ? "\\" : "/"
-}
-
-/** Join one child name onto a directory. */
-export function joinPath(dir: string, name: string): string {
-  const base = trimTrailingSlashes(dir)
-  const sep = separatorOf(base)
-  return base.endsWith(sep) ? `${base}${name}` : `${base}${sep}${name}`
-}
+import { joinPath } from "../shared/paths"
 
 function pad(value: number): string {
   return String(value).padStart(2, "0")

@@ -218,8 +218,13 @@ describe("buttons", () => {
     const wide = renderToStaticMarkup(
       createElement(NewScratchFooterButton, { wide: true, t, start, status: fixed(idle) }),
     )
+    expect(wide).toContain('data-dsh-quick-start=""')
+    expect(wide).toContain("dsh-scratch-label-full")
     expect(wide).toContain("action.label")
+    expect(wide).toContain("dsh-scratch-label-short")
+    expect(wide).toContain("action.short")
     expect(wide).toContain('title="action.hint"')
+    expect(wide).toContain('aria-label="action.label"')
     const rail = renderToStaticMarkup(
       createElement(NewScratchFooterButton, { wide: false, t, start, status: fixed(idle) }),
     )
@@ -238,6 +243,7 @@ describe("buttons", () => {
     )
     expect(busy).toContain("action.busy")
     expect(busy).toContain("disabled")
+    expect(busy).not.toContain("dsh-scratch-label-short")
     const failed = renderToStaticMarkup(
       createElement(NewScratchFooterButton, {
         wide: true,
@@ -248,6 +254,7 @@ describe("buttons", () => {
     )
     expect(failed).toContain("data-error")
     expect(failed).toContain("nope")
+    expect(failed).not.toContain("dsh-scratch-label-short")
   })
 
   it("renders the chip only for the root Session", () => {

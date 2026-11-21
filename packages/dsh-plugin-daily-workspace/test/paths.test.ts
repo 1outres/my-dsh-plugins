@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest"
+import { dailyPaths, localDateKey, msUntilNextLocalDay } from "../src/host/paths"
 import {
   DEFAULT_ROOT,
-  dailyPaths,
   expandHome,
   isAbsolutePath,
   joinPath,
-  localDateKey,
-  msUntilNextLocalDay,
   resolveRoot,
-} from "../src/host/paths"
+} from "../src/shared/paths"
 
 describe("root resolution", () => {
   it("expands a leading ~ against the Host home and drops trailing slashes", () => {

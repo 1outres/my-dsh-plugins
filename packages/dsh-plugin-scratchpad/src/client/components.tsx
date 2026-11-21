@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react"
 import { IconScratch } from "./icons"
+import { QUICK_START_ATTR } from "./quick-start"
 import type { ScratchStatus } from "./scratch"
 import type { Observable, SessionListState, Translate } from "./types"
 
@@ -11,6 +12,9 @@ function useObservable<T>(observable: Observable<T>): T {
   const getSnapshot = useCallback(() => observable.getSnapshot(), [observable])
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 }
+
+/** Marks the footer button for the shared quick start row. */
+const QUICK_START_PROPS = { [QUICK_START_ATTR]: "" }
 
 /** Shared by both buttons through the slot `inject` face. */
 export interface StarterFace {
@@ -27,11 +31,11 @@ export interface FooterButtonProps extends StarterFace {
 /** "New scratch" at the sidebar foot, beside Settings. */
 export function NewScratchFooterButton({ wide, t, start, status }: FooterButtonProps) {
   const { busy, error } = useObservable(status)
-  const label = busy ? t("action.busy") : (error ?? t("action.label"))
   return (
     <button
       type="button"
       className="dsh-scratch-footer"
+      {...QUICK_START_PROPS}
       data-rail={wide ? undefined : ""}
       disabled={busy}
       title={error ?? t("action.hint")}
@@ -43,7 +47,16 @@ export function NewScratchFooterButton({ wide, t, start, status }: FooterButtonP
       <IconScratch size={16} />
       {wide ? (
         <span className="dsh-scratch-label" data-error={error === undefined ? undefined : ""}>
-          {label}
+          {busy ? (
+            t("action.busy")
+          ) : error !== undefined ? (
+            error
+          ) : (
+            <>
+              <span className="dsh-scratch-label-full">{t("action.label")}</span>
+              <span className="dsh-scratch-label-short">{t("action.short")}</span>
+            </>
+          )}
         </span>
       ) : null}
     </button>

@@ -1,6 +1,7 @@
 /** Button, command and error copy. The plugin ships English only. */
 export const en: Record<string, string> = {
   "action.label": "New scratch",
+  "action.short": "scratch",
   "action.hint": "Start a session in a new empty scratch directory",
   "action.busy": "Creating scratch…",
   "chip.label": "New scratch",

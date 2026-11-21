@@ -3,9 +3,9 @@ import type { Context } from "@deepseek-ai/cordis"
 import z from "@deepseek-ai/schemastery"
 import type { ClockPort, LoggerPort, TimerPort, WorkspaceRegistryPort } from "./contract"
 import { nodeFs } from "./host/fs"
-import { DEFAULT_ROOT, resolveRoot } from "./host/paths"
 import { registerDailyWorkspace } from "./host/register"
 import { startDailySchedule } from "./host/schedule"
+import { DEFAULT_ROOT, resolveRoot } from "./shared/paths"
 
 export const name = "daily-workspace"
 

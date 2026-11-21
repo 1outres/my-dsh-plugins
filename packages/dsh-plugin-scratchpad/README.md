@@ -30,6 +30,13 @@ directory starts empty: no `git init`, no files. The workspace is titled after
 the directory; renaming the workspace or the session never renames the
 directory.
 
+The **New scratch** button shares the sidebar footer row with the
+[daily-workspace](../dsh-plugin-daily-workspace) plugin's **Open today**
+button. When both are installed the row reads `[+] scratch | [+] today`, with
+the short labels and a thin divider between the two; in the rail the two icons
+stack. Each plugin styles only its own button and neither depends on the other.
+With one plugin installed, its button keeps its full label.
+
 When the newest scratch is still unused (nothing was sent in any of its
 sessions and none is archived), the button opens it again instead of creating
 another empty directory.

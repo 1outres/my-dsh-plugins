@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Daily workspace",
-    "description": "Creates today's folder under ~/Documents and registers its year, month, and day folders as workspaces, so the sidebar tree shows the day's sessions under their date."
+    "description": "Creates today's folder under ~/Documents and registers its year, month, and day folders as workspaces, so the sidebar tree shows the day's sessions under their date. Open today in the sidebar foot opens today's folder."
   }
 }
