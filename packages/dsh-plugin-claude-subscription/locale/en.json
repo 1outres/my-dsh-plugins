@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Claude subscription",
+    "description": "Adds your own Claude subscription as a model provider, through the official Claude Code CLI. Unofficial; not affiliated with Anthropic."
+  }
+}

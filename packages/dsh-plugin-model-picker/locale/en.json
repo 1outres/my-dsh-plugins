@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Model picker",
+    "description": "Replaces the composer model selector with a searchable menu: favorites and recent models come first, every provider is grouped, and reasoning effort is in the same menu."
+  }
+}

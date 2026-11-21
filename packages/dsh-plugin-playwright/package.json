@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-playwright",
   "version": "0.11.0",
-  "description": "Gives each top-level DSH session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.",
+  "description": "Gives each top-level DeepSeek Harness session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -21,6 +21,9 @@
     "locale/*.json",
     "icon.svg"
   ],
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -32,9 +35,6 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
-  },
-  "scripts": {
-    "prepublishOnly": "node ../../scripts/build.mjs"
   },
   "engines": {
     "dsh": ">=0.2.2-rc.1 <0.3.0",

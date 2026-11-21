@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-remote",
   "version": "0.11.0",
-  "description": "Runs commands, edits files and drives interactive shells on remote SSH hosts and serial network-device consoles, with passwords kept out of the chat.",
+  "description": "Runs commands, edits files and drives interactive shells on SSH hosts and serial consoles from DeepSeek Harness, with passwords kept out of the chat.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -22,6 +22,9 @@
     "locale/*.json",
     "icon.svg"
   ],
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -34,9 +37,6 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
-  },
-  "scripts": {
-    "prepublishOnly": "node ../../scripts/build.mjs"
   },
   "engines": {
     "dsh": ">=0.2.2-rc.1 <0.3.0",

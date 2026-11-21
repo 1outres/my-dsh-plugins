@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Claude usage",
-    "description": "Shows the remaining Claude subscription usage in a status bar at the bottom of the Web UI when the claude-subscription plugin is enabled."
+    "description": "Shows the remaining Claude subscription usage in the sidebar footer. Needs the Claude subscription plugin."
   }
 }

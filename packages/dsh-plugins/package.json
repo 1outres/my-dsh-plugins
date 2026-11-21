@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugins",
   "version": "0.11.0",
-  "description": "Personal DeepSeek Harness plugin bundle. Installs every plugin in this repository.",
+  "description": "Installs every plugin of the my-dsh-plugins collection into DeepSeek Harness at once.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -11,11 +11,15 @@
   "exports": {
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./presets/creator-ptc.patch.yml": "./presets/creator-ptc.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
     "./package.json": "./package.json"
   },
   "files": [
     "cordis.patch.yml",
-    "presets"
+    "presets",
+    "locale/*.json",
+    "icon.svg"
   ],
   "keywords": [
     "dsh",
@@ -32,18 +36,18 @@
   },
   "dependencies": {
     "@1outres/dsh-plugin-background": "workspace:*",
-    "@1outres/dsh-plugin-notify": "workspace:*",
     "@1outres/dsh-plugin-claude-subscription": "workspace:*",
     "@1outres/dsh-plugin-claude-usage": "workspace:*",
-    "@1outres/dsh-plugin-model-picker": "workspace:*",
-    "@1outres/dsh-plugin-edit-message": "workspace:*",
-    "@1outres/dsh-plugin-scratchpad": "workspace:*",
-    "@1outres/dsh-plugin-mobile": "workspace:*",
-    "@1outres/dsh-plugin-remote": "workspace:*",
-    "@1outres/dsh-plugin-playwright": "workspace:*",
-    "@1outres/dsh-plugin-mode-memory": "workspace:*",
     "@1outres/dsh-plugin-daily-workspace": "workspace:*",
-    "@1outres/dsh-plugin-exa": "workspace:*"
+    "@1outres/dsh-plugin-edit-message": "workspace:*",
+    "@1outres/dsh-plugin-exa": "workspace:*",
+    "@1outres/dsh-plugin-mobile": "workspace:*",
+    "@1outres/dsh-plugin-mode-memory": "workspace:*",
+    "@1outres/dsh-plugin-model-picker": "workspace:*",
+    "@1outres/dsh-plugin-notify": "workspace:*",
+    "@1outres/dsh-plugin-playwright": "workspace:*",
+    "@1outres/dsh-plugin-remote": "workspace:*",
+    "@1outres/dsh-plugin-scratchpad": "workspace:*"
   },
   "dsh": {
     "bundle": {

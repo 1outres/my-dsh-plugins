@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Notifications</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#DB2777"/>
+  <path d="M32 14C25.9 14 22 18.5 22 24.5V32L18 38V40H46V38L42 32V24.5C42 18.5 38.1 14 32 14Z" fill="#FFFFFF" fill-opacity="0.95"/>
+  <path d="M27.5 43C28.1 45.6 29.8 47 32 47C34.2 47 35.9 45.6 36.5 43H27.5Z" fill="#FFFFFF" fill-opacity="0.95"/>
+  <circle cx="43" cy="18" r="5.5" fill="#F2C14E" stroke="#DB2777" stroke-width="2"/>
+</svg>

@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-claude-usage",
   "version": "0.11.0",
-  "description": "Shows the remaining Claude subscription usage in a status bar at the bottom of the DeepSeek Harness Web UI when the claude-subscription plugin is enabled.",
+  "description": "Shows the remaining Claude subscription usage in the DeepSeek Harness sidebar footer when the claude-subscription plugin is enabled.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -22,6 +22,9 @@
     "locale/*.json",
     "icon.svg"
   ],
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",

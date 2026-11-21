@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-claude-subscription",
   "version": "0.11.0",
-  "description": "Use your own Claude subscription in DeepSeek Harness through the official Claude Code CLI. Unofficial; not affiliated with Anthropic.",
+  "description": "Unofficial DeepSeek Harness model provider that uses your own Claude subscription through the official Claude Code CLI. Not affiliated with Anthropic.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -11,11 +11,15 @@
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
   ],
   "scripts": {
     "prepublishOnly": "node ../../scripts/build.mjs",
@@ -36,7 +40,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@deepseek-ai/schemastery": "~3.18.5"
+    "@deepseek-ai/schemastery": "~3.19.0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.1.0"

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Playwright",
-    "description": "トップレベルの Session ごとに独立した Playwright のブラウザーコンテキストを用意し、Playwright MCP のブラウザーツールを使えるようにします。タブや Cookie、ストレージは Session 間で共有されず、同時に動かせます。"
+    "description": "トップレベルのセッションごとに独立した Playwright のブラウザーコンテキストを用意し、Playwright MCP のブラウザーツールを使えるようにします。タブや Cookie、ストレージはセッション間で共有されず、同時に動かせます。"
   },
   "title.browser_resize": "ブラウザーウィンドウをリサイズ",
   "title.browser_console_messages": "コンソールメッセージを取得",

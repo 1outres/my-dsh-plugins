@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-daily-workspace",
   "version": "0.11.0",
-  "description": "Creates today's folder under ~/Documents and registers its year, month, and day folders as workspaces, again at every local midnight.",
+  "description": "Creates today's folder under ~/Documents and registers its year, month and day folders as DeepSeek Harness workspaces, again at every local midnight.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -22,6 +22,9 @@
     "locale/*.json",
     "icon.svg"
   ],
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -33,15 +36,12 @@
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {
-    "prepublishOnly": "node ../../scripts/build.mjs"
-  },
   "engines": {
     "dsh": ">=0.2.2-rc.1 <0.3.0",
     "node": ">=22"
   },
   "dependencies": {
-    "@deepseek-ai/schemastery": "~3.18.5"
+    "@deepseek-ai/schemastery": "~3.19.0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.1.0",

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Claude subscription</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#C15F3C"/>
+  <rect x="10" y="17" width="44" height="30" rx="5" fill="#FFFFFF" fill-opacity="0.95"/>
+  <rect x="10" y="23" width="44" height="5" fill="#F4D3C4"/>
+  <path d="M16 34L20 37L16 40" stroke="#C15F3C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M23 40H29" stroke="#C15F3C" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M44 31V43M38 37H50M39.8 32.8L48.2 41.2M48.2 32.8L39.8 41.2" stroke="#C15F3C" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

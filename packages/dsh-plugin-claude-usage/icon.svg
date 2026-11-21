@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
-  <rect x="2.5" y="14.5" width="19" height="6" rx="3" stroke="#8b5cf6" stroke-width="1.6" />
-  <path d="M5.5 17.5h6.5" stroke="#8b5cf6" stroke-width="1.6" stroke-linecap="round" />
-  <path d="M16.5 17.5h2" stroke="#8b5cf6" stroke-width="1.6" stroke-linecap="round" />
-  <path d="M12 2.6v5.2M9.4 4l5.2 2.4M14.6 4 9.4 6.4" stroke="#a78bfa" stroke-width="1.4" stroke-linecap="round" />
-  <circle cx="12" cy="7.8" r="2.1" fill="#8b5cf6" />
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Claude usage</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#8B5CF6"/>
+  <path d="M32 13V31M23 22H41M25.6 15.6L38.4 28.4M38.4 15.6L25.6 28.4" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <rect x="12" y="38" width="40" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.3"/>
+  <rect x="12" y="38" width="26" height="10" rx="5" fill="#FFFFFF"/>
 </svg>

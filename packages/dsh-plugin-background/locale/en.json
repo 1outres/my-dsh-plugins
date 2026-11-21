@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Background image",
+    "description": "Paints an image behind the whole Web UI. Panel opacity, dim and blur keep the text readable; change them in Settings > Background image."
+  }
+}

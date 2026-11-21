@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Playwright",
-    "description": "Gives every top-level session its own isolated Playwright browser context, with browser tools from Playwright MCP. Sessions never share tabs, cookies, or storage, and run at the same time."
+    "description": "Gives every top-level session its own isolated Playwright browser context, with browser tools from Playwright MCP. Sessions never share tabs, cookies or storage, and run at the same time."
   },
   "title.browser_resize": "Resize browser window",
   "title.browser_console_messages": "Get console messages",

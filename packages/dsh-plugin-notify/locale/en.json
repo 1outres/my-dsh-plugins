@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Notifications",
+    "description": "Notifies you when a tool call waits for approval, the agent asks a question, or a turn finishes: in the browser while the page is in the background, and by Web Push while it is closed."
+  }
+}

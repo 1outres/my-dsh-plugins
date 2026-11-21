@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Claude の使用量",
-    "description": "claude-subscription プラグインが有効なとき、Claude サブスクリプションの残りの使用量を Web UI の一番下のステータスバーに表示します。"
+    "description": "Claude サブスクリプションの残りの使用量をサイドバーの下部に表示します。Claude サブスクリプションのプラグインが必要です。"
   }
 }

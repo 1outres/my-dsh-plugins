@@ -1,7 +1,7 @@
 {
   "name": "@1outres/dsh-plugin-scratchpad",
   "version": "0.11.0",
-  "description": "One-click scratch sessions for DeepSeek Harness: each gets a new empty directory registered as its own workspace, moved aside when archived.",
+  "description": "Opens DeepSeek Harness sessions in new empty scratch directories, each registered as its own workspace and moved aside when archived.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/1outres/my-dsh-plugins.git",
@@ -22,6 +22,9 @@
     "locale/*.json",
     "icon.svg"
   ],
+  "scripts": {
+    "prepublishOnly": "node ../../scripts/build.mjs"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -32,15 +35,12 @@
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {
-    "prepublishOnly": "node ../../scripts/build.mjs"
-  },
   "engines": {
     "dsh": ">=0.2.2-rc.1 <0.3.0",
     "node": ">=22"
   },
   "dependencies": {
-    "@deepseek-ai/schemastery": "~3.18.5"
+    "@deepseek-ai/schemastery": "~3.19.0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "~4.1.0",

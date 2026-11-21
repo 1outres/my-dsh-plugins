@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "リモート接続",
+    "description": "SSH ホストと、dsh-serial-agent の先にあるシリアルコンソールで、エージェントがコマンドの実行、ファイルの編集、対話シェルの操作をできるようにします。接続先は一つずつ承認し、パスワードは伏せ字のカードに入力するので、モデルには見えません。"
+  },
   "title.remote_target_add": "接続先を追加",
   "title.remote_target_list": "接続先の一覧",
   "title.remote_target_remove": "接続先を削除",

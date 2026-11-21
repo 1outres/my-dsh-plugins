@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Claude サブスクリプション",
+    "description": "自分の Claude サブスクリプションを、公式の Claude Code CLI 経由でモデルプロバイダーとして追加します。非公式のプラグインで、Anthropic とは関係ありません。"
+  }
+}

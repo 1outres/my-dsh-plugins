@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "Remote hosts",
+    "description": "Lets the agent run commands, edit files and use interactive shells on SSH hosts and on serial consoles behind dsh-serial-agent. You approve each target and type its passwords in a masked card, so the model never sees them."
+  },
   "title.remote_target_add": "Add a remote target",
   "title.remote_target_list": "List remote targets",
   "title.remote_target_remove": "Remove a remote target",
