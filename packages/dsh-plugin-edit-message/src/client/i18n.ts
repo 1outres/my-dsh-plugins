@@ -1,4 +1,4 @@
-/** Button, editor and error copy. The plugin ships English only. */
+/** Button, editor and error copy. */
 export const en: Record<string, string> = {
   edit: "Edit",
   "edit.running": "Stop the running turn to edit this message",
@@ -18,4 +18,25 @@ export const en: Record<string, string> = {
   "error.fork": "Could not create the new session: {detail}",
   "error.prepare": "Could not prepare the new session: {detail}",
   "error.prompt": "The new session did not accept the message: {detail}",
+}
+
+export const ja: Record<string, string> = {
+  edit: "編集",
+  "edit.running": "このメッセージを編集するには、実行中のターンを止めてください",
+  "edit.files": "ファイルを添付したメッセージは編集できません",
+  "edit.noAccess": "このセッションは分岐できません",
+  "editor.aria": "メッセージを編集",
+  "editor.cancel": "キャンセル",
+  "editor.send": "送信",
+  "editor.sending": "送信中…",
+  "editor.images": "元のメッセージの画像 {count} 枚をもう一度送ります。",
+  "error.unavailable": "このセッションは読み込まれていません。",
+  "error.running": "セッションが実行中です。止めてから、もう一度送ってください。",
+  "error.empty": "メッセージを入力してください。",
+  "error.files": "ファイルを添付したメッセージは編集できません。",
+  "error.boundary": "セッションの履歴で、このメッセージの始まりが見つかりませんでした。",
+  "error.attachment": "元の画像を読み込めませんでした: {detail}",
+  "error.fork": "新しいセッションを作れませんでした: {detail}",
+  "error.prepare": "新しいセッションを準備できませんでした: {detail}",
+  "error.prompt": "新しいセッションがメッセージを受け付けませんでした: {detail}",
 }

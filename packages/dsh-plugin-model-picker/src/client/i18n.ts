@@ -1,4 +1,4 @@
-/** Picker copy. The plugin ships English only. */
+/** Picker copy. */
 export const en: Record<string, string> = {
   "provider.account": "DeepSeek Account",
   "trigger.fallback": "Select model",
@@ -27,4 +27,34 @@ export const en: Record<string, string> = {
   "error.favorites": "Favorites could not be saved.",
   "warning.groupLoad": "{name} failed to load: {message}",
   retry: "Retry",
+}
+
+export const ja: Record<string, string> = {
+  "provider.account": "DeepSeek アカウント",
+  "trigger.fallback": "モデルを選択",
+  "trigger.loading": "モデルを読み込んでいます…",
+  "trigger.selectAria": "モデルを選択",
+  "trigger.aria": "モデルを選択（現在: {model}）",
+  "trigger.ariaEffort": "モデルを選択（現在: {model}、推論の強さ: {effort}）",
+  "menu.aria": "モデルと推論の強さ",
+  "list.aria": "モデル",
+  "section.favorites": "お気に入り",
+  "section.recent": "最近使ったモデル",
+  "section.results": "検索結果",
+  "search.placeholder": "モデルを検索…",
+  "search.clear": "検索をクリア",
+  "search.empty": "一致するモデルはありません。",
+  "empty.models": "使えるモデルがありません。",
+  "status.loading": "モデルの一覧を更新しています…",
+  "effort.label": "推論の強さ",
+  "effort.aria": "推論の強さ",
+  "effort.default": "既定",
+  "favorite.add": "お気に入りに追加",
+  "favorite.remove": "お気に入りから外す",
+  "error.action": "モデルの操作に失敗しました: {message}",
+  "error.sessionInUse":
+    "このセッションはすでに使われています。別に動いている DSH（dsh web やデスクトップアプリなど）が使っているかもしれません。ほかの DSH を終了してから、もう一度試してください。",
+  "error.favorites": "お気に入りを保存できませんでした。",
+  "warning.groupLoad": "{name} を読み込めませんでした: {message}",
+  retry: "再試行",
 }

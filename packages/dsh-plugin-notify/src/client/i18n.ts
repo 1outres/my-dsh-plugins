@@ -1,4 +1,4 @@
-/** Settings page and notification copy. The plugin ships English only. */
+/** Settings page and notification copy. */
 export const en: Record<string, string> = {
   nav: "Notifications",
   title: "Notifications",
@@ -56,4 +56,62 @@ export const en: Record<string, string> = {
   unavailable: "This configuration is not available.",
   readOnly: "Configuration is read-only.",
   writeError: "The Host refused the change.",
+}
+
+export const ja: Record<string, string> = {
+  nav: "通知",
+  title: "通知",
+  description:
+    "このページがバックグラウンドにあるときや閉じているときに、ツールの承認待ち、エージェントからの質問、ターンの終了を通知します。Web Push なら、ページを閉じていてもこの端末に届きます。",
+  enabled: "通知を有効にする",
+  enabledHint: "プラグインをアンインストールせずに、すべての通知をオフにします。",
+  onlyWhenUnfocused: "このページがバックグラウンドのときだけ",
+  onlyWhenUnfocusedHint: "ウィンドウが前面に表示されているときは、確認画面がすでに見えています。",
+  push: "プッシュ通知を送る",
+  pushHint:
+    "プッシュ通知をオンにした端末へホストから送ります。ページを閉じていても、バックグラウンドでも届きます。",
+  pushDevice: "この端末のプッシュ通知",
+  pushOn: "オン",
+  pushOff: "オフ",
+  pushUnsupported: "このブラウザはプッシュ通知に対応していません。",
+  pushNoWorker:
+    "このページを管理する Service Worker がありません。モバイルの設定で Service Worker をオンにしてから、再読み込みしてください。",
+  pushNeedsInstall:
+    "先にこのアプリをホーム画面に追加してください。iPhone と iPad のプッシュ通知には、インストールしたアプリが必要です。",
+  pushDenied:
+    "ブラウザが通知をブロックしています。ブラウザの設定で、このサイトの通知を許可してください。",
+  pushError: "今はプッシュ通知を使えません。ページを再読み込みして、もう一度試してください。",
+  pushTurnOn: "この端末でプッシュ通知をオンにする",
+  pushTurnOff: "この端末でプッシュ通知をオフにする",
+  pushTest: "テストのプッシュ通知を送る",
+  pushTestSent: "テストのプッシュ通知を送りました。",
+  pushTestGone: "ホストがこの端末を知りません。プッシュ通知をもう一度オンにしてください。",
+  pushTestFailed: "テストのプッシュ通知に失敗しました。",
+  pushRequirement:
+    "iPhone と iPad ではアプリをホーム画面に追加する必要があります。プッシュ通知にはモバイルの Service Worker が必要です。",
+  approval: "承認の確認",
+  approvalHint: "ツールの呼び出しが、許可か拒否を待っています。",
+  question: "質問とプランの確認",
+  questionHint: "エージェントが質問したか、確認してほしいプランを出しました。",
+  completion: "ターンの終了",
+  completionHint: "ほかの画面を見ている間に、ターンの実行が終わりました。",
+  showDetail: "リクエストの詳細を含める",
+  showDetailHint: "ツール名、承認の理由、質問の文面を通知に加えます。",
+  permission: "ブラウザの許可",
+  permissionGranted: "許可済み",
+  permissionDenied: "ブロックされています。ブラウザの設定で、このサイトの通知を許可してください。",
+  permissionDefault: "まだ許可を求めていません",
+  permissionUnsupported: "このブラウザは通知に対応していません。",
+  permissionNeedsInstall:
+    "先にこのアプリをホーム画面に追加してください。iPhone と iPad の通知には、インストールしたアプリが必要です。",
+  allow: "通知を許可",
+  test: "テスト通知を送る",
+  testSent: "テスト通知を送りました。",
+  testBlocked: "ブラウザが通知を許可していません。",
+  testTitle: "DeepSeek Harness の通知",
+  testBody: "承認や終了の通知は、このように表示されます。",
+  loading: "設定を読み込んでいます…",
+  unavailable: "この設定は利用できません。",
+  readOnly: "設定は読み取り専用です。",
+  writeError: "ホストが変更を受け付けませんでした。",
 }

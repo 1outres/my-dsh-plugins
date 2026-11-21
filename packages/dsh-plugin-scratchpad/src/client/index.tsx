@@ -1,6 +1,6 @@
 import { isRootPath, resolveRoot } from "../shared/paths"
 import { NewScratchChip, NewScratchFooterButton, type StarterFace } from "./components"
-import { en } from "./i18n"
+import { en, ja } from "./i18n"
 import { IconScratch } from "./icons"
 import { createScratchStarter, waitForWorkspace } from "./scratch"
 import { SCRATCH_CSS } from "./styles"
@@ -32,7 +32,7 @@ export const COMMAND = "scratch"
  * the newest scratch while it is unused, or creates a new one.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NAMESPACE, { en }), "scratchpad: dictionaries")
+  ctx.effect(() => ctx.locale.register(NAMESPACE, { en, ja }), "scratchpad: dictionaries")
 
   ctx.effect(() => {
     const tag = document.createElement("style")

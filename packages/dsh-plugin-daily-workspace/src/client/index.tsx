@@ -1,6 +1,6 @@
 import { resolveRoot } from "../shared/paths"
 import { type OpenTodayFace, OpenTodayFooterButton } from "./components"
-import { en } from "./i18n"
+import { en, ja } from "./i18n"
 import { TODAY_CSS } from "./styles"
 import { createTodayOpener } from "./today"
 import type { ClientContext, DailyWorkspaceConfig } from "./types"
@@ -24,7 +24,7 @@ export const FOOTER_ORDER = 5
  * under the configured root.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NAMESPACE, { en }), "daily-workspace: dictionaries")
+  ctx.effect(() => ctx.locale.register(NAMESPACE, { en, ja }), "daily-workspace: dictionaries")
 
   ctx.effect(() => {
     const tag = document.createElement("style")

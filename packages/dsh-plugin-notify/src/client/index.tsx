@@ -3,7 +3,7 @@ import type { PwaClickMessage, PwaNotificationData } from "../shared/protocol"
 import { OPEN_SESSION_PARAM, PWA_CLICK_MESSAGE } from "../shared/protocol"
 import type { NoticeSpec } from "../shared/types"
 import { CONFIG_NAMESPACE, normalizeConfig } from "./config"
-import { en } from "./i18n"
+import { en, ja } from "./i18n"
 import { createBrowserPushEnvironment, createPushController, type HostPushRemote } from "./push"
 import { type Notifier, SettingsPage } from "./SettingsPage"
 import {
@@ -74,7 +74,7 @@ const contribution = {
 export async function apply(ctx: ClientContext): Promise<void> {
   const t = ctx.locale.bind(CONFIG_NAMESPACE)
 
-  ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en }), "notify: dictionaries")
+  ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en, ja }), "notify: dictionaries")
 
   ctx.effect(() => {
     const tag = document.createElement("style")

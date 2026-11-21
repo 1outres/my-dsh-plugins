@@ -20,7 +20,7 @@ insert the same `background` row.
 
 ## Settings
 
-Open **Settings → Background**.
+Open **Settings → Background image**.
 
 | Field             | Default | Meaning                                                                                |
 | ----------------- | ------- | -------------------------------------------------------------------------------------- |

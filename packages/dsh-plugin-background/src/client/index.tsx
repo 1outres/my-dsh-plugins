@@ -1,6 +1,6 @@
 import { CONFIG_NAMESPACE, normalizeConfig, TOKEN_NAMES } from "./config"
 import { alphaColor, clamp, dimColor, imageCssValue, resolveImageSource } from "./format"
-import { en } from "./i18n"
+import { en, ja } from "./i18n"
 import { SettingsPage } from "./SettingsPage"
 import { BACKGROUND_CSS, opaqueSurfaceCss } from "./styles"
 import type { BackgroundConfig, ClientContext, ThemeSnapshot } from "./types"
@@ -16,7 +16,7 @@ const OVERLAY_TOKEN = "--dsw-alias-bg-overlay"
 export function apply(ctx: ClientContext): void {
   const t = ctx.locale.bind(CONFIG_NAMESPACE)
 
-  ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en }), "background: dictionaries")
+  ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en, ja }), "background: dictionaries")
 
   let styleTag: HTMLStyleElement | undefined
 

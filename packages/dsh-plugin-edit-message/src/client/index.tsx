@@ -1,6 +1,6 @@
 import { createEditableUserMessage } from "./EditableUserMessage"
 import { runEdit } from "./edit"
-import { en } from "./i18n"
+import { en, ja } from "./i18n"
 import { EDIT_CSS } from "./styles"
 import type { ClientContext } from "./types"
 
@@ -32,7 +32,7 @@ const CHAT_NAMESPACE = "chat"
  * archives the original.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(NAMESPACE, { en }), "edit-message: dictionaries")
+  ctx.effect(() => ctx.locale.register(NAMESPACE, { en, ja }), "edit-message: dictionaries")
 
   ctx.effect(() => {
     const tag = document.createElement("style")

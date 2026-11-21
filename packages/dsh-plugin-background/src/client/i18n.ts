@@ -1,7 +1,7 @@
-/** Settings page copy. The plugin ships English only. */
+/** Settings page copy. */
 export const en: Record<string, string> = {
-  nav: "Background",
-  title: "Background",
+  nav: "Background image",
+  title: "Background image",
   description:
     "Paint an image behind the whole interface. Point at an absolute path on the machine running DSH, or at an https URL.",
   enable: "Enable background",
@@ -11,7 +11,7 @@ export const en: Record<string, string> = {
     "Absolute local path, for example /home/you/wallpaper.jpg, or an https:// URL. Local images are served through the authenticated file route, so they never leave the Host.",
   invalidImage: "Enter an absolute path or an http(s) URL.",
   preview: "Preview",
-  previewTitle: "Background",
+  previewTitle: "Background image",
   previewBody: "Panels stay readable over the image.",
   previewEmpty: "Set an image to preview it here.",
   previewFailed: "This image could not be loaded.",
@@ -26,4 +26,33 @@ export const en: Record<string, string> = {
   unavailable: "This configuration is not available.",
   readOnly: "Configuration is read-only.",
   writeError: "The Host refused the change.",
+}
+
+export const ja: Record<string, string> = {
+  nav: "背景画像",
+  title: "背景画像",
+  description:
+    "Web UI 全体の後ろに画像を表示します。DSH を動かしているマシン上の絶対パスか、https の URL を指定してください。",
+  enable: "背景を表示",
+  enableHint: "画像や読みやすさの設定を消さずに、背景だけをオフにします。",
+  image: "画像のパスまたは URL",
+  imageHint:
+    "ローカルの絶対パス（例: /home/you/wallpaper.jpg）か https:// の URL です。ローカルの画像は認証付きのファイルルートから配信されるため、ホストの外には出ません。",
+  invalidImage: "絶対パスか http(s) の URL を入力してください。",
+  preview: "プレビュー",
+  previewTitle: "背景画像",
+  previewBody: "画像の上でもパネルの文字は読めます。",
+  previewEmpty: "画像を設定すると、ここにプレビューが出ます。",
+  previewFailed: "この画像を読み込めませんでした。",
+  panelOpacity: "パネルの不透明度",
+  panelOpacityHint: "画像の上で、画面のパネルをどれだけ不透明にするかです。",
+  dim: "暗さ",
+  dimHint: "画像を暗くして、文字を読みやすくします。",
+  blur: "ぼかし",
+  blurHint: "画像をぼかします。値が大きいほど細部が見えなくなります。",
+  reset: "既定値に戻す",
+  loading: "設定を読み込んでいます…",
+  unavailable: "この設定は利用できません。",
+  readOnly: "設定は読み取り専用です。",
+  writeError: "ホストが変更を受け付けませんでした。",
 }

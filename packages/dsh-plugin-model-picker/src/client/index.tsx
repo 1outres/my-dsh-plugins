@@ -1,7 +1,7 @@
 import { CONFIG_NAMESPACE } from "./config"
 import { createEffortStore } from "./efforts"
 import { createFavoritesStore } from "./favorites"
-import { en } from "./i18n"
+import { en, ja } from "./i18n"
 import { ModelPicker } from "./Picker"
 import { createRecentStore, type StorageEventTarget, type StorageLike } from "./recent"
 import { PICKER_CSS } from "./styles"
@@ -53,7 +53,7 @@ function storageEvents(): StorageEventTarget | undefined {
  * settings entry, recent models in this browser.
  */
 export function apply(ctx: ClientContext): void {
-  ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en }), "model-picker: dictionaries")
+  ctx.effect(() => ctx.locale.register(CONFIG_NAMESPACE, { en, ja }), "model-picker: dictionaries")
 
   ctx.effect(() => {
     const tag = document.createElement("style")
