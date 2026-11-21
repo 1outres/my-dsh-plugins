@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-remote",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Runs commands, edits files and drives interactive shells on SSH hosts and serial consoles from DeepSeek Harness, with passwords kept out of the chat.",
   "repository": {
     "type": "git",

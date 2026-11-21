@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-scratchpad",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Opens DeepSeek Harness sessions in new empty scratch directories, each registered as its own workspace and moved aside when archived.",
   "repository": {
     "type": "git",
