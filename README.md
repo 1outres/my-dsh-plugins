@@ -21,21 +21,21 @@ bundle insert the same row id, so selecting both inserts that row twice.
 
 ## Plugins
 
-| Plugin                                                                               | Row id                | What it does                                                                                                                                                                                                           |
-| ------------------------------------------------------------------------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background)                   | `background`          | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                                                                                                                    |
-| [`@1outres/dsh-plugin-claude-subscription`](packages/dsh-plugin-claude-subscription) | `claude-subscription` | Unofficial. Adds your own Claude subscription as a model provider, through the official `claude` CLI.                                                                                                                  |
-| [`@1outres/dsh-plugin-claude-usage`](packages/dsh-plugin-claude-usage)               | `claude-usage`        | Shows the remaining Claude subscription usage in a sidebar footer row or rail ring, when `claude-subscription` is enabled.                                                                                             |
-| [`@1outres/dsh-plugin-daily-workspace`](packages/dsh-plugin-daily-workspace)         | `daily-workspace`     | Creates today's `~/Documents/YYYY/MM/DD` folder and registers its year, month, and day folders as workspaces, so Workspace Tree grouping shows 2026 → 11 → 20 → sessions. **Open today** in the sidebar foot opens it. |
-| [`@1outres/dsh-plugin-edit-message`](packages/dsh-plugin-edit-message)               | `edit-message`        | Adds Edit beside Copy on your sent messages: the conversation restarts from just before that message with the edited text, and the old version is archived.                                                            |
-| [`@1outres/dsh-plugin-exa`](packages/dsh-plugin-exa)                                 | `exa`                 | Adds Exa as the web search and fetch provider, with a Settings page for the API key and the search options.                                                                                                            |
-| [`@1outres/dsh-plugin-mobile`](packages/dsh-plugin-mobile)                           | `mobile`              | Adds phone refinements to the Web UI (keyboard fit, Enter adds a line, drawer swipes, long press menus, notches) and makes it an installable app with a service worker and an offline page.                            |
-| [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.                                                                        |
-| [`@1outres/dsh-plugin-mode-memory`](packages/dsh-plugin-mode-memory)                 | `mode-memory`         | Remembers the agent preset each project last used and gives it to new blank sessions of that project, so a project keeps its mode.                                                                                     |
-| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | `notify`              | Notifies you when an approval, a question, or a finished turn needs you: in the browser while the page is in the background, and by Web Push to devices that turn it on.                                               |
-| [`@1outres/dsh-plugin-playwright`](packages/dsh-plugin-playwright)                   | `playwright`          | Gives each top-level session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.                                                                                           |
-| [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | `remote`              | Works on remote SSH hosts and on serial consoles behind `dsh-serial-agent`: commands, files, and interactive shells, with passwords typed in a masked card.                                                            |
-| [`@1outres/dsh-plugin-scratchpad`](packages/dsh-plugin-scratchpad)                   | `scratchpad`          | Opens a session in a new empty directory registered as its own workspace, for work outside any repository; archiving moves the directory aside.                                                                        |
+| Plugin                                                                               | Title               | Row id                | What it does                                                                                                                                                                                                           |
+| ------------------------------------------------------------------------------------ | ------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@1outres/dsh-plugin-background`](packages/dsh-plugin-background)                   | Background image    | `background`          | Paints an image behind the whole Web UI, with panel opacity, dim and blur controls.                                                                                                                                    |
+| [`@1outres/dsh-plugin-claude-subscription`](packages/dsh-plugin-claude-subscription) | Claude subscription | `claude-subscription` | Unofficial. Adds your own Claude subscription as a model provider, through the official `claude` CLI.                                                                                                                  |
+| [`@1outres/dsh-plugin-claude-usage`](packages/dsh-plugin-claude-usage)               | Claude usage        | `claude-usage`        | Shows the remaining Claude subscription usage in a sidebar footer row or rail ring, when `claude-subscription` is enabled.                                                                                             |
+| [`@1outres/dsh-plugin-daily-workspace`](packages/dsh-plugin-daily-workspace)         | Daily workspace     | `daily-workspace`     | Creates today's `~/Documents/YYYY/MM/DD` folder and registers its year, month, and day folders as workspaces, so Workspace Tree grouping shows 2026 → 11 → 20 → sessions. **Open today** in the sidebar foot opens it. |
+| [`@1outres/dsh-plugin-edit-message`](packages/dsh-plugin-edit-message)               | Edit message        | `edit-message`        | Adds Edit beside Copy on your sent messages: the conversation restarts from just before that message with the edited text, and the old version is archived.                                                            |
+| [`@1outres/dsh-plugin-exa`](packages/dsh-plugin-exa)                                 | Exa web search      | `exa`                 | Adds Exa as the web search and fetch provider, with a Settings page for the API key and the search options.                                                                                                            |
+| [`@1outres/dsh-plugin-mobile`](packages/dsh-plugin-mobile)                           | Mobile              | `mobile`              | Adds phone refinements to the Web UI (keyboard fit, Enter adds a line, drawer swipes, long press menus, notches) and makes it an installable app with a service worker and an offline page.                            |
+| [`@1outres/dsh-plugin-model-picker`](packages/dsh-plugin-model-picker)               | Model picker        | `model-picker`        | Replaces the composer model selector with a searchable one: favorites and recent models first, every provider grouped, effort in the same menu.                                                                        |
+| [`@1outres/dsh-plugin-mode-memory`](packages/dsh-plugin-mode-memory)                 | Mode memory         | `mode-memory`         | Remembers the agent preset each project last used and gives it to new blank sessions of that project, so a project keeps its mode.                                                                                     |
+| [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | Notifications       | `notify`              | Notifies you when an approval, a question, or a finished turn needs you: in the browser while the page is in the background, and by Web Push to devices that turn it on.                                               |
+| [`@1outres/dsh-plugin-playwright`](packages/dsh-plugin-playwright)                   | Playwright          | `playwright`          | Gives each top-level session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.                                                                                           |
+| [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | Remote hosts        | `remote`              | Works on remote SSH hosts and on serial consoles behind `dsh-serial-agent`: commands, files, and interactive shells, with passwords typed in a masked card.                                                            |
+| [`@1outres/dsh-plugin-scratchpad`](packages/dsh-plugin-scratchpad)                   | Scratchpad          | `scratchpad`          | Opens a session in a new empty directory registered as its own workspace, for work outside any repository; archiving moves the directory aside.                                                                        |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
 
@@ -105,8 +105,30 @@ pnpm new-plugin my-thing
 The generator creates `packages/dsh-plugin-my-thing`, adds it as a workspace
 dependency of the bundle, appends its row to
 `packages/dsh-plugins/cordis.patch.yml`, and writes the one-row
-`cordis.patch.yml` that makes the package installable on its own. Then edit the
-generated source and run `pnpm build`.
+`cordis.patch.yml` that makes the package installable on its own. It also
+writes the display files with TODO text and a grey placeholder icon. Then edit
+the generated source, fill in the TODO text, draw the icon, and run
+`pnpm build` and `pnpm test`.
+
+### Conventions
+
+[`test/packages.test.ts`](test/packages.test.ts) checks every package against
+these rules, so `pnpm test` fails when a plugin drifts:
+
+- **Display text.** `locale/en.json` and `locale/ja.json` hold `meta.title`
+  and `meta.description`, which Plugins and Settings show. Titles are sentence
+  case (`Model picker`, not `Model Picker`). Japanese text writes
+  「セッション」, not `Session`.
+- **package.json description.** One sentence that names DeepSeek Harness, for
+  npm.
+- **Icon.** `icon.svg` is 64×64 with a rounded 60×60 tile as its first shape,
+  a white glyph on top, and a `<title>` equal to the English title. Every tile
+  color stays clearly apart from the others.
+- **Client copy.** `src/client/i18n.ts` exports `en` and `ja` with the same
+  keys, and the browser half registers both.
+- **Manifest.** Every package exports `./locale/*.json` and `./icon`, lists
+  them in `files`, ships `LICENSE`, builds in `prepublishOnly`, and asks for
+  the same version range of a shared dependency.
 
 Each plugin is its own package: the client module loader resolves exactly one
 `exports["./client"]` per package, so separate UI plugins must live in separate
@@ -174,6 +196,9 @@ packages/
   dsh-plugin-remote/      @1outres/dsh-plugin-remote — remote SSH tools, password cards, interactive sessions
   dsh-plugin-scratchpad/  @1outres/dsh-plugin-scratchpad — scratch directories as workspaces
 serial-agent/             dsh-serial-agent — Go daemon that serves client PC serial ports to the remote plugin (Nix flake)
+test/
+  packages.test.ts        repository conventions every package follows
+  new-plugin.test.ts      plugin generator
 scripts/
   build.mjs               esbuild host/client/standalone build + client wrapper
   new-plugin.mjs          plugin generator
