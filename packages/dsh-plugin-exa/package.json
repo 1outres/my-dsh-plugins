@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-exa",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Adds Exa as the DeepSeek Harness web search and fetch provider, with a Settings page for the API key and search options.",
   "repository": {
     "type": "git",
