@@ -2,6 +2,7 @@
 export const FailureCode = {
   aborted: "ABORTED",
   contextWindowExceeded: "CONTEXT_WINDOW_EXCEEDED",
+  contentRefused: "CONTENT_REFUSED",
   emptyResponse: "EMPTY_RESPONSE",
   imageOffloadRequired: "IMAGE_OFFLOAD_REQUIRED",
   invalidCredential: "INVALID_CREDENTIAL",

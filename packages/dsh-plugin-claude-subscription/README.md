@@ -141,7 +141,7 @@ version can differ.
   block them.
 - DSH shows token counts for a call, but the plugin reports no cost.
 - A reply cut off by the output limit runs no tool call, and DSH sees `max-tokens`.
-- A refusal ends the call with `CONTENT_FILTER` and the reason the service gave. A
+- A refusal ends the call with `CONTENT_REFUSED` and the reason the service gave. A
   tool call in a refused reply never runs.
 - A reply that ends normally with no text and no tool call, even one with thinking,
   fails with `EMPTY_RESPONSE`, which DSH retries. A reply cut off by the output limit

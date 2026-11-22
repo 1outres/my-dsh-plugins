@@ -296,7 +296,7 @@ function refusalCase(): EvalCase {
     checks.equal("finish kind", first.finish.kind, "error")
     if (first.finish.kind === "error") {
       checks.equal("failure", first.finish.failure, {
-        code: "CONTENT_FILTER",
+        code: "CONTENT_REFUSED",
         message: "Fixture refusal.",
       })
     }

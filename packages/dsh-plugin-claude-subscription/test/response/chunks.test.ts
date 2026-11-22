@@ -221,14 +221,14 @@ describe("ChunkTranslator", () => {
       )
     const events = [...textEvents(0, "partial"), ...toolEvents(1, "t1", "mcp__dsh__probe", "{")]
 
-    it("finishes with CONTENT_FILTER and the explanation", () => {
+    it("finishes with CONTENT_REFUSED and the explanation", () => {
       const { output } = translate(
         events,
         refused({ explanation: "  Not allowed.  ", category: "cyber" }),
       )
       expect(finishOf(output).reason).toEqual({
         kind: "error",
-        failure: { code: "CONTENT_FILTER", message: "Not allowed." },
+        failure: { code: "CONTENT_REFUSED", message: "Not allowed." },
       })
     })
 
@@ -236,7 +236,7 @@ describe("ChunkTranslator", () => {
       const { output } = translate(events, refused({ category: "cyber" }))
       expect(finishOf(output).reason).toEqual({
         kind: "error",
-        failure: { code: "CONTENT_FILTER", message: "provider refusal category: cyber" },
+        failure: { code: "CONTENT_REFUSED", message: "provider refusal category: cyber" },
       })
     })
 
@@ -244,7 +244,7 @@ describe("ChunkTranslator", () => {
       const { output } = translate(events, refused())
       expect(finishOf(output).reason).toEqual({
         kind: "error",
-        failure: { code: "CONTENT_FILTER", message: "The provider refused this request." },
+        failure: { code: "CONTENT_REFUSED", message: "The provider refused this request." },
       })
     })
 

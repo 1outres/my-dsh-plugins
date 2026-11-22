@@ -1,7 +1,7 @@
 import type { LlmFailure, TokenUsage } from "@deepseek-ai/dsh-llm"
 import type { CapturedMessage, NativeUsage } from "../contract"
+import { FailureCode } from "../errors"
 
-const CONTENT_FILTER_CODE = "CONTENT_FILTER"
 const CUT_OFF_STOP_REASONS = new Set(["max_tokens", "model_context_window_exceeded"])
 
 export function isRefusal(assistants: readonly CapturedMessage[]): boolean {
@@ -14,7 +14,7 @@ export function isCutOff(assistants: readonly CapturedMessage[]): boolean {
 
 export function refusalFailure(assistants: readonly CapturedMessage[]): LlmFailure {
   const details = assistants.find((message) => message.stop_details !== undefined)?.stop_details
-  return { code: CONTENT_FILTER_CODE, message: refusalMessage(details) }
+  return { code: FailureCode.contentRefused, message: refusalMessage(details) }
 }
 
 function refusalMessage(details: CapturedMessage["stop_details"]): string {
