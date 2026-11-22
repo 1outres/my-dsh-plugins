@@ -234,7 +234,7 @@ entry that still sets them is ignored.
   `data-rightbar-col`, `data-composer-*`, `data-conversation-*`,
   `data-shortcut-modal`) and ARIA roles. Two touch rules match Session row
   parts by CSS-module class name. A Harness update within
-  `>=0.2.2-rc.1 <0.3.0` can rename any of them; the matching rule then stops
+  `>=0.2.2-rc.5 <0.3.0` can rename any of them; the matching rule then stops
   applying, and the page falls back to the shipped layout for that part.
 - Enter relies on the composer being a plain-text editor that turns the
   browser's paragraph insertion into a line break.

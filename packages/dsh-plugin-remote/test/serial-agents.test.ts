@@ -114,7 +114,7 @@ function serialTool(agents: SerialAgents): ToolDefinition {
         return () => {}
       },
     },
-    agents: { list: () => [root], isOwnedBy: () => false },
+    subagents: { rootOf: (caller: Agent) => caller },
     logger: { warn: () => {}, error: () => {} },
   } as unknown as Context
   const runtime = { sessionId: root.id } as unknown as RootRuntime

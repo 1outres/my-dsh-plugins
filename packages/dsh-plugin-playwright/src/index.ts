@@ -1,6 +1,7 @@
 import type { Context } from "@deepseek-ai/cordis"
 import type {} from "@deepseek-ai/dsh-agent"
 import type {} from "@deepseek-ai/dsh-session"
+import type {} from "@deepseek-ai/dsh-subagent"
 import type {} from "@deepseek-ai/dsh-workspace"
 import { Config, type Config as PluginConfig, resolveConfig } from "./config"
 import { SharedBrowser } from "./host/browser"
@@ -11,7 +12,7 @@ import { registerPlaywrightTools } from "./host/tools"
 
 export const name = "playwright"
 
-export const inject = ["tools", "agents"]
+export const inject = ["tools", "subagents"]
 
 export { Config }
 

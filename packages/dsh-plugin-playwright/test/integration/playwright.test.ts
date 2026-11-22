@@ -63,9 +63,8 @@ describeIntegration("Playwright sessions", () => {
           return () => {}
         },
       },
-      agents: {
-        list: () => [rootA, rootB],
-        isOwnedBy: () => false,
+      subagents: {
+        rootOf: (caller: Agent) => caller,
       },
     } as unknown as Context
     registerPlaywrightTools(

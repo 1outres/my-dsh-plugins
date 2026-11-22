@@ -119,7 +119,7 @@ home.
 - The archive bookkeeping reads Harness internals: the Workspace registry's
   stored state (`archivedSessionIds`) through `domain/changed`, and the
   `workspace/session-activity` check. A Harness update within
-  `>=0.2.1-rc.5 <0.3.0` can still change them; the move then stops happening
+  `>=0.2.2-rc.5 <0.3.0` can still change them; the move then stops happening
   while creation keeps working.
 - Waiting for running work covers what the Harness reports. A persistent
   shell, an MCP server or any process writing to an absolute path in the

@@ -2,7 +2,7 @@ import type { Context } from "@deepseek-ai/cordis"
 import type { Agent } from "@deepseek-ai/dsh-agent"
 import type { ToolRunContext } from "@deepseek-ai/dsh-tools"
 import type { RemoteTarget } from "../../shared/types"
-import { type HostRuntime, type RootRuntime, resolveRootAgent } from "../runtime"
+import type { HostRuntime, RootRuntime } from "../runtime"
 
 export function requireAgent(exec: ToolRunContext): Agent {
   if (exec.agent === undefined) throw new Error("This tool needs a live agent session")
@@ -17,7 +17,7 @@ export interface ToolRuntime {
 
 export function runtimeFor(ctx: Context, host: HostRuntime, exec: ToolRunContext): ToolRuntime {
   const agent = requireAgent(exec)
-  const root = resolveRootAgent(ctx, agent)
+  const root = ctx.subagents.rootOf(agent)
   return { runtime: host.runtimeFor(root), agent, delegated: root.id !== agent.id }
 }
 

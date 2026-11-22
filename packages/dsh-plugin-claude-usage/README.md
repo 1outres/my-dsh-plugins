@@ -44,6 +44,6 @@ row.
 
 ## Requirements
 
-- DeepSeek Harness `>=0.2.2-rc.1 <0.3.0`.
+- DeepSeek Harness `>=0.2.2-rc.5 <0.3.0`.
 - The `claude-subscription` plugin, enabled and logged in.
 - The official Claude Code CLI, as the provider requires.

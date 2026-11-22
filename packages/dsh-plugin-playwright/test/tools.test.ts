@@ -4,6 +4,7 @@ import type { ToolDefinition, ToolRunContext } from "@deepseek-ai/dsh-tools"
 import { describe, expect, test } from "vitest"
 import type { UpstreamTool } from "../src/host/catalog"
 import { registerPlaywrightTools } from "../src/host/tools"
+import { inject } from "../src/index"
 
 function tool(name: string, options: { readOnly?: boolean } = {}): UpstreamTool {
   return {
@@ -21,10 +22,7 @@ interface Services {
   llm?: unknown
 }
 
-function makeContext(
-  agents: { list: () => Agent[]; isOwnedBy: (id: string, parent: Agent) => boolean },
-  services: Services = {},
-) {
+function makeContext(subagents: { rootOf: (caller: Agent) => Agent }, services: Services = {}) {
   const registered: ToolDefinition[] = []
   const ctx = {
     get: (name: string) => services[name as keyof Services],
@@ -35,7 +33,7 @@ function makeContext(
         return () => {}
       },
     },
-    agents,
+    subagents,
   } as unknown as Context
   return { ctx, registered }
 }
@@ -50,12 +48,16 @@ function textOf(blocks: Array<{ type: string; text?: string }>): string {
     .join("\n")
 }
 
-const noOwners = { list: () => [] as Agent[], isOwnedBy: () => false }
+const ordinary = { rootOf: (caller: Agent) => caller }
 
 describe("registerPlaywrightTools", () => {
+  test("needs the subagent service", () => {
+    expect(inject).toContain("subagents")
+  })
+
   test("forwards a call through the root session and returns text", async () => {
     const root = { id: "root" } as Agent
-    const { ctx, registered } = makeContext(noOwners)
+    const { ctx, registered } = makeContext(ordinary)
     const names: string[] = []
     const registry = {
       async acquire(agent: Agent) {
@@ -84,11 +86,8 @@ describe("registerPlaywrightTools", () => {
   test("resolves a sub-agent to the root session", async () => {
     const root = { id: "root" } as Agent
     const child = { id: "child" } as Agent
-    const agents = {
-      list: () => [root, child],
-      isOwnedBy: (id: string, parent: Agent) => id === "child" && parent.id === "root",
-    }
-    const { ctx, registered } = makeContext(agents)
+    const subagents = { rootOf: (caller: Agent) => (caller === child ? root : caller) }
+    const { ctx, registered } = makeContext(subagents)
     const acquired: string[] = []
     const registry = {
       async acquire(agent: Agent) {
@@ -107,9 +106,37 @@ describe("registerPlaywrightTools", () => {
     expect(acquired).toEqual(["root"])
   })
 
+  test("fails without a browser when the subagent tree rejects the caller", async () => {
+    const stale = { id: "stale" } as Agent
+    const subagents = {
+      rootOf: (): Agent => {
+        throw new Error("The caller has no active runtime owner")
+      },
+    }
+    const { ctx, registered } = makeContext(subagents)
+    const acquired: string[] = []
+    const registry = {
+      async acquire(agent: Agent) {
+        acquired.push(agent.id)
+        return {
+          async call() {
+            return { content: [] }
+          },
+        }
+      },
+    }
+    registerPlaywrightTools(ctx, registry, [tool("browser_snapshot")], 30000)
+    const definition = registered[0]
+    if (definition === undefined) throw new Error("tool was not registered")
+    await expect(definition.execute({}, runContext(stale))).rejects.toThrow(
+      "The caller has no active runtime owner",
+    )
+    expect(acquired).toEqual([])
+  })
+
   test("caps the model-facing text", async () => {
     const root = { id: "root" } as Agent
-    const { ctx, registered } = makeContext(noOwners)
+    const { ctx, registered } = makeContext(ordinary)
     const registry = {
       async acquire() {
         return {
@@ -129,7 +156,7 @@ describe("registerPlaywrightTools", () => {
 
   test("does not split a multi-byte character when capping", async () => {
     const root = { id: "root" } as Agent
-    const { ctx, registered } = makeContext(noOwners)
+    const { ctx, registered } = makeContext(ordinary)
     const registry = {
       async acquire() {
         return {
@@ -152,7 +179,7 @@ describe("registerPlaywrightTools", () => {
 
   test("turns an MCP error result into a failed call", async () => {
     const root = { id: "root" } as Agent
-    const { ctx, registered } = makeContext(noOwners)
+    const { ctx, registered } = makeContext(ordinary)
     const registry = {
       async acquire() {
         return {
@@ -177,7 +204,7 @@ describe("registerPlaywrightTools", () => {
       session: { requestHeader: () => undefined },
     } as unknown as Agent
     const saved: Array<{ data: Buffer; mediaType: string }> = []
-    const { ctx, registered } = makeContext(noOwners, {
+    const { ctx, registered } = makeContext(ordinary, {
       attachments: {
         async saveImages(images: Array<{ data: Buffer; mediaType: string }>) {
           saved.push(...images)
@@ -217,7 +244,7 @@ describe("registerPlaywrightTools", () => {
   })
 
   test("gives every tool a readable card title", () => {
-    const { ctx, registered } = makeContext(noOwners)
+    const { ctx, registered } = makeContext(ordinary)
     const registry = {
       async acquire() {
         return {

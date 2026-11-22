@@ -3,7 +3,7 @@ import type { Agent } from "@deepseek-ai/dsh-agent"
 import { createMcpToolDefinition } from "@deepseek-ai/dsh-mcp-client"
 import type { ToolDefinition, ToolRunContext } from "@deepseek-ai/dsh-tools"
 import type { UpstreamTool } from "./catalog"
-import { requireAgent, resolveRootAgent } from "./root"
+import { requireAgent } from "./root"
 
 export interface BrowserToolSession {
   call(name: string, args: Record<string, unknown>, signal: AbortSignal): Promise<unknown>
@@ -31,7 +31,7 @@ export function registerPlaywrightTools(
       taskRequired: tool.taskRequired,
       call: async (args: Record<string, unknown>, exec: ToolRunContext) => {
         const agent = requireAgent(exec)
-        const root = resolveRootAgent(ctx, agent)
+        const root = ctx.subagents.rootOf(agent)
         const session = await registry.acquire(root)
         return await session.call(tool.name, args, exec.signal)
       },

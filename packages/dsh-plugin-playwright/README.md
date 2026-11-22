@@ -41,8 +41,8 @@ start if the server lists a name twice.
 - A context is created on the first browser tool call of its root session, not
   when the session starts. Concurrent first calls for one session wait for the
   same creation, so two contexts are never created by accident.
-- A sub-agent uses the browser of its root session. The session tree is walked
-  from the calling agent up to the top-level agent.
+- A sub-agent uses the browser of its root session. The DSH subagent service
+  (`ctx.subagents.rootOf`) finds the top-level agent of the calling agent.
 - A context that crashes or closes is dropped. Its next call creates a new
   context. Other sessions keep their own contexts and are not touched.
 - If the shared browser disconnects, the next call launches a new browser. That

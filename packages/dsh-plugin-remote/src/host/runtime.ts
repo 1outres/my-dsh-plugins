@@ -1,4 +1,3 @@
-import type { Context } from "@deepseek-ai/cordis"
 import type { Agent } from "@deepseek-ai/dsh-agent"
 import type { ProjectionHandle } from "@deepseek-ai/dsh-session-projection"
 import type {
@@ -33,23 +32,6 @@ export interface RuntimeConfig {
 }
 
 const MAX_FILE_BYTES = 64_000_000
-
-/** Walk live runtime ownership up to the top-level agent. */
-export function resolveRootAgent(ctx: Context, agent: Agent): Agent {
-  let current = agent
-  const seen = new Set<string>()
-  for (;;) {
-    if (seen.has(current.id)) return current
-    seen.add(current.id)
-    const owner = ctx.agents
-      .list()
-      .find(
-        (candidate) => candidate.id !== current.id && ctx.agents.isOwnedBy(current.id, candidate),
-      )
-    if (owner === undefined) return current
-    current = owner
-  }
-}
 
 export class CallPrompter implements TransportPrompter {
   readonly #broker: PromptBroker

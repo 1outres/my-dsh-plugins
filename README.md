@@ -49,8 +49,11 @@ A preset is a full copy of a shipped preset, because a preset cannot inherit fro
 
 ## Requirements
 
-- DeepSeek Harness `>=0.2.2-rc.1 <0.3.0` (the mobile plugin follows the
-  navigation drawer and phone focus behavior that `0.2.2` ships).
+- DeepSeek Harness `>=0.2.2-rc.5 <0.3.0` (the mobile plugin follows the
+  navigation drawer and phone focus behavior that `0.2.2` ships, and the
+  playwright and remote plugins find the root session with
+  `ctx.subagents.rootOf`, which replaces the removed
+  `ctx.agents.isOwnedBy`).
 - Node.js 22 or newer.
 - pnpm 12 (the repository pins `pnpm@12.9.0` in `package.json`).
 

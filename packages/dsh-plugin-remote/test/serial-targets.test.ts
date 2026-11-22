@@ -252,10 +252,7 @@ function targetTools(
         return () => {}
       },
     },
-    agents: {
-      list: () => [root],
-      isOwnedBy: () => false,
-    },
+    subagents: { rootOf: (caller: Agent) => caller },
     logger: { warn: () => {}, error: () => {} },
   } as unknown as Context
   const runtime = {
