@@ -45,7 +45,7 @@ Row ids are the configuration namespaces. Disable a plugin by setting `disabled:
 | ------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `creator-ptc` | `Creator (PTC)` | The shipped Creator preset, with PTC tool presentation: the model calls every tool through `run_code` and a generated SDK instead of native function calling. |
 
-A preset is a full copy of a shipped preset, because a preset cannot inherit from another. Re-copy the child list (and keep the single `tool-presentation` row) when a DSH upgrade changes the Creator preset it mirrors.
+A preset is a full copy of a shipped preset, because a preset cannot inherit from another. Re-copy the child list (and keep the single `tool-executor-ptc` row) when a DSH upgrade changes the Creator preset it mirrors.
 
 ## Requirements
 

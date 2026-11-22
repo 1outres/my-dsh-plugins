@@ -1,9 +1,9 @@
 # Agent preset "Creator (PTC)": the shipped Creator preset (`cordis`) with PTC
-# tool presentation. Copied verbatim from @deepseek-ai/dsh-web-app 0.2.2-rc.1
-# presets/cordis.patch.yml; the only addition is the `tool-presentation` row
-# before `present`. A preset cannot inherit from another, so the child list is
-# restated in full. Re-copy the list when a DSH upgrade changes the shipped
-# Creator preset.
+# tool execution. Copied verbatim from @deepseek-ai/dsh-web-app 0.2.2-rc.5
+# presets/cordis.patch.yml; the only addition is the `tool-executor-ptc` row
+# before `present`, placed as in the shipped PTC preset. A preset cannot
+# inherit from another, so the child list is restated in full. Re-copy the list
+# when a DSH upgrade changes the shipped Creator preset.
 - insert:
     - id: preset-creator-ptc
       name: "@deepseek-ai/dsh-agent-preset"
@@ -13,13 +13,13 @@
         description: Creator tools, presented as run_code plus a generated SDK.
         order: 5
         plugins:
-          # Same persona as `standard`: tool descriptions and the skill catalog carry
-          # the operating detail, and the skills own the preset-authoring rules.
+          # The dsh-doc skill owns plugin implementation and authorization guidance.
           - id: persona
             name: "@deepseek-ai/dsh-persona"
             config:
               prefix: >-
                 You are a coding agent powered by the {{model}} model.
+                You help the user customize DeepSeek Harness itself.
           - id: agent-instructions
             name: "@deepseek-ai/dsh-agent-instructions"
             config:
@@ -95,6 +95,8 @@
             config:
               - id: tool-subagent-control
                 name: "@deepseek-ai/dsh-tool-subagent-control"
+                config:
+                  interrupt: false
               - id: tool-subagent
                 name: "@deepseek-ai/dsh-tool-subagent"
                 config:
@@ -134,10 +136,8 @@
           - id: tool-skill
             name: "@deepseek-ai/dsh-tool-skill"
           # The only difference from the shipped Creator preset.
-          - id: tool-presentation
-            name: "@deepseek-ai/dsh-agent-tool-presentation"
-            config:
-              mode: ptc
+          - id: tool-executor-ptc
+            name: "@deepseek-ai/dsh-tool-executor-ptc"
           - id: present
             name: "@deepseek-ai/dsh-tool-present"
           - id: tool-plugin-manager
