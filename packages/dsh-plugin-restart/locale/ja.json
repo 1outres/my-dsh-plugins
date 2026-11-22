@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "再起動",
+    "description": "Creator のセッションに restart_harness ツールを加えます。DeepSeek Harness を再起動し、再起動を頼んだセッションを自動で再開します。"
+  }
+}

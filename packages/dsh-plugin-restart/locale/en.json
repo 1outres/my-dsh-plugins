@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Restart",
+    "description": "Adds a restart_harness tool to Creator sessions: it restarts DeepSeek Harness and resumes the session that asked for the restart."
+  }
+}

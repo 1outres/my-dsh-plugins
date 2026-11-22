@@ -47,6 +47,7 @@
     "@1outres/dsh-plugin-notify": "workspace:*",
     "@1outres/dsh-plugin-playwright": "workspace:*",
     "@1outres/dsh-plugin-remote": "workspace:*",
+    "@1outres/dsh-plugin-restart": "workspace:*",
     "@1outres/dsh-plugin-scratchpad": "workspace:*"
   },
   "dsh": {

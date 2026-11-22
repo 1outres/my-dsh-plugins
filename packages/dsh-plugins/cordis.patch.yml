@@ -30,6 +30,8 @@
       name: "@1outres/dsh-plugin-daily-workspace"
     - id: exa
       name: "@1outres/dsh-plugin-exa"
+    - id: restart
+      name: "@1outres/dsh-plugin-restart"
 
 # An override replaces the row's whole config, so both fields are listed.
 - id: web

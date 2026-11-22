@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Restart</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#B91C1C"/>
+  <path d="M45 25.5A15 15 0 1 1 32 18" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <path d="M33 10L43 18L33 26" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

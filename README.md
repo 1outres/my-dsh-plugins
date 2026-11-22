@@ -35,6 +35,7 @@ bundle insert the same row id, so selecting both inserts that row twice.
 | [`@1outres/dsh-plugin-notify`](packages/dsh-plugin-notify)                           | Notifications       | `notify`              | Notifies you when an approval, a question, or a finished turn needs you: in the browser while the page is in the background, and by Web Push to devices that turn it on.                                               |
 | [`@1outres/dsh-plugin-playwright`](packages/dsh-plugin-playwright)                   | Playwright          | `playwright`          | Gives each top-level session its own isolated Playwright browser context, with browser automation tools from Playwright MCP.                                                                                           |
 | [`@1outres/dsh-plugin-remote`](packages/dsh-plugin-remote)                           | Remote hosts        | `remote`              | Works on remote SSH hosts and on serial consoles behind `dsh-serial-agent`: commands, files, and interactive shells, with passwords typed in a masked card.                                                            |
+| [`@1outres/dsh-plugin-restart`](packages/dsh-plugin-restart)                         | Restart             | `restart`             | Gives Creator sessions a `restart_harness` tool that restarts DeepSeek Harness through the service supervisor and resumes the session that asked.                                                                      |
 | [`@1outres/dsh-plugin-scratchpad`](packages/dsh-plugin-scratchpad)                   | Scratchpad          | `scratchpad`          | Opens a session in a new empty directory registered as its own workspace, for work outside any repository; archiving moves the directory aside.                                                                        |
 
 Row ids are the configuration namespaces. Disable a plugin by setting `disabled: true` on its row in the profile patch, or uninstall the bundle. Each plugin package name in the table is also the install spec for that plugin alone.
@@ -197,6 +198,7 @@ packages/
   dsh-plugin-notify/      @1outres/dsh-plugin-notify — browser notifications and Host-sent Web Push
   dsh-plugin-playwright/  @1outres/dsh-plugin-playwright — isolated Playwright browser per session
   dsh-plugin-remote/      @1outres/dsh-plugin-remote — remote SSH tools, password cards, interactive sessions
+  dsh-plugin-restart/     @1outres/dsh-plugin-restart — Creator tool that restarts the Harness and resumes the asking session
   dsh-plugin-scratchpad/  @1outres/dsh-plugin-scratchpad — scratch directories as workspaces
 serial-agent/             dsh-serial-agent — Go daemon that serves client PC serial ports to the remote plugin (Nix flake)
 test/
