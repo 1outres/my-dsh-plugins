@@ -35,6 +35,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "@1outres/dsh-plugin-advisor": "workspace:*",
     "@1outres/dsh-plugin-background": "workspace:*",
     "@1outres/dsh-plugin-claude-subscription": "workspace:*",
     "@1outres/dsh-plugin-claude-usage": "workspace:*",

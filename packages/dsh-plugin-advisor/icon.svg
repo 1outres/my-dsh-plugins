@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Advisor</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#7C4A1E"/>
+  <path d="M32 13c-8.3 0-15 6.5-15 14.6 0 5.2 2.7 8.9 5.6 11.6 1.6 1.5 2.4 3.2 2.4 5.1V46h14v-1.7c0-1.9.8-3.6 2.4-5.1 2.9-2.7 5.6-6.4 5.6-11.6C47 19.5 40.3 13 32 13Z" fill="#FFFFFF" fill-opacity="0.95"/>
+  <rect x="25" y="48" width="14" height="4" rx="2" fill="#FFFFFF" fill-opacity="0.95"/>
+  <path d="M27 30.5l3.6 3.6L37.5 27" stroke="#7C4A1E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Advisor",
+    "description": "Adds an advisor tool: at key moments of a task the agent asks a stronger model you choose in Settings for a plan, a correction, or a final check. The advisor reads the whole conversation and answers with guidance only."
+  }
+}

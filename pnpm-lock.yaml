@@ -197,6 +197,31 @@ importers:
         specifier: ^5.1.0
         version: 5.1.0(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2)(esbuild@0.28.2))
 
+  packages/dsh-plugin-advisor:
+    dependencies:
+      '@deepseek-ai/schemastery':
+        specifier: ~3.19.0
+        version: 3.19.0
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+    devDependencies:
+      '@deepseek-ai/cordis':
+        specifier: ~4.1.0
+        version: 4.1.0
+      '@deepseek-ai/dsh-agent':
+        specifier: 0.2.2-rc.5
+        version: 0.2.2-rc.5(0ed64d44925d0c713f38f0da8dc986ac)
+      '@deepseek-ai/dsh-llm':
+        specifier: 0.2.2-rc.5
+        version: 0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-error@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0))
+      '@deepseek-ai/dsh-session':
+        specifier: 0.2.2-rc.5
+        version: 0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-error@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0))(@deepseek-ai/dsh-scope@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0))
+      '@deepseek-ai/dsh-tools':
+        specifier: 0.2.2-rc.5
+        version: 0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-agent@0.2.2-rc.5(0ed64d44925d0c713f38f0da8dc986ac))(@deepseek-ai/dsh-llm@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-error@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)))(@deepseek-ai/dsh-scope@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0))(@deepseek-ai/dsh-session@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-error@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0))(@deepseek-ai/dsh-scope@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)))(@deepseek-ai/dsh-system-prompt@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-llm@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)(@deepseek-ai/dsh-error@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)))(@deepseek-ai/dsh-scope@0.2.2-rc.5(@deepseek-ai/cordis@4.1.0)))(@deepseek-ai/dsh-user-approval@0.2.2-rc.5(3b5da5a163d911e06a2cca6f415e2b64))
+
   packages/dsh-plugin-background:
     dependencies:
       '@deepseek-ai/cordis':
@@ -476,6 +501,9 @@ importers:
 
   packages/dsh-plugins:
     dependencies:
+      '@1outres/dsh-plugin-advisor':
+        specifier: workspace:*
+        version: link:../dsh-plugin-advisor
       '@1outres/dsh-plugin-background':
         specifier: workspace:*
         version: link:../dsh-plugin-background

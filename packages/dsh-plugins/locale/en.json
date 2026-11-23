@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "My DSH plugins",
-    "description": "Installs every plugin of this collection at once: background image, Claude subscription and usage, daily workspace, edit message, Exa web search, mobile, model picker, mode memory, notifications, Playwright, remote hosts and scratchpad."
+    "description": "Installs every plugin of this collection at once: advisor, background image, Claude subscription and usage, daily workspace, edit message, Exa web search, mobile, model picker, mode memory, notifications, Playwright, remote hosts and scratchpad."
   }
 }

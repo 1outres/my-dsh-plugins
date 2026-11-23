@@ -1,0 +1,6 @@
+# Installs this plugin on its own (dsh plugin add @1outres/dsh-plugin-advisor).
+# The @1outres/dsh-plugins bundle inserts the same "advisor" row, so select
+# one bundle or the other, never both.
+- insert:
+    - id: advisor
+      name: "@1outres/dsh-plugin-advisor"
