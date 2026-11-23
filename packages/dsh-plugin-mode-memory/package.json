@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-mode-memory",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Remembers the agent preset each project last used and gives it to new blank DeepSeek Harness sessions of that project.",
   "repository": {
     "type": "git",

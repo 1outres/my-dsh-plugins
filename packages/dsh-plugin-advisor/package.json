@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-advisor",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Lets the DeepSeek Harness agent consult a stronger advisor model at key moments of a task, like the Claude Code advisor tool.",
   "repository": {
     "type": "git",

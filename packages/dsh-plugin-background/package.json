@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-background",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Paints a background image behind the DeepSeek Harness Web UI, with panel opacity, dim and blur controls.",
   "repository": {
     "type": "git",

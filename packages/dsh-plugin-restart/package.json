@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-restart",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Restarts the DeepSeek Harness process from a Creator session and resumes that session when it is back.",
   "repository": {
     "type": "git",

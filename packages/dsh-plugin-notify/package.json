@@ -1,6 +1,6 @@
 {
   "name": "@1outres/dsh-plugin-notify",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Notifies you about DeepSeek Harness approval prompts, agent questions and finished turns, in the browser and by Web Push.",
   "repository": {
     "type": "git",
