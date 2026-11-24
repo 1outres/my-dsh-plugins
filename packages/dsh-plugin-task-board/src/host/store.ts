@@ -1,27 +1,26 @@
+import { createHash } from "node:crypto"
 import type { Board, Card, CardNumber, ProjectPath } from "../shared/model"
 import type { BoardStore, BoardTable, CardTable } from "./contract"
 
-export function cardKey(project: ProjectPath, number: CardNumber): string {
-  return `${project}\u0000${number}`
+export function boardKey(project: ProjectPath): string {
+  return createHash("sha256").update(project).digest("hex")
 }
 
-function projectPrefix(project: ProjectPath): string {
-  return `${project}\u0000`
+export function cardKey(project: ProjectPath, number: CardNumber): string {
+  return `${boardKey(project)}_${number}`
 }
 
 export function createBoardStore(boards: BoardTable, cards: CardTable): BoardStore {
   return {
-    board: (project) => boards.get(project),
-    cards: (project) => {
-      const prefix = projectPrefix(project)
-      return [...cards.entries()]
-        .filter(([key]) => key.startsWith(prefix))
+    board: (project) => boards.get(boardKey(project)),
+    cards: (project) =>
+      [...cards.entries()]
         .map(([, card]) => card)
-        .sort((left, right) => left.number - right.number)
-    },
+        .filter((card) => card.project === project)
+        .sort((left, right) => left.number - right.number),
     card: (project, number) => cards.get(cardKey(project, number)),
     saveBoard: async (board: Board) => {
-      await boards.put(board.project, board)
+      await boards.put(boardKey(board.project), board)
     },
     saveCard: async (card: Card) => {
       await cards.put(cardKey(card.project, card.number), card)

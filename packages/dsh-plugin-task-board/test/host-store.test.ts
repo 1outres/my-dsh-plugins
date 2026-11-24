@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest"
-import { cardKey, createBoardStore } from "../src/host/store"
+import { boardKey, cardKey, createBoardStore } from "../src/host/store"
 import { buildBoard, buildCard, createMemoryTables } from "./host-support"
 
+const PATH_SAFE_KEY = /^[a-zA-Z0-9_-]+$/
+
+describe("boardKey", () => {
+  it("is a path-safe key that differs for each project", () => {
+    expect(boardKey("/home/me/repo")).toMatch(PATH_SAFE_KEY)
+    expect(boardKey("C:\\work\\repo")).toMatch(PATH_SAFE_KEY)
+    expect(boardKey("/repo")).not.toBe(boardKey("/repo2"))
+    expect(boardKey("/repo")).toBe(boardKey("/repo"))
+  })
+})
+
 describe("cardKey", () => {
-  it("separates the project from the number without a shared prefix", () => {
+  it("is a path-safe key that separates the project from the number", () => {
+    expect(cardKey("/home/me/repo", 12)).toMatch(PATH_SAFE_KEY)
     expect(cardKey("/repo", 1)).not.toBe(cardKey("/repo2", 1))
     expect(cardKey("/repo", 1)).not.toBe(cardKey("/repo", 11))
     expect(cardKey("/repo", 1)).toBe(cardKey("/repo", 1))
@@ -18,6 +30,7 @@ describe("createBoardStore", () => {
     const board = buildBoard()
     await store.saveBoard(board)
     expect(store.board("/repo")).toEqual(board)
+    expect(tables.boards.get(boardKey("/repo"))).toEqual(board)
   })
 
   it("keeps the cards of each project apart", async () => {

@@ -26,8 +26,8 @@ export interface IdSource {
 }
 
 export interface BoardTable {
-  get(project: ProjectPath): Board | undefined
-  put(project: ProjectPath, board: Board): Promise<void>
+  get(key: string): Board | undefined
+  put(key: string, board: Board): Promise<void>
 }
 
 export interface CardTable {
