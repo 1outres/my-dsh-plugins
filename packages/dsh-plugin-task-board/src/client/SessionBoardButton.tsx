@@ -11,6 +11,7 @@ export interface SessionBoardButtonInjected {
 
 export function SessionBoardButton({ sessionId, open, t }: SessionBoardButtonInjected) {
   const [error, setError] = useState<string | undefined>(undefined)
+  const label = error ?? t("sessionButton")
   const openBoard = (): void => {
     setError(undefined)
     void open(sessionId).catch((cause: unknown) => {
@@ -19,21 +20,15 @@ export function SessionBoardButton({ sessionId, open, t }: SessionBoardButtonInj
     })
   }
   return (
-    <span className="tb-session-action">
-      <button
-        type="button"
-        className="tb-icon-button"
-        title={t("sessionButton")}
-        aria-label={t("sessionButton")}
-        onClick={openBoard}
-      >
-        <TaskBoardIcon size={16} />
-      </button>
-      {error === undefined ? null : (
-        <span className="tb-session-error" role="alert">
-          {error}
-        </span>
-      )}
-    </span>
+    <button
+      type="button"
+      className="tb-header-button"
+      data-failed={error === undefined ? undefined : "true"}
+      title={label}
+      aria-label={label}
+      onClick={openBoard}
+    >
+      <TaskBoardIcon size={16} />
+    </button>
   )
 }

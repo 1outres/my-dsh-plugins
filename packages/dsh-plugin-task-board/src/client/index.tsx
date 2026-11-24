@@ -4,6 +4,9 @@ import { createTaskBoardBridge } from "./bridge"
 import { en, ja } from "./i18n"
 import { SessionBoardButton, type SessionBoardButtonInjected } from "./SessionBoardButton"
 import { createBoardStore } from "./state/board"
+import { createClock } from "./state/clock"
+import { createLocaleStore } from "./state/locale"
+import { createProjectListStore } from "./state/project-list"
 import { browserStorage, createProjectStore } from "./state/projects"
 import { TB_CSS } from "./styles"
 import { TaskBoardIcon } from "./TaskBoardIcon"
@@ -19,6 +22,7 @@ export const PANEL_ID = "task-board"
 
 const PANEL_ORDER = 20
 const HEADER_ORDER = -4
+const CLOCK_STEP_MS = 60_000
 const PLUGIN_ID = "@1outres/dsh-plugin-task-board"
 
 export function apply(ctx: ClientContext): void {
@@ -42,6 +46,9 @@ export function apply(ctx: ClientContext): void {
 
   const projects = createProjectStore(browserStorage())
   const board = createBoardStore()
+  const projectList = createProjectListStore()
+  const locale = createLocaleStore(ctx.locale)
+  const clock = createClock(CLOCK_STEP_MS, () => Date.now())
 
   const openBoardForSession = async (sessionId: string): Promise<void> => {
     const result = await bridge.projectOfSession(sessionId)
@@ -50,7 +57,7 @@ export function apply(ctx: ClientContext): void {
     ctx.layout.selectPanel(PANEL_ID)
   }
 
-  const page: BoardPageInjected = { bridge, projects, board, t }
+  const page: BoardPageInjected = { bridge, projects, projectList, board, locale, clock, t }
   ctx.effect(
     () =>
       ctx.slots.inject("main", () =>

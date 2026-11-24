@@ -157,6 +157,8 @@ function harness(): Harness {
         }
       },
       bind: () => translate,
+      getSnapshot: () => ({ active: "ja" }),
+      subscribe: () => () => {},
     },
     remote: { $mount: mount, commands: { execute } },
     layout: { selectPanel },
@@ -226,7 +228,10 @@ describe("task board client half", () => {
     expect(typeof face.bridge).toBe("object")
     expect(typeof face.projects).toBe("object")
     expect(typeof face.board).toBe("object")
+    expect(typeof face.projectList).toBe("object")
     expect(typeof face.t).toBe("function")
+    expect((face.locale as { getSnapshot(): string }).getSnapshot()).toBe("ja")
+    expect(typeof (face.clock as { getSnapshot(): number }).getSnapshot()).toBe("number")
     h.dispose()
   })
 

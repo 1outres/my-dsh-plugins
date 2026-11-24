@@ -1,4 +1,5 @@
-import type { BoardSnapshot, Card, CardNumber, Column, ColumnTitle } from "../shared/model"
+import type { Board, BoardSnapshot, Card, CardNumber, Column, ColumnTitle } from "../shared/model"
+import type { CardPlace } from "./keys"
 import type { Translate } from "./types"
 
 export function columnTitle(title: ColumnTitle, t: Translate): string {
@@ -33,4 +34,19 @@ export function parseCardNumber(text: string): CardNumber | undefined {
   const trimmed = text.trim()
   if (!/^[1-9]\d*$/.test(trimmed)) return undefined
   return Number(trimmed)
+}
+export function columnOfCard(board: Board, number: CardNumber): Column | undefined {
+  return board.columns.find((column) => column.cardNumbers.includes(number))
+}
+
+export function cardPlace(board: Board, number: CardNumber): CardPlace | undefined {
+  const column = board.columns.findIndex((candidate) => candidate.cardNumbers.includes(number))
+  const owner = board.columns[column]
+  if (owner === undefined) return undefined
+  return {
+    column,
+    card: owner.cardNumbers.indexOf(number),
+    columnCount: board.columns.length,
+    cardCount: owner.cardNumbers.length,
+  }
 }

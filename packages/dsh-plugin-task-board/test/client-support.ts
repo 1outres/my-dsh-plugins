@@ -1,5 +1,6 @@
+import type { TaskBoardBridge } from "../src/client/bridge"
 import { en } from "../src/client/i18n"
-import type { TaskBoardStreamHandle, Translate } from "../src/client/types"
+import type { TaskBoardResult, TaskBoardStreamHandle, Translate } from "../src/client/types"
 import type {
   Board,
   BoardSnapshot,
@@ -172,4 +173,28 @@ export function controlledStream(): ControlledStream {
 
 export async function flush(): Promise<void> {
   for (let index = 0; index < 12; index += 1) await Promise.resolve()
+}
+export function fakeBridge(overrides: Partial<TaskBoardBridge> = {}): TaskBoardBridge {
+  const unused = async (): Promise<TaskBoardResult<never>> => {
+    throw new Error("not used in this test")
+  }
+  return {
+    projects: async () => ({ status: "ok", value: [PROJECT] }),
+    projectOfSession: unused,
+    boardOfSession: unused,
+    createCard: unused,
+    updateCard: unused,
+    moveCard: unused,
+    deleteCard: unused,
+    addComment: unused,
+    deleteComment: unused,
+    unlinkSession: unused,
+    addColumn: unused,
+    renameColumn: unused,
+    moveColumn: unused,
+    deleteColumn: unused,
+    watch: () => () => {},
+    dispose: () => {},
+    ...overrides,
+  }
 }

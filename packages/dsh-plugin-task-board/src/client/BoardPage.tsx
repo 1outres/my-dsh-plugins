@@ -1,68 +1,51 @@
-import { useEffect, useState } from "react"
-import type {
-  BoardSnapshot,
-  Card,
-  CardNumber,
-  ColumnId,
-  CreateCardInput,
-  ProjectPath,
-  ProjectSummary,
-  UpdateCardInput,
-} from "../shared/model"
-import { AddColumnForm } from "./AddColumnForm"
-import { BoardColumn } from "./BoardColumn"
-import { cardByNumber, columnCards, dropIndex } from "./board"
+import { useEffect, useMemo, useRef, useState } from "react"
+import type { CardNumber, ProjectPath } from "../shared/model"
+import { createBoardActions, createCardActions } from "./actions"
+import { BoardHeader } from "./BoardHeader"
+import { BoardSkeleton } from "./BoardSkeleton"
+import { BoardView } from "./BoardView"
+import { cardByNumber } from "./board"
 import type { TaskBoardBridge } from "./bridge"
-import { CardDialog } from "./CardDialog"
+import { CardPanel } from "./CardPanel"
+import { EmptyState } from "./EmptyState"
 import { useSnapshot } from "./hooks"
+import { Notice } from "./Notice"
+import { noticeView, pageView, projectOf, reconcileSelection } from "./page-view"
 import type { BoardStore } from "./state/board"
+import type { ProjectListStore } from "./state/project-list"
 import type { ProjectStore } from "./state/projects"
-import type { TaskBoardResult, Translate } from "./types"
+import type { SnapshotStore } from "./state/store"
+import type { Translate } from "./types"
+import { useProjectList } from "./use-project-list"
 
 export interface BoardPageInjected {
   readonly bridge: TaskBoardBridge
   readonly projects: ProjectStore
+  readonly projectList: ProjectListStore
   readonly board: BoardStore
+  readonly locale: SnapshotStore<string>
+  readonly clock: SnapshotStore<number>
   readonly t: Translate
 }
 
-interface ProjectsState {
-  readonly status: "loading" | "ready" | "error"
-  readonly items: readonly ProjectSummary[]
-  readonly message?: string
-}
-
-export function BoardPage({ bridge, projects, board, t }: BoardPageInjected) {
+export function BoardPage(face: BoardPageInjected) {
+  const { bridge, projects, projectList, board, t } = face
   const selected = useSnapshot(projects)
+  const list = useSnapshot(projectList)
   const state = useSnapshot(board)
-  const [list, setList] = useState<ProjectsState>({ status: "loading", items: [] })
-  const [listKey, setListKey] = useState(0)
+  const locale = useSnapshot(face.locale)
+  const now = useSnapshot(face.clock)
   const [watchKey, setWatchKey] = useState(0)
-  const [notice, setNotice] = useState<string | undefined>(undefined)
+  const [actionError, setActionError] = useState<string | undefined>(undefined)
   const [openNumber, setOpenNumber] = useState<CardNumber | undefined>(undefined)
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: listKey restarts the project read
-  useEffect(() => {
-    let cancelled = false
-    setList({ status: "loading", items: [] })
-    void bridge.projects().then((result) => {
-      if (cancelled) return
-      if (result.status === "error") {
-        setList({ status: "error", items: [], message: result.error.message })
-        return
-      }
-      setList({ status: "ready", items: result.value })
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [bridge, listKey])
+  const page = useRef<HTMLDivElement>(null)
+  const reloadProjects = useProjectList(bridge, projectList, projects)
 
   useEffect(() => {
-    if (list.status !== "ready" || selected !== undefined) return
-    const first = list.items[0]
-    if (first !== undefined) projects.select(first.path)
-  }, [list, projects, selected])
+    const step = reconcileSelection(list, selected)
+    if (step.kind === "reload") reloadProjects()
+    if (step.kind === "select") projects.select(step.project)
+  }, [list, projects, reloadProjects, selected])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: watchKey restarts the watch
   useEffect(() => {
@@ -78,177 +61,110 @@ export function BoardPage({ bridge, projects, board, t }: BoardPageInjected) {
     )
   }, [board, bridge, selected, watchKey])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new project closes the open card
+  useEffect(() => {
+    setOpenNumber(undefined)
+    setActionError(undefined)
+  }, [selected])
+
   const snapshot = state.snapshot
-  const pickerValue =
-    selected !== undefined && list.items.some((project) => project.path === selected)
-      ? selected
-      : ""
+  const project: ProjectPath | undefined = snapshot?.board.project
   const openCard =
     snapshot === undefined || openNumber === undefined
       ? undefined
       : cardByNumber(snapshot, openNumber)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: selected closes the open card
   useEffect(() => {
-    setOpenNumber(undefined)
-    setNotice(undefined)
-  }, [selected])
+    if (snapshot !== undefined && openNumber !== undefined && openCard === undefined) {
+      setOpenNumber(undefined)
+    }
+  }, [snapshot, openNumber, openCard])
 
-  const runAction = async (action: () => Promise<TaskBoardResult<unknown>>): Promise<void> => {
-    const result = await action()
-    setNotice(
-      result.status === "error" ? t("actionFailed", { message: result.error.message }) : undefined,
-    )
+  const boardActions = useMemo(
+    () =>
+      project === undefined
+        ? undefined
+        : createBoardActions(bridge, project, (failure) => {
+            setActionError(
+              failure === undefined ? undefined : t("actionFailed", { message: failure.message }),
+            )
+          }),
+    [bridge, project, t],
+  )
+  const cardActions = useMemo(
+    () => (project === undefined ? undefined : createCardActions(bridge, project)),
+    [bridge, project],
+  )
+
+  const closePanel = (): void => {
+    const number = openNumber
+    if (number !== undefined) {
+      page.current?.querySelector<HTMLElement>(`[data-card-number="${String(number)}"]`)?.focus()
+    }
+    setOpenNumber(undefined)
   }
 
-  const retryBoard = (): void => {
+  const closeRef = useRef(closePanel)
+  closeRef.current = closePanel
+
+  useEffect(() => {
+    if (openNumber === undefined) return
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== "Escape" || event.defaultPrevented) return
+      event.preventDefault()
+      closeRef.current()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [openNumber])
+
+  const retry = (): void => {
+    if (list.status === "error") {
+      reloadProjects()
+      return
+    }
     if (selected !== undefined) board.load(selected)
     setWatchKey((value) => value + 1)
   }
 
-  const messages = [
-    ...new Set(
-      [
-        notice,
-        list.status === "error" && list.message !== undefined
-          ? t("projectsFailed", { message: list.message })
-          : undefined,
-        state.error === undefined ? undefined : t("boardFailed", { message: state.error.message }),
-      ].filter((message): message is string => message !== undefined),
-    ),
-  ]
-
-  const renderBoard = (project: ProjectPath, current: BoardSnapshot) => {
-    const columns = current.board.columns
-    return (
-      <div className="tb-columns">
-        {columns.map((column, index) => (
-          <BoardColumn
-            key={column.id}
-            column={column}
-            cards={columnCards(current, column)}
-            index={index}
-            columnCount={columns.length}
-            t={t}
-            onOpenCard={(card: Card) => setOpenNumber(card.number)}
-            onCreateCard={(columnId: ColumnId, title: string, description: string) => {
-              const input: CreateCardInput = { title, description, columnId }
-              return runAction(() => bridge.createCard(project, input))
-            }}
-            onRenameColumn={(columnId: ColumnId, title: string) =>
-              runAction(() => bridge.renameColumn(project, columnId, title))
-            }
-            onMoveColumn={(columnId: ColumnId, index: number) =>
-              runAction(() => bridge.moveColumn(project, columnId, index))
-            }
-            onDeleteColumn={(columnId: ColumnId) =>
-              runAction(() => bridge.deleteColumn(project, columnId))
-            }
-            onDropCard={(
-              columnId: ColumnId,
-              moving: CardNumber,
-              before: CardNumber | undefined,
-            ) => {
-              const column = columns.find((candidate) => candidate.id === columnId)
-              if (column === undefined) return
-              void runAction(() =>
-                bridge.moveCard(project, moving, {
-                  columnId,
-                  index: dropIndex(column.cardNumbers, moving, before),
-                }),
-              )
-            }}
-          />
-        ))}
-        <AddColumnForm t={t} onAdd={(title) => runAction(() => bridge.addColumn(project, title))} />
-        {openCard === undefined ? null : (
-          <CardDialog
-            card={openCard}
-            t={t}
-            actions={{
-              save: (number: CardNumber, input: UpdateCardInput) =>
-                bridge.updateCard(project, number, input),
-              addComment: (number: CardNumber, body: string) =>
-                bridge.addComment(project, number, body),
-              deleteComment: (number: CardNumber, commentId) =>
-                bridge.deleteComment(project, number, commentId),
-              unlinkSession: (number: CardNumber, sessionId) =>
-                bridge.unlinkSession(project, number, sessionId),
-              deleteCard: (number: CardNumber) => bridge.deleteCard(project, number),
-            }}
-            onClose={() => setOpenNumber(undefined)}
-            onDeleted={() => setOpenNumber(undefined)}
-          />
-        )}
-      </div>
-    )
-  }
-
-  const body = (() => {
-    if (list.status === "ready" && list.items.length === 0) {
-      return <div className="tb-empty">{t("noProjects")}</div>
-    }
-    if (snapshot !== undefined) {
-      return renderBoard(snapshot.board.project, snapshot)
-    }
-    if (selected === undefined) return <div className="tb-empty">{t("chooseProject")}</div>
-    if (state.status === "error") {
-      return <div className="tb-empty">{t("boardFailed", { message: state.error?.message })}</div>
-    }
-    return <div className="tb-empty">{t("loading")}</div>
-  })()
+  const view = pageView(list, state)
+  const notice = noticeView(list, state, actionError, t)
 
   return (
-    <div className="tb-page">
-      <header className="tb-header">
-        <div className="tb-heading">
-          <h1 className="tb-title">{t("title")}</h1>
-          {selected === undefined ? null : <p className="tb-project-path">{selected}</p>}
-        </div>
-        <label className="tb-project-picker">
-          <span>{t("project")}</span>
-          <select
-            value={pickerValue}
-            aria-label={t("project")}
-            disabled={list.status !== "ready" || list.items.length === 0}
-            onChange={(event) => {
-              projects.select(event.target.value === "" ? undefined : event.target.value)
-            }}
-          >
-            <option value="">{t("chooseProject")}</option>
-            {list.items.map((project) => (
-              <option key={project.path} value={project.path}>
-                {project.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className="tb-refresh"
-          onClick={() => {
-            setListKey((value) => value + 1)
-          }}
-        >
-          {t("reload")}
-        </button>
-      </header>
-      {messages.length === 0 ? null : (
-        <div className="tb-notices" role="alert">
-          {messages.map((message) => (
-            <p key={message}>{message}</p>
-          ))}
-          {state.status === "error" ? (
-            <button type="button" onClick={retryBoard}>
-              {t("retry")}
-            </button>
-          ) : null}
-        </div>
+    <div className="tb-page" ref={page}>
+      <div className="tb-main">
+        <BoardHeader
+          project={projectOf(list.items, selected)}
+          projects={list.items}
+          loading={list.status === "loading"}
+          t={t}
+          onSelect={(path) => projects.select(path)}
+        />
+        {notice === undefined ? null : <Notice notice={notice} t={t} onRetry={retry} />}
+        {view.kind === "loading" ? <BoardSkeleton /> : null}
+        {view.kind === "noProjects" ? <EmptyState title={t("noProjects")} /> : null}
+        {view.kind === "board" && boardActions !== undefined ? (
+          <BoardView
+            snapshot={view.snapshot}
+            actions={boardActions}
+            openNumber={openCard?.number}
+            t={t}
+            onOpenCard={(number) => setOpenNumber(number)}
+          />
+        ) : null}
+      </div>
+      {openCard === undefined || snapshot === undefined || cardActions === undefined ? null : (
+        <CardPanel
+          key={openCard.number}
+          card={openCard}
+          columns={snapshot.board.columns}
+          t={t}
+          locale={locale}
+          now={now}
+          actions={cardActions}
+          onClose={closePanel}
+        />
       )}
-      {list.status === "loading" && snapshot === undefined ? (
-        <p className="tb-muted">{t("loadingProjects")}</p>
-      ) : null}
-      {body}
     </div>
   )
 }

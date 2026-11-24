@@ -137,7 +137,16 @@ export interface SlotsService {
   register(options: SlotRegistration, component: ComponentType<any>): () => void
 }
 
-export interface LocaleService {
+export interface LocaleSnapshot {
+  readonly active: string
+}
+
+export interface LocaleSource {
+  getSnapshot(): LocaleSnapshot
+  subscribe(listener: () => void): () => void
+}
+
+export interface LocaleService extends LocaleSource {
   register(namespace: string, dicts: Record<string, Record<string, string>>): () => void
   bind(namespace: string): Translate
 }

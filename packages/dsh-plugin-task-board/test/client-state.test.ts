@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest"
 import { createBoardStore } from "../src/client/state/board"
+import { createProjectListStore } from "../src/client/state/project-list"
 import {
   createProjectStore,
   PROJECT_STORAGE_KEY,
   type StorageLike,
 } from "../src/client/state/projects"
-import { PROJECT, SNAPSHOT } from "./client-support"
+import { OTHER_PROJECT, PROJECT, SNAPSHOT } from "./client-support"
 
 function fakeStorage(initial: Record<string, string> = {}): StorageLike & {
   values: Record<string, string>
@@ -147,5 +148,50 @@ describe("board store", () => {
       snapshot: undefined,
       error: undefined,
     })
+  })
+})
+describe("project list store", () => {
+  it("starts loading", () => {
+    expect(createProjectListStore().getSnapshot()).toEqual({
+      status: "loading",
+      items: [],
+      requestedFor: undefined,
+    })
+  })
+
+  it("remembers the selection a request was made for and receives the list", () => {
+    const store = createProjectListStore()
+    const request = store.request(PROJECT.path)
+    expect(store.getSnapshot()).toMatchObject({ status: "loading", requestedFor: PROJECT.path })
+    store.resolve(request, { status: "ok", value: [PROJECT] })
+    expect(store.getSnapshot()).toEqual({
+      status: "ready",
+      items: [PROJECT],
+      requestedFor: PROJECT.path,
+    })
+  })
+
+  it("keeps the known projects while it reloads and when it fails", () => {
+    const store = createProjectListStore()
+    store.resolve(store.request(undefined), { status: "ok", value: [PROJECT] })
+    const request = store.request(OTHER_PROJECT.path)
+    expect(store.getSnapshot()).toMatchObject({ status: "loading", items: [PROJECT] })
+    store.resolve(request, { status: "error", error: { code: "transport", message: "down" } })
+    expect(store.getSnapshot()).toEqual({
+      status: "error",
+      items: [PROJECT],
+      message: "down",
+      requestedFor: OTHER_PROJECT.path,
+    })
+  })
+
+  it("ignores the answer to an older request", () => {
+    const store = createProjectListStore()
+    const first = store.request(undefined)
+    const second = store.request(PROJECT.path)
+    store.resolve(first, { status: "ok", value: [OTHER_PROJECT] })
+    expect(store.getSnapshot().status).toBe("loading")
+    store.resolve(second, { status: "ok", value: [PROJECT] })
+    expect(store.getSnapshot().items).toEqual([PROJECT])
   })
 })
