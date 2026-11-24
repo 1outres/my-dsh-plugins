@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Task board",
+    "description": "Adds a task board to each project. Write cards with a title and a description, send one to the agent with /task, and the agent can comment on the card and move it between columns. Sessions in a git worktree share the board of the main checkout."
+  }
+}

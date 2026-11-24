@@ -34,6 +34,8 @@
       name: "@1outres/dsh-plugin-restart"
     - id: advisor
       name: "@1outres/dsh-plugin-advisor"
+    - id: task-board
+      name: "@1outres/dsh-plugin-task-board"
 
 # An override replaces the row's whole config, so both fields are listed.
 - id: web

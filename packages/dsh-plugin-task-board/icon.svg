@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Task board</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#65A30D"/>
+  <rect x="13" y="14" width="11" height="36" rx="3" fill="#FFFFFF" fill-opacity="0.95"/>
+  <rect x="26.5" y="14" width="11" height="28" rx="3" fill="#FFFFFF" fill-opacity="0.95"/>
+  <rect x="40" y="14" width="11" height="20" rx="3" fill="#FFFFFF" fill-opacity="0.95"/>
+  <rect x="15.5" y="17" width="6" height="5" rx="1.5" fill="#65A30D"/>
+  <rect x="15.5" y="25" width="6" height="5" rx="1.5" fill="#65A30D"/>
+  <rect x="15.5" y="33" width="6" height="5" rx="1.5" fill="#65A30D"/>
+  <rect x="29" y="17" width="6" height="5" rx="1.5" fill="#65A30D"/>
+  <rect x="29" y="25" width="6" height="5" rx="1.5" fill="#65A30D"/>
+  <path d="M43 21.5l2 2 3.5-3.5" stroke="#65A30D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
