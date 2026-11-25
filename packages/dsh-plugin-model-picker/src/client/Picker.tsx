@@ -3,6 +3,7 @@ import {
   type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type Ref,
   useCallback,
   useEffect,
   useId,
@@ -40,6 +41,8 @@ import {
 } from "./model"
 import { isCoarsePointer, type MenuPlacement, placeMenu, viewBoxOf } from "./placement"
 import type { RecentStore } from "./recent"
+import { TeamRow } from "./TeamRow"
+import type { ModelSelectionProjection, TeamModeProjection, TeamModeStore } from "./team"
 import type {
   ModelDirectoryState,
   ModelRef,
@@ -65,7 +68,69 @@ export interface PickerProps {
   recent: RecentStore
   /** The level last used with each model, restored when switching back. */
   efforts: EffortStore
+  /** Saves the Agent teamwork selection while the Host offers it. */
+  team?: TeamModeStore
+  /** Standard Session-scope props of the slot runtime. */
+  sessionId?: string
+  useProjection?: (key: string) => unknown
+  useSessions?: <T>(selector: (state: SessionsListState) => T) => T
   t: Translate
+}
+
+/** The slice of the Session list snapshot the picker reads. */
+export interface SessionsListState {
+  byId: Readonly<Record<string, { origin?: string } | undefined>>
+}
+
+interface TeamSectionProps {
+  sessionId: string
+  team: TeamModeStore
+  useProjection: (key: string) => unknown
+  useSessions: PickerProps["useSessions"]
+  locked: boolean
+  reportFailure: (message: string) => void
+  switchRef: Ref<HTMLButtonElement>
+  onKeyDown: (event: ReactKeyboardEvent) => void
+  t: Translate
+}
+
+/**
+ * The Agent teamwork switch the shipped menu shows through
+ * `conversation.input.model.options`. That slot is declared by the shipped
+ * selector, so only it can render the slot; the picker draws the switch
+ * itself. Shown for root Sessions while `@deepseek-ai/dsh-agent-team` is up.
+ */
+function TeamSection(props: TeamSectionProps) {
+  const {
+    sessionId,
+    team,
+    useProjection,
+    useSessions,
+    locked,
+    reportFailure,
+    switchRef,
+    onKeyDown,
+    t,
+  } = props
+  const save = useObservable(team)
+  const mode = useProjection("agentTeam") as TeamModeProjection | undefined
+  const modelSelection = useProjection("modelSelection") as ModelSelectionProjection | undefined
+  const listedChild =
+    useSessions?.((state) => state.byId[sessionId]?.origin === "subagent") ?? false
+  if (save === null || mode === undefined || listedChild) return null
+  return (
+    <TeamRow
+      sessionId={sessionId}
+      mode={mode}
+      modelSelection={modelSelection}
+      save={save}
+      locked={locked}
+      reportFailure={reportFailure}
+      switchRef={switchRef}
+      onKeyDown={onKeyDown}
+      t={t}
+    />
+  )
 }
 
 interface PickerRow {
@@ -149,6 +214,7 @@ function PickerToast(props: { text: string; anchor: Element | null; onDone: () =
  */
 export function ModelPicker(props: PickerProps) {
   const { locked, available, directory, load, select, favorites, recent, efforts, t } = props
+  const { team, sessionId, useProjection, useSessions } = props
   const state = useObservable(directory)
   const favoriteRefs = useObservable(favorites)
   const recentRefs = useObservable(recent)
@@ -171,6 +237,8 @@ export function ModelPicker(props: PickerProps) {
   const searchRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLFieldSetElement>(null)
+  const teamRef = useRef<HTMLDivElement>(null)
+  const teamSwitchRef = useRef<HTMLButtonElement>(null)
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([])
   const chipRefs = useRef<(HTMLButtonElement | null)[]>([])
   const id = useId()
@@ -355,7 +423,22 @@ export function ModelPicker(props: PickerProps) {
   const focusEffort = () => {
     const chips = chipRefs.current.filter((chip): chip is HTMLButtonElement => chip !== null)
     const checked = chips.find((chip) => chip.getAttribute("aria-pressed") === "true")
-    ;(checked ?? chips[0])?.focus()
+    const target = checked ?? chips[0]
+    if (target !== undefined) target.focus()
+    else focusTeam()
+  }
+
+  /** Move to the Agent teamwork switch, or back to search when there is none. */
+  const focusTeam = () => {
+    const toggle = teamSwitchRef.current
+    if (toggle !== null && !toggle.disabled) toggle.focus()
+    else searchRef.current?.focus()
+  }
+
+  const onTeamKeyDown = (event: ReactKeyboardEvent) => {
+    if (event.nativeEvent.isComposing || event.key !== "Tab") return
+    event.preventDefault()
+    searchRef.current?.focus()
   }
 
   // Close on a press outside the trigger and the menu. Pointer events also
@@ -516,6 +599,7 @@ export function ModelPicker(props: PickerProps) {
     const target = event.target as Node
     if (menuRef.current?.contains(target) !== true) return
     if (footerRef.current?.contains(target) === true) return
+    if (teamRef.current?.contains(target) === true) return
     const move = (delta: number, wrap: boolean) => {
       event.preventDefault()
       if (rows.length > 0) highlight(stepIndex(activeIndex, delta, rows.length, wrap))
@@ -589,7 +673,7 @@ export function ModelPicker(props: PickerProps) {
         return
       case "Tab":
         event.preventDefault()
-        searchRef.current?.focus()
+        focusTeam()
         return
     }
   }
@@ -905,6 +989,21 @@ export function ModelPicker(props: PickerProps) {
                   })}
                 </div>
               </fieldset>
+            )}
+            {team !== undefined && sessionId !== undefined && useProjection !== undefined && (
+              <div ref={teamRef} className="dsh-mp-team-section">
+                <TeamSection
+                  sessionId={sessionId}
+                  team={team}
+                  useProjection={useProjection}
+                  useSessions={useSessions}
+                  locked={locked || busy}
+                  reportFailure={showToast}
+                  switchRef={teamSwitchRef}
+                  onKeyDown={onTeamKeyDown}
+                  t={t}
+                />
+              </div>
             )}
           </div>,
           document.body,

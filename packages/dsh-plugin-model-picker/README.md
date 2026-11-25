@@ -40,20 +40,28 @@ it.
   remembers the level you last used with it, so switching back restores it.
   A model without a remembered level keeps the current one when it offers
   it, and otherwise falls back to its own default.
+- **Enable agent teamwork**: the switch under the Effort row, shown in root
+  Sessions while `@deepseek-ai/dsh-agent-team` is loaded. It is the switch of
+  the shipped menu: it saves the Session's Agent teamwork selection and shows
+  the saved value. Turning it off in a Session that has already run asks
+  first, inside the menu, because the shared task tools and the team
+  instructions leave every later request.
 
 Each row shows a check for the current model, the model name, and the model
 id when it differs from the name.
 
-| Key                     | Action                                               |
-| ----------------------- | ---------------------------------------------------- |
-| `↑` `↓`                 | Move the highlight (wraps around)                    |
-| `PageUp` `PageDown`     | Move by one page                                     |
-| `Home` `End`            | First or last model                                  |
-| `Enter`                 | Select the highlighted model                         |
-| `Ctrl+D` / `⌘D`         | Add or remove the highlighted model from favorites   |
-| `Tab`                   | Move to the Effort row; `←` `→` choose, `Enter` sets |
-| `Shift+Tab` (in search) | Close                                                |
-| `Esc`                   | Close and return focus to the model button           |
+| Key                     | Action                                             |
+| ----------------------- | -------------------------------------------------- |
+| `↑` `↓`                 | Move the highlight (wraps around)                  |
+| `PageUp` `PageDown`     | Move by one page                                   |
+| `Home` `End`            | First or last model                                |
+| `Enter`                 | Select the highlighted model                       |
+| `Ctrl+D` / `⌘D`         | Add or remove the highlighted model from favorites |
+| `Tab`                   | Search → Effort row → teamwork switch → search     |
+| `←` `→` (Effort row)    | Choose a level; `Enter` sets it                    |
+| `Space` (switch)        | Turn agent teamwork on or off                      |
+| `Shift+Tab` (in search) | Close                                              |
+| `Esc`                   | Close and return focus to the model button         |
 
 `Ctrl+D` replaces the browser's bookmark shortcut only while the menu is open.
 
@@ -95,7 +103,13 @@ stays saved, and comes back when the provider does.
    load failures.
 3. A selection applies from the Session's next request, like the shipped
    selector, and the Host also saves it as the default for new Sessions.
-4. The host half only declares the `favorites` schema and turns off the
+4. The shipped menu shows Agent teamwork through the
+   `conversation.input.model.options` slot. Only the entry that declares a slot
+   can render it, and the shipped selector declares this one, so the picker
+   draws the switch itself. It reads the Session's `agentTeam` and
+   `modelSelection` projections and saves through `remote.agentTeams`, like
+   `@deepseek-ai/dsh-client-ui-agent-team`.
+5. The host half only declares the `favorites` schema and turns off the
    generated Settings page.
 
 The picker copies the shipped selector's trigger, compact icon display, locked
@@ -109,6 +123,8 @@ only theme tokens with the host.
   that slot belongs to the shipped selector, which stays registered underneath.
   Each name keeps the `data-provider-id` and `data-model-id` attributes, so
   attribute-based CSS still applies.
+- Other plugins' `conversation.input.model.options` rows are not shown, for
+  the same reason. Agent teamwork is the exception, drawn by the picker.
 - `ctx.modelDirectories` is not a catalogued Harness service. If a Harness
   update removes it, the plugin stays inactive and the shipped selector is
   shown.

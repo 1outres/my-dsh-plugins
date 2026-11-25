@@ -3,6 +3,7 @@ import { CONFIG_NAMESPACE } from "../src/client/config"
 import type { EffortStore } from "../src/client/efforts"
 import { apply, inject, SEAT, SEAT_PRIORITY } from "../src/client/index"
 import { ModelPicker } from "../src/client/Picker"
+import type { TeamModeStore } from "../src/client/team"
 import type {
   ClientContext,
   ModelDirectoryLike,
@@ -63,8 +64,9 @@ const directoryState: ModelDirectoryState = {
   error: null,
 }
 
-function createHarness(options: { subagents?: string[] } = {}) {
+function createHarness(options: { subagents?: string[]; agentTeams?: boolean } = {}) {
   const effects: (() => void)[] = []
+  const teamCalls: [string, boolean][] = []
   const registrations: { options: Record<string, unknown>; component: unknown }[] = []
   const injected: string[] = []
   const locales: string[] = []
@@ -142,6 +144,18 @@ function createHarness(options: { subagents?: string[] } = {}) {
         subagents.has(sessionId) ? { sessionId } : undefined,
     },
     modelDirectories: { directoryFor },
+    remote: {
+      agentTeams: {
+        setEnabled: async (sessionId: string, enabled: boolean) => {
+          teamCalls.push([sessionId, enabled])
+          return { ok: true, value: undefined }
+        },
+      },
+    },
+    inject: (deps: string[], callback: (scope: unknown) => void) => {
+      if (deps.includes("remote.agentTeams") && options.agentTeams !== true) return
+      callback(ctx)
+    },
   }
 
   return {
@@ -152,6 +166,7 @@ function createHarness(options: { subagents?: string[] } = {}) {
     formListeners,
     loads,
     selections,
+    teamCalls,
     dispose() {
       for (const dispose of effects.reverse()) dispose()
     },
@@ -166,6 +181,7 @@ type Face = {
   favorites: { getSnapshot(): unknown }
   recent: { getSnapshot(): unknown }
   efforts: EffortStore
+  team: TeamModeStore
 }
 
 function faceOf(harness: ReturnType<typeof createHarness>, sessionId: string): Face {
@@ -231,6 +247,25 @@ describe("model-picker client half", () => {
     await expect(face.select({ provider: "p", model: "m" })).resolves.toBeUndefined()
     expect(harness.loads).toEqual([])
     expect(harness.selections).toEqual([])
+  })
+
+  it("offers no Agent teamwork switch without the agent-team remote face", () => {
+    const harness = createHarness()
+    apply(harness.ctx)
+
+    expect(faceOf(harness, "s1").team.getSnapshot()).toBeNull()
+  })
+
+  it("saves the Agent teamwork selection through the agent-team remote face", async () => {
+    const harness = createHarness({ agentTeams: true })
+    apply(harness.ctx)
+
+    const { team } = faceOf(harness, "s1")
+    await expect(team.getSnapshot()?.("s1", true)).resolves.toBeNull()
+    expect(harness.teamCalls).toEqual([["s1", true]])
+
+    harness.dispose()
+    expect(team.getSnapshot()).toBeNull()
   })
 
   it("registers its dictionary and stylesheet and removes everything on teardown", () => {

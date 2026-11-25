@@ -5,6 +5,7 @@ import { en, ja } from "./i18n"
 import { ModelPicker } from "./Picker"
 import { createRecentStore, type StorageEventTarget, type StorageLike } from "./recent"
 import { PICKER_CSS } from "./styles"
+import { createTeamModeStore } from "./team"
 import type { ClientContext, ModelPickerConfig, ModelSelection } from "./types"
 
 /**
@@ -73,6 +74,14 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => recent.connect(), "model-picker: recent models")
   ctx.effect(() => efforts.connect(), "model-picker: per-model efforts")
 
+  // The shipped menu shows the Agent teamwork switch through a slot only the
+  // shipped selector can render, so the picker saves the selection itself
+  // while `@deepseek-ai/dsh-agent-team` offers its remote face.
+  const team = createTeamModeStore()
+  ctx.inject(["remote", "remote.agentTeams"], (scope) => {
+    scope.effect(() => team.connect(scope.remote.agentTeams), "model-picker: agent teamwork")
+  })
+
   ctx.effect(
     () =>
       ctx.slots.inject(SEAT, () =>
@@ -95,6 +104,7 @@ export function apply(ctx: ClientContext): void {
                 favorites,
                 recent,
                 efforts,
+                team,
               }
             },
           },

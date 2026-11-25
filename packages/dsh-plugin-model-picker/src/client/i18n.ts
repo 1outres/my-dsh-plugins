@@ -27,6 +27,17 @@ export const en: Record<string, string> = {
   "error.favorites": "Favorites could not be saved.",
   "warning.groupLoad": "{name} failed to load: {message}",
   retry: "Retry",
+  "team.label": "Enable agent teamwork",
+  "team.description":
+    "Coordinate work and progress across agents with a shared task board for better results on complex tasks, with correspondingly higher token costs.",
+  "team.failed": "Could not confirm the agent teamwork setting was saved. Try again: {message}",
+  "team.disable.title": "Disable agent teamwork?",
+  "team.disable.description":
+    "Disabling agent teamwork during a conversation stops the use of shared task tools and team coordination instructions.",
+  "team.disable.warning":
+    "Disabling it may affect cache reuse, increase subsequent token usage and costs, and affect collaboration on the current task.",
+  "team.disable.cancel": "Cancel",
+  "team.disable.confirm": "Disable",
 }
 
 export const ja: Record<string, string> = {
@@ -57,4 +68,16 @@ export const ja: Record<string, string> = {
   "error.favorites": "お気に入りを保存できませんでした。",
   "warning.groupLoad": "{name} を読み込めませんでした: {message}",
   retry: "再試行",
+  "team.label": "エージェント連携を有効にする",
+  "team.description":
+    "共有タスクボードで複数のエージェントの分担と進捗を調整します。複雑なタスクでより良い結果が得られますが、その分トークンのコストも高くなります。",
+  "team.failed":
+    "エージェント連携の設定が保存されたことを確認できませんでした。もう一度試してください: {message}",
+  "team.disable.title": "エージェント連携を無効にしますか？",
+  "team.disable.description":
+    "会話の途中でエージェント連携を無効にすると、共有タスクのツールとチーム連携の指示が使われなくなります。",
+  "team.disable.warning":
+    "無効にすると、キャッシュの再利用に影響し、その後のトークン使用量やコストが増えることがあります。いまのタスクでの連携にも影響することがあります。",
+  "team.disable.cancel": "キャンセル",
+  "team.disable.confirm": "無効にする",
 }

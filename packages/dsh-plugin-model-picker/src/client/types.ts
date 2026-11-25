@@ -1,4 +1,5 @@
 import type { ComponentType } from "react"
+import type { AgentTeamsRemote } from "./team"
 
 /** A provider/model pair. The pair, never a joined string, identifies a model: ids may contain `/`. */
 export interface ModelRef {
@@ -133,9 +134,18 @@ export interface SlotsService {
   register(options: SlotRegistration, component: ComponentType<any>): () => void
 }
 
+/** The Host remote faces the picker reaches. */
+export interface RemoteFaces {
+  /** Present while `@deepseek-ai/dsh-agent-team` is mounted. */
+  agentTeams: AgentTeamsRemote
+}
+
 /** The slice of the browser Cordis context this plugin uses. */
 export interface ClientContext {
   effect(effect: () => (() => void) | undefined, label?: string): void
+  /** Run `callback` in a scope that lives while every named service is up. */
+  inject(deps: string[], callback: (scope: ClientContext) => void): void
+  remote: RemoteFaces
   slots: SlotsService
   locale: LocaleService
   configForms: ConfigFormsService
