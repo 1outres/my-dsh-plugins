@@ -45,7 +45,8 @@ it.
   the shipped menu: it saves the Session's Agent teamwork selection and shows
   the saved value. Turning it off in a Session that has already run asks
   first, inside the menu, because the shared task tools and the team
-  instructions leave every later request.
+  instructions leave every later request. The question takes the focus on
+  Cancel, and `Tab` moves to Disable.
 
 Each row shows a check for the current model, the model name, and the model
 id when it differs from the name.
@@ -57,7 +58,7 @@ id when it differs from the name.
 | `Home` `End`            | First or last model                                |
 | `Enter`                 | Select the highlighted model                       |
 | `Ctrl+D` / `⌘D`         | Add or remove the highlighted model from favorites |
-| `Tab`                   | Search → Effort row → teamwork switch → search     |
+| `Tab`                   | Search → Effort row → teamwork controls → search   |
 | `←` `→` (Effort row)    | Choose a level; `Enter` sets it                    |
 | `Space` (switch)        | Turn agent teamwork on or off                      |
 | `Shift+Tab` (in search) | Close                                              |

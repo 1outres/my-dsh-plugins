@@ -3,7 +3,6 @@ import {
   type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
-  type Ref,
   useCallback,
   useEffect,
   useId,
@@ -17,6 +16,7 @@ import { createPortal } from "react-dom"
 import { refKey } from "./config"
 import type { EffortStore } from "./efforts"
 import type { FavoritesStore } from "./favorites"
+import { nextFocusIndex } from "./focus"
 import {
   IconCheck,
   IconChevronDown,
@@ -89,7 +89,7 @@ interface TeamSectionProps {
   useSessions: PickerProps["useSessions"]
   locked: boolean
   reportFailure: (message: string) => void
-  switchRef: Ref<HTMLButtonElement>
+  restoreFocus: () => void
   onKeyDown: (event: ReactKeyboardEvent) => void
   t: Translate
 }
@@ -108,7 +108,7 @@ function TeamSection(props: TeamSectionProps) {
     useSessions,
     locked,
     reportFailure,
-    switchRef,
+    restoreFocus,
     onKeyDown,
     t,
   } = props
@@ -126,7 +126,7 @@ function TeamSection(props: TeamSectionProps) {
       save={save}
       locked={locked}
       reportFailure={reportFailure}
-      switchRef={switchRef}
+      restoreFocus={restoreFocus}
       onKeyDown={onKeyDown}
       t={t}
     />
@@ -238,7 +238,6 @@ export function ModelPicker(props: PickerProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLFieldSetElement>(null)
   const teamRef = useRef<HTMLDivElement>(null)
-  const teamSwitchRef = useRef<HTMLButtonElement>(null)
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([])
   const chipRefs = useRef<(HTMLButtonElement | null)[]>([])
   const id = useId()
@@ -428,17 +427,26 @@ export function ModelPicker(props: PickerProps) {
     else focusTeam()
   }
 
-  /** Move to the Agent teamwork switch, or back to search when there is none. */
+  const teamControls = () =>
+    Array.from(teamRef.current?.querySelectorAll("button") ?? []).filter(
+      (control) => !control.disabled,
+    )
+
+  /** Move to the first Agent teamwork control, or back to search when there is none. */
   const focusTeam = () => {
-    const toggle = teamSwitchRef.current
-    if (toggle !== null && !toggle.disabled) toggle.focus()
+    const first = teamControls()[0]
+    if (first !== undefined) first.focus()
     else searchRef.current?.focus()
   }
 
   const onTeamKeyDown = (event: ReactKeyboardEvent) => {
     if (event.nativeEvent.isComposing || event.key !== "Tab") return
     event.preventDefault()
-    searchRef.current?.focus()
+    const controls = teamControls()
+    const current = controls.indexOf(document.activeElement as HTMLButtonElement)
+    const next = nextFocusIndex(current, controls.length, event.shiftKey)
+    if (next === null) searchRef.current?.focus()
+    else controls[next]?.focus()
   }
 
   // Close on a press outside the trigger and the menu. Pointer events also
@@ -999,7 +1007,7 @@ export function ModelPicker(props: PickerProps) {
                   useSessions={useSessions}
                   locked={locked || busy}
                   reportFailure={showToast}
-                  switchRef={teamSwitchRef}
+                  restoreFocus={focusTeam}
                   onKeyDown={onTeamKeyDown}
                   t={t}
                 />

@@ -65,6 +65,7 @@ function render(overrides: Partial<TeamRowProps> = {}): string {
     save: async () => null,
     locked: false,
     reportFailure: () => {},
+    restoreFocus: () => {},
     t: (key) => key,
     ...overrides,
   }
