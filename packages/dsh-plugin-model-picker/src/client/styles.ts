@@ -58,7 +58,7 @@ export const PICKER_CSS = [
   ".dsh-mp-chip-on{color:var(--dsw-alias-label-primary);background:var(--dsw-alias-interactive-bg-hover);font-weight:500}",
   ".dsh-mp-chip:disabled{color:var(--dsw-alias-label-dimmed);cursor:default}",
   ".dsh-mp-team-section{display:contents}",
-  ".dsh-mp-team{flex:none;display:flex;align-items:center;gap:8px;min-width:0;margin:3px 0 0;padding:6px 7px 3px;border-top:.5px solid var(--dsw-alias-border-l2);font-size:12px;line-height:16px}",
+  ".dsh-mp-team{flex:none;display:flex;outline:none;align-items:center;gap:8px;min-width:0;margin:3px 0 0;padding:6px 7px 3px;border-top:.5px solid var(--dsw-alias-border-l2);font-size:12px;line-height:16px}",
   ".dsh-mp-team-label{flex:1;min-width:0;color:var(--dsw-alias-label-secondary);text-overflow:ellipsis;white-space:nowrap;overflow:hidden}",
   ".dsh-mp-switch{position:relative;flex:none;width:30px;height:18px;padding:0;border:none;border-radius:9px;background:var(--dsw-alias-border-l2);cursor:pointer;outline:none;transition:background .12s}",
   ".dsh-mp-switch-on{background:var(--dsw-alias-state-business-primary)}",

@@ -1,4 +1,4 @@
-import { type KeyboardEvent as ReactKeyboardEvent, type Ref, useState } from "react"
+import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from "react"
 import { Spinner } from "./icons"
 import {
   type ModelSelectionProjection,
@@ -19,8 +19,8 @@ export interface TeamRowProps {
   locked: boolean
   /** Show a failure in the picker's toast. */
   reportFailure: (message: string) => void
-  /** The switch, for the menu's Tab order. */
-  switchRef?: Ref<HTMLButtonElement>
+  /** Move focus back into the menu when the confirmation closes and takes it away. */
+  restoreFocus: () => void
   onKeyDown?: (event: ReactKeyboardEvent) => void
   t: Translate
 }
@@ -31,13 +31,52 @@ export interface TeamRowProps {
  * asks before turning teamwork off in a Session that has already run.
  */
 export function TeamRow(props: TeamRowProps) {
-  const { sessionId, mode, modelSelection, save, locked, reportFailure, switchRef, onKeyDown, t } =
-    props
+  const {
+    sessionId,
+    mode,
+    modelSelection,
+    save,
+    locked,
+    reportFailure,
+    restoreFocus,
+    onKeyDown,
+    t,
+  } = props
   const [pending, setPending] = useState(false)
   const [confirming, setConfirming] = useState(false)
+  const rowRef = useRef<HTMLDivElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  const shownConfirmation = useRef(false)
+  const restore = useRef(restoreFocus)
+  restore.current = restoreFocus
+  const showConfirmation = confirming && mode.enabled
+
+  useEffect(() => {
+    const wasShown = shownConfirmation.current
+    shownConfirmation.current = showConfirmation
+    if (showConfirmation) {
+      cancelRef.current?.focus()
+      return
+    }
+    if (!wasShown) return
+    const active = document.activeElement
+    if (active === null || active === document.body || active === rowRef.current) {
+      restore.current()
+    }
+  }, [showConfirmation])
+
+  const holdFocus = () => {
+    const row = rowRef.current
+    if (row?.contains(document.activeElement) === true) row.focus()
+  }
+
+  const changeConfirming = (next: boolean) => {
+    holdFocus()
+    setConfirming(next)
+  }
 
   const submit = (enabled: boolean) => {
-    setConfirming(false)
+    changeConfirming(false)
     setPending(true)
     save(sessionId, enabled)
       .then(
@@ -57,15 +96,17 @@ export function TeamRow(props: TeamRowProps) {
 
   const press = () => {
     const next = !mode.enabled
-    if (teamToggleAction(next, modelSelection) === "confirm") setConfirming(true)
+    if (teamToggleAction(next, modelSelection) === "confirm") changeConfirming(true)
     else submit(next)
   }
 
   const disabled = locked || pending || modelSelection === undefined
 
-  if (confirming && mode.enabled) {
+  if (showConfirmation) {
     return (
       <div
+        ref={rowRef}
+        tabIndex={-1}
         className="dsh-mp-team dsh-mp-team-confirm"
         role="alertdialog"
         aria-label={t("team.disable.title")}
@@ -77,11 +118,12 @@ export function TeamRow(props: TeamRowProps) {
         </p>
         <div className="dsh-mp-team-actions">
           <button
+            ref={cancelRef}
             type="button"
             className="dsh-mp-team-action"
             onKeyDown={onKeyDown}
             onClick={() => {
-              setConfirming(false)
+              changeConfirming(false)
             }}
           >
             {t("team.disable.cancel")}
@@ -103,11 +145,10 @@ export function TeamRow(props: TeamRowProps) {
   }
 
   return (
-    <div className="dsh-mp-team" title={t("team.description")}>
+    <div ref={rowRef} tabIndex={-1} className="dsh-mp-team" title={t("team.description")}>
       <span className="dsh-mp-team-label">{t("team.label")}</span>
       {pending && <Spinner size={12} />}
       <button
-        ref={switchRef}
         type="button"
         role="switch"
         aria-checked={mode.enabled}
