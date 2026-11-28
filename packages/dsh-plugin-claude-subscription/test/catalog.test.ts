@@ -19,6 +19,7 @@ const PINNED_ROUTES = {
   "claude-opus-5-5[1m]": 1_000_000,
   "claude-opus-5[1m]": 1_000_000,
   "claude-opus-4-8[1m]": 1_000_000,
+  "claude-fable-5-2[1m]": 1_000_000,
   "claude-fable-5-1[1m]": 1_000_000,
 }
 

@@ -13,6 +13,7 @@ export const CONTEXT_WINDOWS: Readonly<Record<string, number>> = {
   "claude-opus-5-5": LONG_CONTEXT_WINDOW,
   "claude-opus-5": LONG_CONTEXT_WINDOW,
   "claude-opus-4-8": LONG_CONTEXT_WINDOW,
+  "claude-fable-5-2": LONG_CONTEXT_WINDOW,
   "claude-fable-5-1": LONG_CONTEXT_WINDOW,
   "claude-mythos-5-1": LONG_CONTEXT_WINDOW,
 }
